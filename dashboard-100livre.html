@@ -1287,8 +1287,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 <script type="importmap">
 {
   "imports": {
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js": "/firebase/firebase-app.js",
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js": "/firebase/firebase-firestore.js"
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js": "./firebase/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js": "./firebase/firebase-firestore.js"
   }
 }
 </script>
@@ -1306,8 +1306,8 @@ setTimeout(function() {
 
 <!-- Firebase Modular SDK -->
 <script type="module">
-import { initializeApp }                    from '/firebase/firebase-app.js';
-import { getFirestore, collection, onSnapshot, query, where, getDocs, getDoc, doc } from '/firebase/firebase-firestore.js';
+import { initializeApp }                    from './firebase/firebase-app.js';
+import { getFirestore, collection, onSnapshot, query, where, getDocs, getDoc, doc } from './firebase/firebase-firestore.js';
 
 // ── Firebase init ──────────────────────────────────────────────────
 const app = initializeApp({
