@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morango Indoor — Sprout Holdings</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root{
+  --bg:#080d16;--s1:#0f1824;--s2:#162030;--s3:#1d2a3d;
+  --bdr:#1d2d42;--bdr2:#243347;
+  --red:#ff4757;--green:#22c55e;--green-d:#1A7A4A;
+  --amber:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6;
+  --pink:#ec4899;--teal:#14b8a6;
+  --text:#e8f0fe;--muted:#64748b;--muted2:#94a3b8;
+  --mono:'IBM Plex Mono',monospace;--sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+
+/* NAV */
+.nav{display:flex;align-items:center;gap:6px;padding:12px 24px;background:#060d15;border-bottom:1px solid var(--bdr);}
+.nav-logo{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--green);letter-spacing:2px;margin-right:16px;}
+.nav-tab{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted2);transition:all .2s;font-family:var(--sans);}
+.nav-tab.active{background:var(--green-d);color:#fff;}
+.nav-tab:hover:not(.active){background:var(--s2);color:var(--text);}
+.nav-badge{margin-left:auto;font-size:9px;font-weight:700;color:var(--pink);border:1px solid var(--pink);padding:2px 8px;border-radius:3px;font-family:var(--mono);letter-spacing:1px;}
+
+/* LAYOUT */
+.tab{display:none;padding:20px 24px;max-width:1400px;}
+.tab.active{display:block;}
+
+/* CARDS */
+.card{background:var(--s1);border:0.5px solid var(--bdr);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.card-sm{background:var(--s1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px;}
+.section-lbl{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;gap:10px;margin-bottom:16px;}
+.kpi-grid-4{grid-template-columns:repeat(4,1fr);}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr);}
+.kpi-grid-2{grid-template-columns:repeat(2,1fr);}
+.kpi{background:var(--s1);border:0.5px solid var(--bdr);border-radius:8px;padding:14px 16px;}
+.kpi.highlight{border-color:var(--green);}
+.kpi.warn{border-color:var(--amber);}
+.kpi-label{font-size:10px;color:var(--muted2);margin-bottom:5px;}
+.kpi-value{font-size:26px;font-weight:800;line-height:1;}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.green{color:var(--green);}
+.amber{color:var(--amber);}
+.pink{color:var(--pink);}
+.blue{color:var(--blue);}
+.muted{color:var(--muted2);}
+
+/* CHARTS */
+.chart-wrap{position:relative;height:220px;}
+.chart-wrap-lg{position:relative;height:300px;}
+.chart-title{font-size:12px;font-weight:600;margin-bottom:10px;}
+.chart-sub{font-size:11px;color:var(--muted2);margin-bottom:10px;}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.main-aside{display:grid;grid-template-columns:1fr 380px;gap:14px;}
+
+/* SUBSTRATE BARS */
+.sub-bar{margin-bottom:10px;}
+.sub-bar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.sub-bar-track{height:8px;background:var(--bdr);border-radius:4px;overflow:hidden;}
+.sub-bar-fill{height:100%;border-radius:4px;transition:width .6s;}
+
+/* SLIDER */
+.slider-field{margin-bottom:14px;}
+.slider-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted2);margin-bottom:6px;}
+.slider-val{font-family:var(--mono);color:var(--amber);font-weight:600;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;background:var(--bdr);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--amber);border-radius:50%;cursor:pointer;}
+
+/* TOGGLE */
+.toggle-grp{display:flex;gap:4px;margin-bottom:14px;}
+.toggle-btn{flex:1;padding:7px;border:0.5px solid var(--bdr);border-radius:6px;background:transparent;color:var(--muted2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--sans);}
+.toggle-btn.active{background:var(--green-d);border-color:var(--green-d);color:#fff;}
+
+/* BREAKEVEN */
+.be-result{background:var(--s2);border-radius:8px;padding:14px;margin-bottom:10px;}
+.be-val{font-size:28px;font-weight:900;line-height:1.1;}
+.be-label{font-size:11px;color:var(--muted2);margin-top:3px;}
+.be-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.be-item{background:var(--s3);border-radius:6px;padding:10px;text-align:center;}
+.be-item-val{font-size:16px;font-weight:700;}
+.be-item-label{font-size:10px;color:var(--muted2);margin-top:2px;}
+
+/* MARKET TABLE */
+.mkt-table{width:100%;border-collapse:collapse;}
+.mkt-table th{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:0.5px solid var(--bdr);}
+.mkt-table td{padding:9px 10px;font-size:12px;border-bottom:0.5px solid #ffffff06;}
+.mkt-table tr:last-child td{border-bottom:none;}
+.mkt-table tr.sprout td{background:#0d2418;}
+.mkt-table tr.sprout td:first-child{border-left:2px solid var(--green);}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;font-family:var(--mono);}
+.badge-green{background:#1A7A4A33;color:var(--green);}
+.badge-amber{background:#d9770633;color:var(--amber);}
+.badge-red{background:#ff475733;color:var(--red);}
+.badge-blue{background:#3b82f633;color:var(--blue);}
+
+/* BENCHMARK */
+.bench-col{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.bench-card{background:var(--s2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px;}
+.bench-card.sprout-card{border-color:var(--green);background:#0a1e10;}
+.bench-title{font-size:11px;font-weight:600;margin-bottom:8px;}
+.bench-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.bench-row .v{font-family:var(--mono);font-size:11px;}
+
+/* OBSERVATION */
+.obs{background:#0d1a0e;border-left:2px solid var(--green);border-radius:0 6px 6px 0;padding:10px 14px;font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:12px;}
+.obs strong{color:var(--text);}
+.obs .highlight{color:var(--green);font-weight:600;}
+
+/* HARVEST LIST */
+.h-pill{display:inline-block;background:var(--s2);border-radius:4px;padding:3px 8px;font-size:11px;margin-right:4px;margin-bottom:4px;font-family:var(--mono);}
+.h-pill.best{background:#0d2418;color:var(--green);border:0.5px solid var(--green-d);}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="nav-logo">🍓 SPROUT — MORANGO</span>
+  <button class="nav-tab active" onclick="showTab('exp',this)">📊 Experimento 13 Colheitas</button>
+  <button class="nav-tab" onclick="showTab('ipiranga',this)">🏭 Projeção Ipiranga</button>
+  <button class="nav-tab" onclick="showTab('mkt',this)">💰 Mercado & Breakeven</button>
+  <span class="nav-badge">CONFIDENCIAL</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TAB 1: EXPERIMENTO                                 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="tab-exp" class="tab active">
+
+  <div class="obs">
+    <strong>Resumo executivo — Experimento Osasco (Jan-Jun/2026):</strong>
+    158 plantas, 4 substratos, 13 colheitas.
+    Brix evoluiu de <span class="highlight">5,0° → 12,0°</span> em 13 colheitas.
+    Ajuste EC 2,50 em 11/Jun + stress hídrico <strong>acelerou a doçura</strong>. 
+    Planta 131 (Sala B, Fibra de Coco) atingiu <span class="highlight">12° na 13ª colheita</span> — nível de morango japonês premium.
+  </div>
+
+  <!-- KPIs topo -->
+  <div class="kpi-grid kpi-grid-4" style="margin-bottom:14px;">
+    <div class="kpi highlight">
+      <div class="kpi-label">Melhor Brix — 13ª Colheita</div>
+      <div class="kpi-value green">12,0°</div>
+      <div class="kpi-sub">Planta 131 · Sala B · Fibra Coco</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Brix Médio — 13ª Colheita</div>
+      <div class="kpi-value amber">9,5°</div>
+      <div class="kpi-sub">vs 5,0° na 1ª colheita · +90%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Colheitas Realizadas</div>
+      <div class="kpi-value blue">13</div>
+      <div class="kpi-sub">Jan → Jun/2026 · 14ª a caminho</div>
+    </div>
+    <div class="kpi warn">
+      <div class="kpi-label">Mortalidade Total</div>
+      <div class="kpi-value amber">21 plantas</div>
+      <div class="kpi-sub">13,3% de 158 · Maior: Sala B L3+L4</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- GRÁFICO BRIX -->
+    <div class="card">
+      <div class="section-lbl">Curva Brix — 13 Colheitas</div>
+      <div class="chart-wrap-lg">
+        <canvas id="chartBrix"></canvas>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;color:var(--muted2);">
+        <span>━ Brix Médio</span>
+        <span style="color:var(--green);">━ Brix Máximo</span>
+        <span style="color:var(--amber);border-top:1px dashed var(--amber);">- - Referência Premium (10°)</span>
+      </div>
+    </div>
+
+    <!-- GRÁFICO PESO + QUALIDADE -->
+    <div class="card">
+      <div class="section-lbl">Peso Médio por Colheita (g)</div>
+      <div class="chart-wrap">
+        <canvas id="chartPeso"></canvas>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="section-lbl">Qualidade — % Amostra vs Descarte</div>
+        <div class="chart-wrap" style="height:100px;">
+          <canvas id="chartQual"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANKING SUBSTRATO -->
+  <div class="two-col">
+    <div class="card">
+      <div class="section-lbl">Ranking por Substrato — Brix Máximo Atingido</div>
+      <div class="sub-bar">
+        <div class="sub-bar-label"><span>🥇 Fibra de Coco (L2 A / L3 B)</span><span class="green" style="font-family:var(--mono);font-weight:700;">12,0°</span></div>
+        <div class="sub-bar-track"><div class="sub-bar-fill" style="width:100%;background:linear-gradient(90deg,var(--green-d),var(--green));"></div></div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;">Planta 131 (12°) · Planta 35 (11,5°) · Planta 135 (10°) · Menor mortalidade em Sala A</div>
+      </div>
+      <div class="sub-bar" style="margin-top:12px;">
+        <div class="sub-bar-label"><span>🥈 Casca de Arroz Carbonizada (L1 / L4)</span><span class="amber" style="font-family:var(--mono);font-weight:700;">11,0°</span></div>
+        <div class="sub-bar-track"><div class="sub-bar-fill" style="width:91.7%;background:var(--amber);"></div></div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;">Planta 1 (11°) · Planta 21 (11°) · Alta produtividade em L4 (plantas 91-102)</div>
+      </div>
+      <div class="sub-bar" style="margin-top:12px;">
+        <div class="sub-bar-label"><span>🥉 Misto 50/50 (L3 A / L2 B)</span><span class="blue" style="font-family:var(--mono);font-weight:700;">10,0°</span></div>
+        <div class="sub-bar-track"><div class="sub-bar-fill" style="width:83.3%;background:var(--blue);"></div></div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;">Planta 55 (10°) · Balanceado, custo intermediário · Ipiranga usa 50/50 atualmente</div>
+      </div>
+      <div style="margin-top:16px;padding:10px;background:var(--s2);border-radius:6px;font-size:11px;color:var(--muted2);">
+        <strong style="color:var(--green);">Recomendação para escala:</strong> Fibra de Coco mostrou os maiores Brix e menor mortalidade em Sala A. Sala B L3+L4 tiveram problema de substrato seco na 12ª — monitorar irrigação na escala do Ipiranga. O custo da Fibra de Coco é maior, mas o Brix superior justifica no canal premium.
+      </div>
+    </div>
+
+    <!-- EC x BRIX -->
+    <div class="card">
+      <div class="section-lbl">EC × Brix — Correlação de Manejo</div>
+      <div class="chart-wrap">
+        <canvas id="chartEC"></canvas>
+      </div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="card-sm" style="border-left:2px solid #ec4899;">
+          <div style="font-size:10px;color:var(--muted2);">🔄 Troca de Solução</div>
+          <div style="font-size:13px;font-weight:700;color:#ec4899;">30/Abr · Data 46142</div>
+          <div style="font-size:10px;color:var(--muted2);">Fase vegetativa → fase produtiva · Frutos saltam para 20g+</div>
+        </div>
+        <div class="card-sm" style="border-left:2px solid var(--amber);">
+          <div style="font-size:10px;color:var(--muted2);">⚡ Ajuste EC 2,50</div>
+          <div style="font-size:13px;font-weight:700;color:var(--amber);">11/Jun · Data 46184</div>
+          <div style="font-size:10px;color:var(--muted2);">EC saltou de 2,0 → 2,50 · dispara concentração de açúcar</div>
+        </div>
+        <div class="card-sm" style="border-left:2px solid var(--blue);">
+          <div style="font-size:10px;color:var(--muted2);">💧 Stress Hídrico</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue);">17/Jun · Data 46190</div>
+          <div style="font-size:10px;color:var(--muted2);">Redução de fluxo → concentração de açúcares</div>
+        </div>
+        <div class="card-sm" style="border-left:2px solid var(--green);grid-column:1/-1;">
+          <div style="font-size:10px;color:var(--muted2);">🏆 Resultado do protocolo</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green);">12° Brix na 13ª Colheita (25/Jun)</div>
+          <div style="font-size:10px;color:var(--muted2);">30/Abr → Frutos grandes · 11/Jun → Brix dispara · 25/Jun → 12° máximo</div>
+        </div>
+      </div>
+
+      <!-- Top Brix por planta -->
+      <div style="margin-top:12px;">
+        <div style="font-size:10px;color:var(--muted2);margin-bottom:6px;font-family:var(--mono);letter-spacing:.8px;">TOP BRIX POR PLANTA</div>
+        <span class="h-pill best">P131 Sala B L3 12,0°</span>
+        <span class="h-pill best">P35 L2-A 11,5°</span>
+        <span class="h-pill best">P1 L1-A 11,0°</span>
+        <span class="h-pill best">P21 L1-A 11,0°</span>
+        <span class="h-pill" style="color:var(--amber);">P55 L3-A 10,0°</span>
+        <span class="h-pill" style="color:var(--amber);">P135 B-L3 10,0°</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TAB 2: PROJEÇÃO IPIRANGA                          -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="tab-ipiranga" class="tab">
+
+  <div class="obs">
+    <strong>Estrutura Ipiranga:</strong> 13 andares × 2 bandejas × <span id="obs-ppb">48</span> plantas = <span class="highlight"><span id="obs-ppt">1.248</span> plantas/torre</span>.
+    Mudas via estolão após ano 1 — custo próximo de zero.
+    Configuração atual: substrato 50/50 · pH 5,8-5,9 · EC 2,50 · ciclo contínuo.
+  </div>
+
+  <div class="main-aside">
+    <!-- PROJEÇÃO PRINCIPAL -->
+    <div>
+      <div class="card">
+        <div class="section-lbl">Projeção de Produção — Ipiranga</div>
+        <div class="chart-wrap-lg">
+          <canvas id="chartProj"></canvas>
+        </div>
+        <div id="proj-insight" style="margin-top:10px;font-size:12px;color:var(--muted2);"></div>
+      </div>
+
+      <!-- TABELA DE CENÁRIOS -->
+      <div class="card">
+        <div class="section-lbl">Cenários — 11 vs 33 Torres</div>
+        <div id="tabela-cenarios"></div>
+      </div>
+    </div>
+
+    <!-- CONTROLES -->
+    <div>
+      <div class="card">
+        <div class="section-lbl">Configuração</div>
+
+        <div class="section-lbl" style="margin-bottom:6px;">Torres ativas</div>
+        <div class="toggle-grp" id="toggle-torres">
+          <button class="toggle-btn" onclick="setTorres(1,this)">1</button>
+          <button class="toggle-btn active" onclick="setTorres(11,this)">11</button>
+          <button class="toggle-btn" onclick="setTorres(22,this)">22</button>
+          <button class="toggle-btn" onclick="setTorres(33,this)">33</button>
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-label">Plantas por bandeja <span class="slider-val" id="lbl-ppb">48 plantas</span></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="range" id="sl-ppb" min="4" max="120" step="4" value="48" style="flex:1;" oninput="document.getElementById('inp-ppb').value=this.value;calc()">
+            <input type="number" id="inp-ppb" min="1" max="999" step="1" value="48"
+              style="width:58px;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:var(--amber);font-family:var(--mono);font-size:13px;font-weight:600;text-align:center;"
+              oninput="document.getElementById('sl-ppb').value=Math.min(120,Math.max(4,+this.value||48));calc()">
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;">
+            <span>4 mín</span><span>48 atual</span><span>120 máx slider (ou digitar)</span>
+          </div>
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-label">Produtividade <span class="slider-val" id="lbl-prod">80 g/planta/mês</span></div>
+          <input type="range" id="sl-prod" min="30" max="150" step="5" value="80" oninput="calc()">
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;">
+            <span>30g conservador</span><span>80g esperado</span><span>150g excelente</span>
+          </div>
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-label">Preço 200g bandeja <span class="slider-val" id="lbl-preco">R$ 25,00</span></div>
+          <input type="range" id="sl-preco" min="8" max="40" step="1" value="25" oninput="calc()">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-label">% aproveitamento (não descarte) <span class="slider-val" id="lbl-apr">70%</span></div>
+          <input type="range" id="sl-apr" min="40" max="90" step="5" value="70" oninput="calc()">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-label">OPEX/torre/mês <span class="slider-val" id="lbl-opex">R$ 6.000</span></div>
+          <input type="range" id="sl-opex" min="2000" max="15000" step="500" value="6000" oninput="calc()">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-label">Custo muda (1ª instalação, R$/planta) <span class="slider-val" id="lbl-muda">R$ 2,10</span></div>
+          <input type="range" id="sl-muda" min="0" max="5" step="0.1" value="2.10" oninput="calc()">
+        </div>
+
+        <!-- KPIs resultado -->
+        <div class="kpi-grid kpi-grid-2" style="margin-top:4px;">
+          <div class="kpi highlight">
+            <div class="kpi-label">Receita/mês</div>
+            <div class="kpi-value green" id="res-receita">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Custo/mês</div>
+            <div class="kpi-value amber" id="res-custo">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">EBITDA/mês</div>
+            <div class="kpi-value" id="res-ebitda">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Margem</div>
+            <div class="kpi-value" id="res-margem">—</div>
+          </div>
+        </div>
+
+        <div style="background:var(--s2);border-radius:8px;padding:12px;margin-top:8px;">
+          <div style="font-size:10px;color:var(--muted2);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px;">BANDEJAS POR EMBALAGEM</div>
+          <div class="be-grid">
+            <div class="be-item">
+              <div class="be-item-val green" id="band150">—</div>
+              <div class="be-item-label">150g/mês</div>
+            </div>
+            <div class="be-item">
+              <div class="be-item-val green" id="band200">—</div>
+              <div class="be-item-label">200g/mês</div>
+            </div>
+            <div class="be-item">
+              <div class="be-item-val green" id="band250">—</div>
+              <div class="be-item-label">250g/mês</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TAB 3: MERCADO & BREAKEVEN                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="tab-mkt" class="tab">
+
+  <div class="bench-col">
+    <div class="bench-card">
+      <div class="bench-title" style="color:var(--muted2);">🌱 Campo Convencional</div>
+      <div class="bench-row"><span>Brix</span><span class="v muted">6-8°</span></div>
+      <div class="bench-row"><span>Agrotóxico</span><span class="v" style="color:var(--red);">Sim</span></div>
+      <div class="bench-row"><span>Rastreabilidade</span><span class="v muted">Lote/safra</span></div>
+      <div class="bench-row"><span>Ciclos/ano</span><span class="v muted">1-2</span></div>
+      <div class="bench-row"><span>Preço atacado</span><span class="v muted">R$8-15/kg</span></div>
+      <div class="bench-row"><span>200g varejo</span><span class="v muted">R$3-7</span></div>
+    </div>
+    <div class="bench-card">
+      <div class="bench-title" style="color:var(--amber);">🏚️ Semi-hidro elevado</div>
+      <div class="bench-row"><span>Brix</span><span class="v amber">7-9°</span></div>
+      <div class="bench-row"><span>Agrotóxico</span><span class="v amber">Reduzido</span></div>
+      <div class="bench-row"><span>Rastreabilidade</span><span class="v muted">Lote</span></div>
+      <div class="bench-row"><span>Ciclos/ano</span><span class="v amber">1-2</span></div>
+      <div class="bench-row"><span>Preço atacado</span><span class="v amber">R$15-30/kg</span></div>
+      <div class="bench-row"><span>200g varejo</span><span class="v amber">R$8-14</span></div>
+    </div>
+    <div class="bench-card sprout-card">
+      <div class="bench-title" style="color:var(--green);">🍓 Sprout Indoor — Ipiranga</div>
+      <div class="bench-row"><span>Brix</span><span class="v green">10-12° ⭐</span></div>
+      <div class="bench-row"><span>Agrotóxico</span><span class="v green">Zero</span></div>
+      <div class="bench-row"><span>Rastreabilidade</span><span class="v green">Planta a planta</span></div>
+      <div class="bench-row"><span>Ciclos/ano</span><span class="v green">Contínuo</span></div>
+      <div class="bench-row"><span>Preço atacado alvo</span><span class="v green">R$75-125/kg</span></div>
+      <div class="bench-row"><span>200g varejo alvo</span><span class="v green">R$15-25 ⭐</span></div>
+    </div>
+  </div>
+
+  <!-- TABELA MERCADO -->
+  <div class="card">
+    <div class="section-lbl">Referências de Preço — São Paulo</div>
+    <table class="mkt-table">
+      <thead>
+        <tr><th>Produto</th><th>Embalagem</th><th>Preço varejo</th><th>R$/kg impl.</th><th>Posição</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Morango convencional nacional</td><td>250g</td><td>R$4-7</td><td>R$16-28/kg</td><td><span class="badge badge-amber">COMMODITY</span></td></tr>
+        <tr><td>Morango Nacional 250g (Mambo)</td><td>250g</td><td>R$8-11</td><td>R$32-44/kg</td><td><span class="badge badge-amber">PADRÃO</span></td></tr>
+        <tr><td>Morango S/Agrotóxico FLD (Mambo)</td><td>250g</td><td>R$12-16</td><td>R$48-64/kg</td><td><span class="badge badge-blue">PREMIUM</span></td></tr>
+        <tr><td>Morango Orgânico FLD (Mambo)</td><td>250g</td><td>R$13-18</td><td>R$52-72/kg</td><td><span class="badge badge-blue">PREMIUM+</span></td></tr>
+        <tr><td>Morango Andreazza Premium (semi-hidro)</td><td>300g</td><td>R$14-20</td><td>R$47-67/kg</td><td><span class="badge badge-blue">PREMIUM</span></td></tr>
+        <tr><td>Morango Orgânico (Pão de Açúcar)</td><td>250g</td><td>R$11-16</td><td>R$44-64/kg</td><td><span class="badge badge-blue">PREMIUM</span></td></tr>
+        <tr class="sprout"><td><strong>🍓 Sprout Indoor · 10-12° Brix · Zero Agrotóxico · SP City</strong></td><td>150/200/250g</td><td><strong>R$18-25</strong></td><td><strong>R$90-125/kg</strong></td><td><span class="badge badge-green">ULTRA-PREMIUM</span></td></tr>
+        <tr><td>Morango Japonês importado (referência)</td><td>300g</td><td>R$60-120</td><td>R$200-400/kg</td><td><span class="badge badge-red">EXOTIC</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted2);">* Referências Mambo, Pão de Açúcar, Andreazza SP 2025-2026. Sprout = posicionamento alvo com Brix 10-12° confirmado.</div>
+  </div>
+
+  <!-- BREAKEVEN INTERATIVO -->
+  <div class="two-col">
+    <div class="card">
+      <div class="section-lbl">Breakeven Interativo por Embalagem</div>
+
+      <div class="slider-field">
+        <div class="slider-label">Torres ativas <span class="slider-val" id="be-lbl-torres">11</span></div>
+        <input type="range" id="be-sl-torres" min="1" max="33" step="1" value="11" oninput="calcBE()">
+      </div>
+      <div class="slider-field">
+        <div class="slider-label">Plantas por bandeja <span class="slider-val" id="be-lbl-ppb">48 plantas</span></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="range" id="be-sl-ppb" min="4" max="120" step="4" value="48" style="flex:1;" oninput="document.getElementById('be-inp-ppb').value=this.value;calcBE()">
+          <input type="number" id="be-inp-ppb" min="1" max="999" step="1" value="48"
+            style="width:58px;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:var(--amber);font-family:var(--mono);font-size:13px;font-weight:600;text-align:center;"
+            oninput="document.getElementById('be-sl-ppb').value=Math.min(120,Math.max(4,+this.value||48));calcBE()">
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;">
+          <span>4 mín</span><span>48 atual</span><span>120 máx slider (ou digitar)</span>
+        </div>
+      </div>
+
+      <div class="slider-field">
+        <div class="slider-label">Produtividade g/planta/mês <span class="slider-val" id="be-lbl-prod">80g</span></div>
+        <input type="range" id="be-sl-prod" min="30" max="150" step="5" value="80" oninput="calcBE()">
+      </div>
+      <div class="slider-field">
+        <div class="slider-label">OPEX/torre/mês <span class="slider-val" id="be-lbl-opex">R$ 6.000</span></div>
+        <input type="range" id="be-sl-opex" min="2000" max="15000" step="500" value="6000" oninput="calcBE()">
+      </div>
+      <div class="slider-field">
+        <div class="slider-label">% aproveitamento <span class="slider-val" id="be-lbl-apr">70%</span></div>
+        <input type="range" id="be-sl-apr" min="40" max="90" step="5" value="70" oninput="calcBE()">
+      </div>
+
+      <div style="margin-top:8px;">
+        <div style="font-size:10px;color:var(--muted2);font-family:var(--mono);margin-bottom:8px;letter-spacing:1px;">PREÇO BREAKEVEN POR EMBALAGEM</div>
+        <div id="be-cards" class="be-grid"></div>
+      </div>
+
+      <div style="margin-top:12px;background:var(--s2);border-radius:8px;padding:12px;">
+        <div style="font-size:10px;color:var(--muted2);font-family:var(--mono);margin-bottom:6px;letter-spacing:1px;">COM PREÇO R$25 (200g) — TORRES PARA BREAKEVEN</div>
+        <div style="font-size:32px;font-weight:900;color:var(--green);" id="be-torres-needed">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px;" id="be-status">—</div>
+      </div>
+    </div>
+
+    <!-- GRÁFICO BREAKEVEN -->
+    <div class="card">
+      <div class="section-lbl">Receita vs Custo por Torres Ativas</div>
+      <div class="chart-wrap-lg">
+        <canvas id="chartBE"></canvas>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted2);">
+        Cruzamento = ponto de breakeven · Preço R$25/200g · Produtividade ajustável acima
+      </div>
+    </div>
+  </div>
+
+  <!-- POSICIONAMENTO CANAL -->
+  <div class="card">
+    <div class="section-lbl">Hipóteses de Canal × Preço por Formato</div>
+    <table class="mkt-table">
+      <thead>
+        <tr><th>Canal</th><th>150g</th><th>200g</th><th>250g</th><th>R$/kg impl.</th><th>Devolução esperada</th><th>Estratégia</th></tr>
+      </thead>
+      <tbody>
+        <tr class="sprout"><td><strong>Einstein / Hospitalar</strong></td><td>R$22-28</td><td>R$28-35</td><td>—</td><td>R$140-175/kg</td><td>0% histórico</td><td><span class="badge badge-green">PRIORIDADE 1</span></td></tr>
+        <tr><td>Mambo / Hirota (premium SP)</td><td>R$16-22</td><td>R$20-28</td><td>R$24-32</td><td>R$105-130/kg</td><td>~10-15%</td><td><span class="badge badge-blue">PRIORIDADE 2</span></td></tr>
+        <tr><td>Zona Sul (premium)</td><td>R$15-20</td><td>R$18-25</td><td>R$22-30</td><td>R$100-120/kg</td><td>~5-8%</td><td><span class="badge badge-blue">PRIORIDADE 2</span></td></tr>
+        <tr><td>Restaurantes fine dining (Julia)</td><td>—</td><td>R$20-30/cx</td><td>—</td><td>R$100-150/kg</td><td>0%</td><td><span class="badge badge-amber">VOLUME MENOR</span></td></tr>
+        <tr><td>GPA Premium (Pão de Açúcar)</td><td>R$14-18</td><td>R$18-24</td><td>R$22-28</td><td>R$95-115/kg</td><td>~21% (desc. rede)</td><td><span class="badge badge-amber">EXPLORAR</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;background:#0a1e10;border-left:2px solid var(--green);padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--muted2);">
+      <strong style="color:var(--green);">Recomendação de lançamento:</strong> Einstein e Mambo/Hirota primeiro (menor volume, maior margem, 0% ou baixa devolução). Construir histórico de vendas e depoimentos antes de atacar GPA com seu desconto de 21%. O morango de 12° Brix sem agrotóxico é um diferencial que Einstein já compra — é só apresentar.
+    </div>
+  </div>
+
+
+  <!-- PESO POR SUBSTRATO -->
+  <div class="two-col">
+    <div class="card">
+      <div class="section-lbl">Peso Médio por Substrato — 13 Colheitas</div>
+      <div class="chart-wrap-lg"><canvas id="chartPesoSub"></canvas></div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;color:var(--muted2);">
+        <span style="color:rgba(34,197,94,0.9);">━ Fibra de Coco</span>
+        <span style="color:rgba(245,158,11,0.9);">━ Casca Arroz Carb.</span>
+        <span style="color:rgba(59,130,246,0.9);">━ Misto 50/50</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-lbl">Ranking por Peso — Média Global + Últimas 5 Colheitas</div>
+      <div class="sub-bar">
+        <div class="sub-bar-label"><span>🥇 Fibra de Coco</span><span class="green" style="font-family:var(--mono);font-weight:700;">20,9g global · 23,3g últ.5</span></div>
+        <div class="sub-bar-track"><div class="sub-bar-fill" style="width:100%;background:linear-gradient(90deg,#1A7A4A,#22c55e);"></div></div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;">136 frutos · pico 25,7g (9ª) · domina a partir da 7ª colheita · Brix máx 12°</div>
+      </div>
+      <div class="sub-bar" style="margin-top:12px;">
+        <div class="sub-bar-label"><span>🥈 Casca Arroz Carb.</span><span class="amber" style="font-family:var(--mono);font-weight:700;">18,1g global · 18,3g últ.5</span></div>
+        <div class="sub-bar-track"><div class="sub-bar-fill" style="width:87%;background:var(--amber);"></div></div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;">278 frutos (maior amostra) · pico 47,0g (9ª) · consistente mas menor que fibra nas últimas</div>
+      </div>
+      <div class="sub-bar" style="margin-top:12px;">
+        <div class="sub-bar-label"><span>🥉 Misto 50/50</span><span class="blue" style="font-family:var(--mono);font-weight:700;">17,4g global · 17,2g últ.5</span></div>
+        <div class="sub-bar-track"><div class="sub-bar-fill" style="width:83%;background:var(--blue);"></div></div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;">143 frutos · bom nas colheitas 5-7 (22-23g) · cai nas últimas · substrato atual Ipiranga</div>
+      </div>
+      <div style="margin-top:14px;background:#0a1e10;border-left:2px solid var(--green);padding:10px 14px;border-radius:0 6px 6px 0;font-size:11px;color:var(--muted2);">
+        <strong style="color:var(--green);">Fibra de Coco vence em Brix E em peso</strong> nas últimas 5 colheitas. 
+        Misto 50/50 (Ipiranga atual) ficou em 3º lugar em peso. 
+        Migração para Fibra de Coco pode aumentar peso médio de ~17g para ~23g (+35%).
+      </div>
+    </div>
+  </div>
+
+  <!-- LINHA DO TEMPO -->
+  <div class="card">
+    <div class="section-lbl">Linha do Tempo — Dias desde o Início do Ciclo (D0 = 26/Jan/2026)</div>
+    <div style="position:relative;margin:24px 0 8px;">
+      <!-- Trilho -->
+      <div style="position:absolute;top:20px;left:0;right:0;height:2px;background:var(--bdr);"></div>
+      <!-- Eventos -->
+      <div style="display:flex;justify-content:space-between;position:relative;">
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;margin:16px auto 6px;border:2px solid #22c55e;box-shadow:0 0 8px #22c55e88;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#22c55e;font-weight:700;">D0</div>
+          <div style="font-size:9px;color:var(--muted2);margin-top:2px;">🌱 Plantio</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">26/Jan</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#3b82f6;margin:16px auto 6px;border:2px solid #3b82f6;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#3b82f6;font-weight:700;">D91</div>
+          <div style="font-size:9px;color:var(--muted2);margin-top:2px;">🍓 1ª Colheita</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">27/Abr</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#ec4899;margin:15px auto 5px;border:2px solid #ec4899;box-shadow:0 0 8px #ec489988;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#ec4899;font-weight:700;">D94</div>
+          <div style="font-size:9px;color:#ec4899;margin-top:2px;font-weight:600;">🔄 Troca Solução</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">30/Abr</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#3b82f6;margin:16px auto 6px;border:2px solid #3b82f6;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#3b82f6;font-weight:700;">D112</div>
+          <div style="font-size:9px;color:var(--muted2);margin-top:2px;">🍓 5ª +82% peso</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">18/Mai</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#3b82f6;margin:16px auto 6px;border:2px solid #3b82f6;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#3b82f6;font-weight:700;">D127</div>
+          <div style="font-size:9px;color:var(--muted2);margin-top:2px;">🍓 8ª Brix 10°</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">02/Jun</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b;margin:15px auto 5px;border:2px solid #f59e0b;box-shadow:0 0 8px #f59e0b88;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#f59e0b;font-weight:700;">D136</div>
+          <div style="font-size:9px;color:#f59e0b;margin-top:2px;font-weight:600;">⚡ EC → 2,50</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">11/Jun</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#60a5fa;margin:15px auto 5px;border:2px solid #60a5fa;box-shadow:0 0 8px #60a5fa66;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#60a5fa;font-weight:700;">D142</div>
+          <div style="font-size:9px;color:#60a5fa;margin-top:2px;font-weight:600;">💧 Stress Hídrico</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">17/Jun</div>
+        </div>
+        <div style="text-align:center;flex:0 0 auto;width:80px;">
+          <div style="width:14px;height:14px;border-radius:50%;background:#22c55e;margin:14px auto 4px;border:2px solid #22c55e;box-shadow:0 0 12px #22c55eaa;"></div>
+          <div style="font-size:9px;font-family:var(--mono);color:#22c55e;font-weight:700;">D150</div>
+          <div style="font-size:9px;color:#22c55e;margin-top:2px;font-weight:700;">🏆 12° Brix</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:1px;">25/Jun</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Protocolo extraído -->
+    <div style="margin-top:20px;border-top:0.5px solid var(--bdr);padding-top:14px;">
+      <div class="section-lbl">Protocolo Extraído — Referência para Próximos Ciclos</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border-left:2px solid #22c55e;">
+          <div style="font-family:var(--mono);font-size:11px;color:#22c55e;font-weight:700;">D0 → D~90</div>
+          <div style="font-size:11px;font-weight:600;margin:4px 0;">Fase Vegetativa</div>
+          <div style="font-size:10px;color:var(--muted2);">EC 2,0 · pH 5,8-5,9 · nutrição padrão · polinização manual · aguardar primeiros botões florais</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border-left:2px solid #ec4899;">
+          <div style="font-family:var(--mono);font-size:11px;color:#ec4899;font-weight:700;">D~91-94</div>
+          <div style="font-size:11px;font-weight:600;margin:4px 0;">Gatilho Produtivo</div>
+          <div style="font-size:10px;color:var(--muted2);">Ao colher os primeiros frutos → TROCAR SOLUÇÃO imediatamente → fertilizante fase de frutificação</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border-left:2px solid #f59e0b;">
+          <div style="font-family:var(--mono);font-size:11px;color:#f59e0b;font-weight:700;">D~136 (+42 dias)</div>
+          <div style="font-size:11px;font-weight:600;margin:4px 0;">Gatilho de Brix</div>
+          <div style="font-size:10px;color:var(--muted2);">Após 42 dias de produção plena → subir EC para 2,50 · monitorar Brix a cada colheita</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border-left:2px solid #60a5fa;">
+          <div style="font-family:var(--mono);font-size:11px;color:#60a5fa;font-weight:700;">D~142 (+6 dias)</div>
+          <div style="font-size:11px;font-weight:600;margin:4px 0;">Pico de Brix</div>
+          <div style="font-size:10px;color:var(--muted2);">Reduzir fluxo de água (stress hídrico controlado) → Brix sobe de 8° para 12° em ~14 dias</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;background:#0a1e10;border-left:2px solid var(--green);padding:10px 14px;border-radius:0 6px 6px 0;font-size:11px;color:var(--muted2);">
+        <strong style="color:var(--green);">Resumo do Ciclo 1:</strong> Plantio → 1ª Colheita em 91 dias · Troca solução no D94 · Frutos duplicam de tamanho no D112 · EC 2,50 no D136 dispara Brix · Brix máximo 12° no D150 (Day 150 = 5 meses de ciclo).
+        <strong style="color:var(--green);">Ciclo 2 em diante:</strong> Mudas via estolão (custo zero) · Aplicar protocolo idêntico · Monitorar Brix a partir do D120.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script>
+// D = dias desde 26/Jan/2026 (Day 0 do ciclo)
+const COLHEITAS = [
+  {n:'1ª',d:'27/Abr',D:91, bm:5.0,bx:5.5,pm:13,qa:90,qd:10},
+  {n:'2ª',d:'05/Mai',D:99, bm:5.0,bx:5.5,pm:14,qa:70,qd:30},
+  {n:'3ª',d:'07/Mai',D:101,bm:5.5,bx:6.0,pm:10,qa:80,qd:20},
+  {n:'4ª',d:'12/Mai',D:106,bm:6.0,bx:7.7,pm:11,qa:65,qd:35},
+  {n:'5ª',d:'18/Mai',D:112,bm:6.0,bx:6.0,pm:20,qa:80,qd:20},
+  {n:'6ª',d:'25/Mai',D:119,bm:null,bx:null,pm:20,qa:60,qd:40},
+  {n:'7ª',d:'27/Mai',D:121,bm:6.5,bx:8.0,pm:20,qa:75,qd:25},
+  {n:'8ª',d:'02/Jun',D:127,bm:7.5,bx:10.0,pm:18,qa:50,qd:50},
+  {n:'9ª',d:'05/Jun',D:130,bm:7.5,bx:9.0,pm:18,qa:70,qd:30},
+  {n:'10ª',d:'08/Jun',D:133,bm:7.5,bx:9.0,pm:16,qa:65,qd:35},
+  {n:'11ª',d:'11/Jun',D:136,bm:8.0,bx:11.0,pm:16,qa:60,qd:40},
+  {n:'12ª',d:'17/Jun',D:142,bm:8.5,bx:9.0,pm:14,qa:55,qd:45},
+  {n:'13ª',d:'25/Jun',D:150,bm:9.5,bx:12.0,pm:14,qa:85,qd:15},
+];
+
+const EVENTOS = [
+  {D:0,   tipo:'start', label:'🌱 Início',       desc:'Plantio · 26/Jan/2026',              cor:'#22c55e'},
+  {D:91,  tipo:'col',   label:'🍓 1ª Colheita',  desc:'D91 · Primeiros frutos (5,0° Brix)',  cor:'#3b82f6'},
+  {D:94,  tipo:'key',   label:'🔄 Troca Solução',desc:'D94 · Fase vegetativa → Produtiva',   cor:'#ec4899'},
+  {D:112, tipo:'col',   label:'🍓 5ª Colheita',  desc:'D112 · Frutos: 11g → 20g (+82%)',    cor:'#3b82f6'},
+  {D:127, tipo:'col',   label:'🍓 8ª Colheita',  desc:'D127 · 1° Brix duplo dígito (10°)',  cor:'#3b82f6'},
+  {D:136, tipo:'key',   label:'⚡ EC → 2,50',    desc:'D136 · Gatilho de Brix',              cor:'#f59e0b'},
+  {D:142, tipo:'key',   label:'💧 Stress Hídrico','desc':'D142 · Redução fluxo de água',     cor:'#60a5fa'},
+  {D:150, tipo:'col',   label:'🍓 13ª Colheita', desc:'D150 · Brix máximo: 12°',            cor:'#22c55e'},
+];
+
+const EC_DATA = [
+  {d:'11/Abr',ec:2.0,ph:5.8},{d:'18/Abr',ec:2.0,ph:5.82},{d:'25/Abr',ec:2.04,ph:5.8},
+  {d:'02/Mai',ec:2.05,ph:5.82},{d:'09/Mai',ec:2.03,ph:5.87},{d:'16/Mai',ec:2.06,ph:5.88},
+  {d:'23/Mai',ec:2.03,ph:5.87},{d:'30/Mai',ec:1.99,ph:5.79},{d:'06/Jun',ec:2.01,ph:5.83},
+  {d:'11/Jun',ec:2.58,ph:5.94},{d:'13/Jun',ec:2.55,ph:5.87},{d:'17/Jun',ec:2.51,ph:5.81},
+  {d:'20/Jun',ec:2.56,ph:5.85},{d:'25/Jun',ec:2.53,ph:5.86},
+];
+
+const LABELS = COLHEITAS.map(c=>c.n+' D'+c.D);
+const C = (r,g,b,a=1)=>`rgba(${r},${g},${b},${a})`;
+
+// Helpers
+const fmt = v => v>=1000 ? 'R$'+(v/1000).toFixed(0)+'k' : 'R$'+v.toFixed(0);
+const fmtFull = v => 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+// CHART 1: Brix com eventos verticais
+const ctxBrix = document.getElementById('chartBrix').getContext('2d');
+new Chart(ctxBrix, {
+  type:'line',
+  data:{
+    labels:LABELS,
+    datasets:[
+      {label:'Brix Médio',data:COLHEITAS.map(c=>c.bm),borderColor:C(59,130,246),backgroundColor:C(59,130,246,.1),
+       tension:.4,fill:true,pointBackgroundColor:C(59,130,246),pointRadius:5,spanGaps:true,borderWidth:2},
+      {label:'Brix Máximo',data:COLHEITAS.map(c=>c.bx),borderColor:C(34,197,94),backgroundColor:'transparent',
+       tension:.4,fill:false,pointBackgroundColor:C(34,197,94),pointRadius:5,spanGaps:true,borderWidth:2},
+      {label:'Referência Premium (10°)',data:COLHEITAS.map(()=>10),borderColor:C(245,158,11,.5),
+       borderDash:[5,5],fill:false,pointRadius:0,tension:0},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{
+      x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},maxRotation:45}},
+      y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}},min:0,max:14,
+         title:{display:true,text:'°Brix',color:C(100,116,139),font:{size:10}}}
+    },
+    plugins:{
+      legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},
+      tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',borderColor:'#1d2d42',borderWidth:1},
+      annotation:{
+        annotations:{
+          troca_solucao:{
+            type:'line',xMin:3.5,xMax:3.5,
+            borderColor:'rgba(236,72,153,0.9)',borderWidth:2,borderDash:[6,3],
+            label:{content:['🔄 Troca Solução','30/Abr · Fase Produtiva'],display:true,
+              position:'start',
+              backgroundColor:'rgba(15,24,36,0.95)',color:'#ec4899',
+              font:{size:9,weight:'bold',family:'IBM Plex Mono'},
+              padding:{x:6,y:4},borderRadius:4,
+              xAdjust:4,yAdjust:10}
+          },
+          ec250:{
+            type:'line',xMin:9.5,xMax:9.5,
+            borderColor:'rgba(245,158,11,0.9)',borderWidth:2,borderDash:[6,3],
+            label:{content:['⚡ EC → 2,50','11/Jun'],display:true,
+              position:'start',
+              backgroundColor:'rgba(15,24,36,0.95)',color:'#f59e0b',
+              font:{size:9,weight:'bold',family:'IBM Plex Mono'},
+              padding:{x:6,y:4},borderRadius:4,
+              xAdjust:4,yAdjust:60}
+          },
+          stress_hidrico:{
+            type:'line',xMin:10.7,xMax:10.7,
+            borderColor:'rgba(59,130,246,0.7)',borderWidth:2,borderDash:[4,4],
+            label:{content:['💧 Stress Hídrico','17/Jun'],display:true,
+              position:'start',
+              backgroundColor:'rgba(15,24,36,0.95)',color:'#3b82f6',
+              font:{size:9,weight:'bold',family:'IBM Plex Mono'},
+              padding:{x:6,y:4},borderRadius:4,
+              xAdjust:4,yAdjust:110}
+          }
+        }
+      }
+    }
+  }
+});
+
+// CHART 2: Peso com anotação de troca de solução
+const ctxPeso = document.getElementById('chartPeso').getContext('2d');
+new Chart(ctxPeso, {
+  type:'bar',
+  data:{labels:LABELS,datasets:[{label:'Peso médio (g)',data:COLHEITAS.map(c=>c.pm),
+    backgroundColor:COLHEITAS.map(c=>c.pm>=20?C(34,197,94,.7):c.pm>=15?C(245,158,11,.7):C(100,116,139,.5)),
+    borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:8},maxRotation:45}},
+      y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}},
+         title:{display:true,text:'Gramas',color:C(100,116,139),font:{size:10}}}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8'},
+      annotation:{
+        annotations:{
+          troca:{
+            type:'line',xMin:3.5,xMax:3.5,
+            borderColor:'rgba(236,72,153,0.8)',borderWidth:2,borderDash:[5,3],
+            label:{content:'🔄 30/Abr · Troca Solução',display:true,
+              position:'end',
+              backgroundColor:'rgba(15,24,36,0.9)',color:'#ec4899',
+              font:{size:8,weight:'bold'},padding:{x:5,y:3},borderRadius:3}
+          }
+        }
+      }
+    }
+  }
+});
+
+// CHART 3: Qualidade
+const ctxQual = document.getElementById('chartQual').getContext('2d');
+new Chart(ctxQual, {
+  type:'bar',
+  data:{labels:LABELS,datasets:[
+    {label:'Amostra/Bom',data:COLHEITAS.map(c=>c.qa),backgroundColor:C(34,197,94,.6),borderRadius:2},
+    {label:'Descarte',data:COLHEITAS.map(c=>c.qd),backgroundColor:C(239,68,68,.5),borderRadius:2},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'x',
+    scales:{x:{stacked:true,grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:8},maxRotation:45}},
+      y:{stacked:true,grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},callback:v=>v+'%'},max:100}},
+    plugins:{legend:{labels:{color:C(148,163,184),font:{size:9},boxWidth:10}},
+      tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8'}}
+  }
+});
+
+// CHART 4: EC
+const ctxEC = document.getElementById('chartEC').getContext('2d');
+new Chart(ctxEC, {
+  type:'line',
+  data:{labels:EC_DATA.map(e=>e.d),datasets:[
+    {label:'EC',data:EC_DATA.map(e=>e.ec),borderColor:C(245,158,11),tension:.3,fill:false,
+     pointBackgroundColor:e=>e.raw>2.5?C(34,197,94):C(245,158,11),pointRadius:4,yAxisID:'y'},
+    {label:'pH',data:EC_DATA.map(e=>e.ph),borderColor:C(139,92,246,.7),tension:.3,fill:false,
+     pointRadius:3,yAxisID:'y2'},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{
+      x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},maxRotation:45}},
+      y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}},min:1.5,max:3,
+         title:{display:true,text:'EC (mS/cm)',color:C(245,158,11),font:{size:9}},position:'left'},
+      y2:{grid:{display:false},ticks:{color:C(139,92,246,.7),font:{size:9}},min:5.5,max:6.2,
+          title:{display:true,text:'pH',color:C(139,92,246,.7),font:{size:9}},position:'right'}
+    },
+    plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},
+      tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8'}}
+  }
+});
+
+// ─── PROJEÇÃO IPIRANGA ───
+let torres = 11;
+let projChart, beChart;
+
+function setTorres(v, btn) {
+  torres = v;
+  document.querySelectorAll('#toggle-torres .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calc();
+}
+
+function calc() {
+  const ppb = +(document.getElementById('inp-ppb')?.value || document.getElementById('sl-ppb').value) || 48;
+  const prod = +document.getElementById('sl-prod').value;
+  const preco = +document.getElementById('sl-preco').value;
+  const apr = +document.getElementById('sl-apr').value / 100;
+  const opex = +document.getElementById('sl-opex').value;
+  const muda = +document.getElementById('sl-muda').value;
+
+  document.getElementById('lbl-ppb').textContent = ppb+' plantas/bandeja ('+Math.round(13*2*ppb)+'/torre)';
+  document.getElementById('lbl-prod').textContent = prod+'g/planta/mês';
+  document.getElementById('lbl-preco').textContent = 'R$ '+preco.toFixed(2);
+  document.getElementById('lbl-apr').textContent = (apr*100)+'%';
+  document.getElementById('lbl-opex').textContent = fmtFull(opex);
+  document.getElementById('lbl-muda').textContent = 'R$ '+muda.toFixed(2);
+
+  const plantas = Math.round(13 * 2 * ppb) * torres;
+  const kg_mes = plantas * prod / 1000 * apr;
+  const receita = kg_mes * (preco / 0.2); // R$/kg from 200g price
+  const custo = (opex * torres) + (muda * plantas / 12);
+  const ebitda = receita - custo;
+  const margem = receita > 0 ? ebitda/receita*100 : 0;
+
+  document.getElementById('res-receita').textContent = fmtFull(receita);
+  document.getElementById('res-receita').style.color = 'var(--green)';
+  document.getElementById('res-custo').textContent = fmtFull(custo);
+  document.getElementById('res-ebitda').textContent = fmtFull(ebitda);
+  document.getElementById('res-ebitda').style.color = ebitda>=0?'var(--green)':'var(--red)';
+  document.getElementById('res-margem').textContent = margem.toFixed(1)+'%';
+  document.getElementById('res-margem').style.color = margem>=30?'var(--green)':margem>=0?'var(--amber)':'var(--red)';
+
+  document.getElementById('band150').textContent = Math.round(kg_mes/0.15).toLocaleString('pt-BR');
+  document.getElementById('band200').textContent = Math.round(kg_mes/0.20).toLocaleString('pt-BR');
+  document.getElementById('band250').textContent = Math.round(kg_mes/0.25).toLocaleString('pt-BR');
+
+  // Gráfico projeção
+  const arr_torres = [1,2,3,5,8,11,15,20,25,33];
+  const rev_arr = arr_torres.map(t=>t*832*prod/1000*apr*(preco/0.2));
+  const cost_arr = arr_torres.map(t=>t*opex);
+
+  if (projChart) projChart.destroy();
+  const ctx = document.getElementById('chartProj').getContext('2d');
+  projChart = new Chart(ctx, {
+    type:'line',
+    data:{labels:arr_torres.map(t=>t+' torres'),datasets:[
+      {label:'Receita Mensal',data:rev_arr,borderColor:C(34,197,94),backgroundColor:C(34,197,94,.08),fill:true,tension:.3},
+      {label:'Custo Mensal',data:cost_arr,borderColor:C(239,68,68),backgroundColor:C(239,68,68,.05),fill:true,tension:.3},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:10}}},
+        y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:10},callback:v=>'R$'+v.toLocaleString('pt-BR')}}},
+      plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},
+        tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',
+          callbacks:{label:c=>'R$ '+c.raw.toLocaleString('pt-BR',{minimumFractionDigits:0})}}}
+    }
+  });
+
+  // Tabela cenários
+  const cens = [
+    {n:'11 torres',t:11,label:'Fase 3'},
+    {n:'22 torres',t:22,label:'Fase 4a'},
+    {n:'33 torres',t:33,label:'Fase 4b completa'},
+  ];
+  let html = '<table class="mkt-table"><thead><tr><th>Cenário</th><th>Plantas</th><th>kg/mês</th><th>Bandejas 200g</th><th>Receita/mês</th><th>Custo/mês</th><th>Margem</th></tr></thead><tbody>';
+  cens.forEach(c=>{
+    const p=Math.round(13*2*ppb)*c.t;
+    const k=p*prod/1000*apr;
+    const r=k*(preco/0.2);
+    const cs=c.t*opex+(muda*p/12);
+    const m=r>0?(r-cs)/r*100:0;
+    const mc = m>=30?'var(--green)':m>=0?'var(--amber)':'var(--red)';
+    html+=`<tr ${c.t===torres?'class="sprout"':''}><td><strong>${c.n}</strong><br><span style="font-size:10px;color:var(--muted2);">${c.label}</span></td>
+      <td style="font-family:var(--mono)">${p.toLocaleString('pt-BR')}</td>
+      <td style="font-family:var(--mono)">${k.toFixed(0)} kg</td>
+      <td style="font-family:var(--mono)">${Math.round(k/0.2).toLocaleString('pt-BR')}</td>
+      <td style="font-family:var(--mono);color:var(--green)">${fmtFull(r)}</td>
+      <td style="font-family:var(--mono);color:var(--amber)">${fmtFull(cs)}</td>
+      <td style="font-family:var(--mono);color:${mc};font-weight:700">${m.toFixed(1)}%</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('tabela-cenarios').innerHTML = html;
+
+  const obs_ppb = document.getElementById('obs-ppb');
+  const obs_ppt = document.getElementById('obs-ppt');
+  if(obs_ppb) obs_ppb.textContent = ppb;
+  if(obs_ppt) obs_ppt.textContent = (Math.round(13*2*ppb)).toLocaleString('pt-BR');
+  const plantas_torre = Math.round(13*2*ppb);
+  document.getElementById('proj-insight').innerHTML =
+    `<strong style="color:var(--green)">${torres} torres</strong> · ${(torres*plantas_torre).toLocaleString('pt-BR')} plantas · 
+    <strong>${(torres*plantas_torre*prod/1000*apr).toFixed(0)} kg/mês</strong> aproveitável · 
+    Preço R$${preco}/200g = <strong>R$${(preco/0.2*1000).toFixed(0)}/ton</strong>`;
+}
+
+function calcBE() {
+  const bt = +document.getElementById('be-sl-torres').value;
+  const bppb = +(document.getElementById('be-inp-ppb')?.value || document.getElementById('be-sl-ppb').value) || 48;
+  const bp = +document.getElementById('be-sl-prod').value;
+  const bo = +document.getElementById('be-sl-opex').value;
+  const ba = +document.getElementById('be-sl-apr').value/100;
+
+  document.getElementById('be-lbl-torres').textContent = bt;
+  document.getElementById('be-lbl-ppb').textContent = bppb+' pl/bdj ('+Math.round(13*2*bppb)+'/torre)';
+  document.getElementById('be-lbl-prod').textContent = bp+'g';
+  document.getElementById('be-lbl-opex').textContent = fmtFull(bo);
+  document.getElementById('be-lbl-apr').textContent = (ba*100)+'%';
+
+  const plantas = Math.round(13*2*bppb)*bt;
+  const kg = plantas*bp/1000*ba;
+  const custo_total = bt*bo;
+
+  // Preço breakeven por embalagem
+  const be150 = kg>0?custo_total/kg*0.15:0;
+  const be200 = kg>0?custo_total/kg*0.20:0;
+  const be250 = kg>0?custo_total/kg*0.25:0;
+
+  const mc = (v,ref)=>v<=ref?'var(--green)':v<=ref*1.5?'var(--amber)':'var(--red)';
+
+  document.getElementById('be-cards').innerHTML = `
+    <div class="be-item"><div class="be-item-val" style="color:${mc(be150,10)};font-size:14px">R$${be150.toFixed(2)}</div><div class="be-item-label">BE 150g</div></div>
+    <div class="be-item"><div class="be-item-val" style="color:${mc(be200,12)};font-size:14px">R$${be200.toFixed(2)}</div><div class="be-item-label">BE 200g</div></div>
+    <div class="be-item"><div class="be-item-val" style="color:${mc(be250,15)};font-size:14px">R$${be250.toFixed(2)}</div><div class="be-item-label">BE 250g</div></div>
+  `;
+
+  // Torres necessárias para breakeven a R$25/200g
+  const preco_kg = 25/0.2;
+  const rec_por_torre = 832*bp/1000*ba*preco_kg;
+  const torres_needed = rec_por_torre>0?custo_total/rec_por_torre:99;
+  const be_el = document.getElementById('be-torres-needed');
+  be_el.textContent = Math.ceil(torres_needed)+' torres';
+  be_el.style.color = torres_needed<=bt?'var(--green)':torres_needed<=33?'var(--amber)':'var(--red)';
+  document.getElementById('be-status').textContent =
+    torres_needed<=bt?'✅ Breakeven atingido com '+bt+' torres ativas':
+    torres_needed<=33?`⚠️ Precisa de ${Math.ceil(torres_needed)} das 33 torres disponíveis`:
+    `❌ Inviável com esse OPEX/produtividade — ajuste os parâmetros`;
+
+  // Gráfico BE
+  const arr = Array.from({length:33},(_,i)=>i+1);
+  const rev_a = arr.map(t=>t*832*bp/1000*ba*preco_kg);
+  const cost_a = arr.map(t=>t*bo);
+
+  if (beChart) beChart.destroy();
+  const ctx = document.getElementById('chartBE').getContext('2d');
+  beChart = new Chart(ctx, {
+    type:'line',
+    data:{labels:arr.map(t=>t),datasets:[
+      {label:'Receita (R$25/200g)',data:rev_a,borderColor:C(34,197,94),fill:false,tension:.2,pointRadius:0},
+      {label:'Custo OPEX',data:cost_a,borderColor:C(239,68,68),fill:false,tension:.2,pointRadius:0,borderDash:[4,3]},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}},
+        title:{display:true,text:'Torres Ativas',color:C(100,116,139),font:{size:10}}},
+        y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}},
+      plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},
+        tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',
+          callbacks:{title:c=>'Torres: '+c[0].label,label:c=>'R$ '+c.raw.toLocaleString('pt-BR',{minimumFractionDigits:0})}}}
+    }
+  });
+}
+
+// Tab navigation
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+
+const PESO_SUBSTRATO = {
+  labels:['1ª','2ª','3ª','4ª','5ª','6ª','7ª','8ª','9ª','10ª','11ª','12ª','13ª'],
+  datasets:[
+    {label:'Casca Arroz Carb.',data:[11.7,17.0,8.7,19.4,22.0,19.8,19.4,17.2,21.3,17.8,19.1,17.5,16.3],borderColor:'rgba(245,158,11,0.9)',backgroundColor:'transparent',tension:.4,pointRadius:4},
+    {label:'Fibra de Coco',    data:[16.2,13.2,21.7,16.2,16.3,20.0,23.8,11.2,25.7,24.8,24.7,23.6,17.6],borderColor:'rgba(34,197,94,0.9)', backgroundColor:'transparent',tension:.4,pointRadius:5,borderWidth:2},
+    {label:'Misto 50/50',      data:[13.9,13.8,9.3,16.9,22.5,23.1,21.7,15.2,18.4,18.8,17.2,12.5,17.0],borderColor:'rgba(59,130,246,0.9)', backgroundColor:'transparent',tension:.4,pointRadius:4},
+  ]
+};
+
+const ctxPS = document.getElementById('chartPesoSub')?.getContext('2d');
+if(ctxPS){new Chart(ctxPS,{type:'line',data:{labels:PESO_SUBSTRATO.labels,datasets:PESO_SUBSTRATO.datasets},options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}}},y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},callback:v=>v+'g'},min:0,max:30,title:{display:true,text:'Gramas',color:C(100,116,139),font:{size:10}}}},plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',callbacks:{label:c=>c.dataset.label+': '+c.raw+'g'}}}}});}
+
+// Init
+calc();
+calcBE();
+</script>
+</body>
+</html>
