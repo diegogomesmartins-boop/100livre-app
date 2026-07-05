@@ -344,6 +344,29 @@
     if(btn) btn.classList.add('active');
   };
 
+  // \u2500\u2500 SHOW MORANGO B2B \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  window.sproutShowMorango = function() {
+    var allViews = document.querySelectorAll('[id^="view-"]');
+    for(var i=0;i<allViews.length;i++) allViews[i].style.display = 'none';
+    var vm = document.getElementById('view-morango');
+    if(vm) {
+      vm.style.display = '';
+      if(!vm.querySelector('iframe')) {
+        var ifr = document.createElement('iframe');
+        ifr.src = './morango.html';
+        ifr.style.cssText = 'width:100%;height:calc(100vh - 60px);border:none;display:block;';
+        vm.appendChild(ifr);
+      }
+    }
+    var pt=document.getElementById('page-title'), ps=document.getElementById('page-sub');
+    if(pt) pt.textContent = 'Morango B2B';
+    if(ps) ps.textContent = 'Indoor \u00b7 Vertical \u00b7 Benchmark Oishii';
+    var navItems = document.querySelectorAll('.nav-item');
+    for(var i=0;i<navItems.length;i++) navItems[i].classList.remove('active');
+    var btn = document.querySelector('[onclick="sproutShowMorango()"]');
+    if(btn) btn.classList.add('active');
+  };
+
   // \u2500\u2500 LIRIO HTML para aba Experimentos \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function buildLirioExpHtml() {
     return '<div class="ecard ec-prod"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div style="font-size:18px;font-weight:700;letter-spacing:-.01em">\ud83c\udf38 L\u00edrio (Lilium)</div><div style="font-size:11px;color:var(--muted);margin-top:3px">Sala 4 \u00b7 Sala 6 \u00b7 Sala 2 \u00b7 Grupo Botic\u00e1rio \u00b7 Ingrediente cosm\u00e9tico</div></div><div><span class="ebadge ec-prod">Em Produ\u00e7\u00e3o</span><span class="ebadge ec-val" style="margin-left:4px">Exp. 3 em andamento</span><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;background:rgba(29,158,117,.2);color:var(--green);margin-left:4px">\ud83c\udfc6 Recorde D78</span></div></div>'+SH('KPIs consolidados \u2014 3 Experimentos')+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px">'+K('\ud83c\udfc6 Recorde Exp.3','D78','vasos 15\u201318 \u00b7 frescos \u00b7 03/jul','var(--green)')+K('D75 reprovado','0 flores','Lote 2 \u00b7 100% imaturos','var(--red)')+K('Flores OK Exp.2','21/53','40% \u00b7 janela ideal','var(--green)')+K('Melhor densidade','3 bulbos','Vaso 3 \u00b7 8 bot\u00f5es','var(--green)')+K('V2 vs V1','+8,6%','bot\u00f5es \u00b7 +4,7% altura','var(--purple)')+K('Colheita alvo','~ago/26','S6: D83\u201386 \u00b7 S2: D80\u201383','var(--amber)')+K('Bot\u00f5es/haste atual','1\u20133','bulbo 14/16cm','var(--red)')+K('Bot\u00f5es/haste meta','4\u20137','bulbo 16/18cm','var(--green)')+'</div></div><div class="ecard ec-neg" style="margin-top:14px"><div style="font-size:13px;font-weight:700;margin-bottom:2px">Experimento 1 \u00b7 L\u00edrio Asi\u00e1tico \u00b7 <span style="font-weight:400;color:var(--muted)">Sala 4 \u00b7 D0: 19/nov/25</span></div>'+SH('Linha do tempo')+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:8px;margin-bottom:14px">'+KT('Plantio','D0','19/nov/25','Sala 4','var(--muted)')+KT('1\u00aa Avalia\u00e7\u00e3o','D15','04/dez/25','24\u201342 cm','var(--blue)')+KT('2\u00aa Avalia\u00e7\u00e3o','D21','10/dez/25','bot\u00f5es \u00b7 17\u201360cm','var(--blue)')+KT('3\u00aa Avalia\u00e7\u00e3o','D28','17/dez/25','28\u201371 cm','var(--blue)')+KT('Est. Colheita','D35','24/dez/25','ciclo curto','var(--amber)')+'</div>'+SH('Bot\u00f5es por cultivar')+CICLOS_DATA[0].resultados.botoes.map(function(x){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div style="width:72px;font-size:11px">'+x.nome+'</div>'+HB(x.val,4,'var(--blue)')+'<div style="font-size:11px;font-family:DM Mono,monospace;color:var(--muted);width:28px;text-align:right">'+x.val.toFixed(2)+'</div></div>';}).join('')+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">V2(L1)</div><div style="font-size:13px;font-weight:600;color:var(--purple)">3,08 bot \u00b7 69,4cm</div><div style="font-size:10px;color:var(--green)">+8,6% bot\u00f5es \u00b7 +4,7% altura</div></div><div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">V1(L2/L3)</div><div style="font-size:13px;font-weight:600;color:var(--blue)">2,83 bot \u00b7 66,3cm</div><div style="font-size:10px;color:var(--muted)">baseline</div></div></div></div><div class="ecard ec-prod" style="margin-top:14px"><div style="font-size:13px;font-weight:700;margin-bottom:2px">Experimento 2 \u00b7 Sorbonne \u00b7 <span style="font-weight:400;color:var(--muted)">Sala 6 \u00b7 L1: 26/fev \u00b7 L2: 05/mar</span></div>'+SH('Linha do tempo \u00b7 D0 por lote')+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:8px">'+KT('Plantio L1','D0','26/fev/26','germ. D+7','var(--muted)')+KT('Plantio L2','D0','05/mar/26','germ. D+10','var(--muted)')+KT('2\u00aa Aval.','D41/D34','08/abr/26','prim\u00f3rdios florais','var(--blue)')+KT('3\u00aa Aval.','D48/D41','15/abr/26','1\u20133 bot\u00f5es/haste','var(--blue)')+KT('6\u00aa Aval.','D81/D74','18/mai/26','1\u00aa flor rosa (L1)','var(--green)')+KT('Colheita','D82/D75','19/mai/26','L1 OK \u00b7 L2 imaturos','var(--amber)')+KT('Recebimento','D83/D76','20/mai/26','53 bot\u00f5es \u00b7 Botic\u00e1rio','var(--green)')+'</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">'+K('Recebido','53','bot\u00f5es \u00b7 15 ma\u00e7os','var(--muted)')+K('Janela ideal','21/53','40% \u00b7 rosa \u226510cm','var(--green)')+K('Imaturos','24/53','45% \u00b7 L2 \u00b7 D75','var(--red)')+K('Degradados','5/53','9%','var(--amber)')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:rgba(29,158,117,.08);border:1px solid rgba(29,158,117,.2);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:5px">Lote 1 \u2014 D82 \u00b7 26/fev \u2713</div><div style="font-size:11px;color:var(--muted);display:grid;gap:2px"><div>\u2713 10 abertos (53%)</div><div>\u2713 7 com qualidade \u226510cm</div><div>\u2713 0 imaturos \u2014 D82 = correto</div></div></div><div style="background:rgba(226,75,74,.08);border:1px solid rgba(226,75,74,.2);border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:5px">Lote 2 \u2014 D75 \u00b7 05/mar \u2717</div><div style="font-size:11px;color:var(--muted);display:grid;gap:2px"><div style="color:var(--red)">\u2717 0 abertos</div><div style="color:var(--red)">\u2717 24 imaturos \u00b7 verdes 4\u20138cm</div><div style="color:var(--red)">\u2717 D75 = PRECOCE</div></div></div></div></div><div class="ecard ec-val" style="margin-top:14px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">Experimento 3 \u00b7 Sorbonne + Zambesi \u00b7 Alta Densidade <span style="font-size:10px;font-weight:400;color:var(--muted)">Sala 6 + Sala 2 \u00b7 26/mai/26</span></div><div style="background:linear-gradient(135deg,rgba(29,158,117,.15),rgba(239,159,39,.1));border:1.5px solid rgba(29,158,117,.4);border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:4px">\ud83c\udfc6 Novo Recorde \u2014 D78 \u00b7 03/jul/26</div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Vasos 15\u201318 \u00b7 bulbos frescos \u00b7 5\u20137b/vaso \u00b7 \u22124 dias vs. D82 Exp.2</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:rgba(0,0,0,.2);border-radius:7px;padding:10px"><div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;margin-bottom:3px">\u2713 Bulbos frescos</div><div style="font-size:11px;color:var(--muted);line-height:1.4">Congelados causam estresse celular. Frescos chegam sem esse trauma.</div></div><div style="background:rgba(0,0,0,.2);border-radius:7px;padding:10px"><div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:3px">\u2192 Alta densidade?</div><div style="font-size:11px;color:var(--muted);line-height:1.4">5\u20137b/vaso pode induzir florescimento precoce. A validar com vasos 1\u201314.</div></div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:8px;margin-bottom:12px">'+KT('Plantio vasos 15\u201318','D0','16/abr/26','frescos \u00b7 Sala 6','var(--muted)')+KT('Plantio S6','D0','26/mai/26','3\u20138 bulbos','var(--muted)')+KT('Plantio S2','D0','29/mai/26','5\u20137 bulbos','var(--muted)')+KT('\ud83c\udfc6 Abertura 15\u201318','D78','03/jul/26','recorde \u00b7 frescos','var(--green)')+KT('Colheita S6','D83\u201386','~20/ago','nunca antes D80','var(--amber)')+KT('Colheita S2','D80\u201383','~17/ago','nunca antes D78','var(--amber)')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Sala 6 \u00b7 18 vasos</div><div style="font-size:11px;line-height:1.5">Densidades: <b style="color:var(--amber)">3/4/5/6/7/8 b/vaso</b><br>V2 \u00b7 Plantio 26/mai \u00b7 ~20/ago</div></div><div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Sala 2 \u00b7 15 vasos</div><div style="font-size:11px;line-height:1.5">Densidades: <b style="color:var(--amber)">5/6/7 b/vaso</b><br>V2 \u00b7 Plantio 29/mai \u00b7 ~17/ago</div></div></div></div>';
@@ -362,6 +385,14 @@
       main.appendChild(vb);
     }
 
+    // 1b. Create view-morango
+    if(!document.getElementById('view-morango')) {
+      var vmn = document.createElement('div');
+      vmn.id = 'view-morango';
+      vmn.style.display = 'none';
+      main.appendChild(vmn);
+    }
+
     // 2. Add Botic\u00e1rio nav button (uses sproutShowBoticario \u2014 always works)
     var navLbls = document.querySelectorAll('.nav-lbl'), b2s = null;
     for(var i=0;i<navLbls.length;i++){if(navLbls[i].textContent.trim()==='B2B / JV'){b2s=navLbls[i].parentElement;break;}}
@@ -371,6 +402,15 @@
       nb.setAttribute('onclick', 'sproutShowBoticario()');
       nb.innerHTML = '<span class="nav-dot"></span>Botic\u00e1rio';
       b2s.appendChild(nb);
+    }
+
+    // 2b. Add Morango B2B nav button
+    if(!document.querySelector('[onclick="sproutShowMorango()"]')) {
+      var nm = document.createElement('button');
+      nm.className = 'nav-item';
+      nm.setAttribute('onclick', 'sproutShowMorango()');
+      nm.innerHTML = '<span class="nav-dot"></span>Morango B2B';
+      if(b2s) b2s.appendChild(nm);
     }
 
     // 3. ALSO patch setView if it exists on window (for localhost)
