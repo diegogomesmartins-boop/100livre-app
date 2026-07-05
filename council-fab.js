@@ -406,9 +406,15 @@
     console.log('[Sprout v2] ✓ installed — event delegation, domain-agnostic');
   }
 
-  setTimeout(install, 600);
+  // Multiple retries — handles Firebase async loading delay
+  setTimeout(install, 1000);
+  setTimeout(install, 2000);
+  setTimeout(install, 4000);
   if(document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(install, 600); });
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(install, 1000);
+      setTimeout(install, 2500);
+    });
   }
 
 })();
