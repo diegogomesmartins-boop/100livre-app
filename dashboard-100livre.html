@@ -8586,7 +8586,7 @@ try {
       if (document.querySelector('[onclick="setView(\'morango\')"]')) return;
       var nb = document.createElement('button');
       nb.className = 'nav-item';
-      nb.setAttribute('onclick', "setView('morango')");
+      nb.setAttribute('onclick', "setView('experimentos');setTimeout(function(){setExpTab&&setExpTab('morango');},150);");
       nb.innerHTML = '<span class="nav-dot"></span>Morango';
       var botic = document.querySelector('[onclick="sproutShowBoticario()"]');
       if (botic) b2s.insertBefore(nb, botic);
@@ -8605,7 +8605,7 @@ try {
   function _install(){
     var b2s=null;
     document.querySelectorAll('.nav-lbl').forEach(function(e){if(e.textContent.trim()==='B2B / JV')b2s=e.parentElement;});
-    if(!b2s){if(_i<_t.length)setTimeout(_install,_t[_i++]);return;}
+    if(!b2s){if(_i<_t.length)setTimeout(_insetView('experimentos');setTimeout(function(){setExpTab&&setExpTab('morango');},150);turn;}
     if(!document.querySelector('[onclick="setView('morango')"]')){
       var m=document.createElement('button');m.className='nav-item';
       m.setAttribute('onclick',"setView('experimentos');setTimeout(function(){setExpTab&&setExpTab('morango');},150);");
