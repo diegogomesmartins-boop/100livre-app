@@ -331,6 +331,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         </div>
 
         <div class="slider-field">
+          <div class="slider-label">Perfil de mix</div>
+          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+            <button onclick="window._setMix('gpa')"     id="mix-gpa"     style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid #1d2d42;background:transparent;color:#64748b">GPA/Carrefour</button>
+            <button onclick="window._setMix('premium')" id="mix-premium" style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid #1d2d42;background:transparent;color:#64748b">Premium</button>
+            <button onclick="window._setMix('sams')"    id="mix-sams"    style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid #1d2d42;background:transparent;color:#64748b">Sam&#39;s Club</button>
+            <button onclick="window._setMix('custom')"  id="mix-custom"  style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid #1A7A4A;background:#0a1e10;color:#22c55e">Custom &#9998;</button>
+          </div>
+          <div id="mix-label" style="font-size:10px;color:#475569;margin-top:4px">Mix atual: custom (20% / 60% / 20%)</div>
+        </div>
+        <div class="slider-field">
           <div class="slider-label">Preços por embalagem</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px">
             <div style="background:#0a1e10;border:1px solid #1d2d42;border-radius:6px;padding:8px">
@@ -966,7 +976,8 @@ function calc() {
   const preco150 = parseFloat(document.getElementById('inp-preco150')?.value||18);
   const preco200 = parseFloat(document.getElementById('inp-preco200')?.value||25);
   const preco250 = parseFloat(document.getElementById('inp-preco250')?.value||32);
-  const mix150=0.20, mix200=0.60, mix250=0.20;
+  var _mo=window._mixOverride;
+  const mix150=_mo?_mo.m150:0.20, mix200=_mo?_mo.m200:0.60, mix250=_mo?_mo.m250:0.20;
   const preco_kg_medio = (preco150/0.150)*mix150 + (preco200/0.200)*mix200 + (preco250/0.250)*mix250;
   const preco = preco200;
   const apr = +document.getElementById('sl-apr').value / 100;
@@ -1056,6 +1067,38 @@ function calc() {
     <strong>${(torres*plantas_torre*prod/1000*apr).toFixed(0)} kg/mês</strong> aproveitável · 
     Preço médio R$${preco_kg_medio.toFixed(0)}/kg = <strong>R$${(preco_kg_medio*1000).toFixed(0)}/ton</strong>`;
 }
+
+window._setMix = function(perfil) {
+  var perfis = {
+    'gpa':     {p150:16,  p200:24,  p250:30,  m150:0.15, m200:0.70, m250:0.15, label:'GPA/Carrefour (15% / 70% / 15%)'},
+    'premium': {p150:20,  p200:28,  p250:36,  m150:0.15, m200:0.45, m250:0.40, label:'Premium — Zona Sul/Hirota (15% / 45% / 40%)'},
+    'sams':    {p150:17,  p200:25,  p250:33,  m150:0.10, m200:0.65, m250:0.25, label:"Sam's Club (10% / 65% / 25%)"},
+  };
+  var ids = ['gpa','premium','sams','custom'];
+  ids.forEach(function(id){
+    var b=document.getElementById('mix-'+id);
+    if(!b) return;
+    var active = id===perfil;
+    b.style.background  = active ? '#0a1e10' : 'transparent';
+    b.style.color       = active ? '#22c55e' : '#64748b';
+    b.style.borderColor = active ? '#1A7A4A' : '#1d2d42';
+  });
+  if (perfil==='custom' || !perfis[perfil]) {
+    window._mixOverride = null;
+    document.getElementById('mix-label').textContent = 'Mix atual: custom — ajuste livremente';
+    return;
+  }
+  var p = perfis[perfil];
+  ['150','200','250'].forEach(function(sz){
+    var inp=document.getElementById('inp-preco'+sz), sl=document.getElementById('sl-preco'+sz);
+    var val=p['p'+sz];
+    if(inp) inp.value=val.toFixed(2);
+    if(sl)  sl.value=val;
+  });
+  window._mixOverride = {m150:p.m150, m200:p.m200, m250:p.m250};
+  document.getElementById('mix-label').textContent = 'Mix atual: '+p.label;
+  calc();
+};
 
 function calcBE() {
   const bt = +document.getElementById('be-sl-torres').value;
