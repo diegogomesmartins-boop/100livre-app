@@ -331,8 +331,45 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         </div>
 
         <div class="slider-field">
-          <div class="slider-label">Preço 200g bandeja <span class="slider-val" id="lbl-preco">R$ 25,00</span></div>
-          <input type="range" id="sl-preco" min="8" max="40" step="1" value="25" oninput="calc()">
+          <div class="slider-label">Preços por embalagem</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px">
+            <div style="background:#0a1e10;border:1px solid #1d2d42;border-radius:6px;padding:8px">
+              <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">150g bandeja</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:10px;color:#94a3b8">R$</span>
+                <input type="number" id="inp-preco150" min="5" max="35" step="0.5" value="18"
+                  style="width:100%;background:#0f1824;border:1px solid #1d2d42;color:#22c55e;font-size:15px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:right"
+                  oninput="document.getElementById('sl-preco150').value=this.value;calc()">
+              </div>
+              <input type="range" id="sl-preco150" min="5" max="35" step="0.5" value="18"
+                style="width:100%;margin-top:4px;accent-color:#22c55e"
+                oninput="document.getElementById('inp-preco150').value=parseFloat(this.value).toFixed(2);calc()">
+            </div>
+            <div style="background:#0a1e10;border:1px solid #1A7A4A;border-radius:6px;padding:8px">
+              <div style="font-size:9px;color:#1A7A4A;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:4px">200g bandeja ★</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:10px;color:#94a3b8">R$</span>
+                <input type="number" id="inp-preco200" min="8" max="50" step="0.5" value="25"
+                  style="width:100%;background:#0f1824;border:1px solid #1A7A4A;color:#22c55e;font-size:15px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:right"
+                  oninput="document.getElementById('sl-preco200').value=this.value;calc()">
+              </div>
+              <input type="range" id="sl-preco200" min="8" max="50" step="0.5" value="25"
+                style="width:100%;margin-top:4px;accent-color:#22c55e"
+                oninput="document.getElementById('inp-preco200').value=parseFloat(this.value).toFixed(2);calc()">
+            </div>
+            <div style="background:#0a1e10;border:1px solid #1d2d42;border-radius:6px;padding:8px">
+              <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">250g bandeja</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:10px;color:#94a3b8">R$</span>
+                <input type="number" id="inp-preco250" min="10" max="60" step="0.5" value="32"
+                  style="width:100%;background:#0f1824;border:1px solid #1d2d42;color:#22c55e;font-size:15px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:right"
+                  oninput="document.getElementById('sl-preco250').value=this.value;calc()">
+              </div>
+              <input type="range" id="sl-preco250" min="10" max="60" step="0.5" value="32"
+                style="width:100%;margin-top:4px;accent-color:#22c55e"
+                oninput="document.getElementById('inp-preco250').value=parseFloat(this.value).toFixed(2);calc()">
+            </div>
+          </div>
         </div>
 
         <div class="slider-field">
@@ -926,14 +963,19 @@ function setTorres(v, btn) {
 function calc() {
   const ppb = +(document.getElementById('inp-ppb')?.value || document.getElementById('sl-ppb').value) || 48;
   const prod = +document.getElementById('sl-prod').value;
-  const preco = +document.getElementById('sl-preco').value;
+  const preco150 = parseFloat(document.getElementById('inp-preco150')?.value||18);
+  const preco200 = parseFloat(document.getElementById('inp-preco200')?.value||25);
+  const preco250 = parseFloat(document.getElementById('inp-preco250')?.value||32);
+  const mix150=0.20, mix200=0.60, mix250=0.20;
+  const preco_kg_medio = (preco150/0.150)*mix150 + (preco200/0.200)*mix200 + (preco250/0.250)*mix250;
+  const preco = preco200;
   const apr = +document.getElementById('sl-apr').value / 100;
   const opex = +document.getElementById('sl-opex').value;
   const muda = +document.getElementById('sl-muda').value;
 
   document.getElementById('lbl-ppb').textContent = ppb+' plantas/bandeja ('+Math.round(13*2*ppb)+'/torre)';
   document.getElementById('lbl-prod').textContent = prod+'g/planta/mês';
-  document.getElementById('lbl-preco').textContent = 'R$ '+preco.toFixed(2);
+  // lbl-preco removido
   document.getElementById('lbl-apr').textContent = (apr*100)+'%';
   document.getElementById('lbl-opex').textContent = fmtFull(opex);
   document.getElementById('lbl-muda').textContent = 'R$ '+muda.toFixed(2);
