@@ -564,6 +564,85 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     </div>
   </div>
 
+
+  <!-- RANKING POR PLANTA -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:0">
+    <div class="card">
+      <div class="section-lbl">🏆 Mais Frutos por Planta</div>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Total em 13 colheitas</div>
+      <div style="display:grid;grid-template-columns:22px 1fr 44px 44px;font-size:10px;color:var(--muted2);padding:4px 2px;border-bottom:1px solid #1d2d42;text-transform:uppercase;letter-spacing:.5px">
+        <span>#</span><span>Planta</span><span style="text-align:right">Frutos</span><span style="text-align:right">Média</span>
+      </div>
+      <div id="rank-frutos-list"></div>
+    </div>
+    <div class="card">
+      <div class="section-lbl">⚖️ Maior Peso por Fruto</div>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Mín. 5 frutos colhidos</div>
+      <div style="display:grid;grid-template-columns:22px 1fr 44px 44px;font-size:10px;color:var(--muted2);padding:4px 2px;border-bottom:1px solid #1d2d42;text-transform:uppercase;letter-spacing:.5px">
+        <span>#</span><span>Planta</span><span style="text-align:right">g/fruto</span><span style="text-align:right">Frutos</span>
+      </div>
+      <div id="rank-peso-list"></div>
+    </div>
+    <div class="card">
+      <div class="section-lbl">📦 Total Colhido por Planta</div>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Soma de todos os frutos (g)</div>
+      <div style="display:grid;grid-template-columns:22px 1fr 54px 44px;font-size:10px;color:var(--muted2);padding:4px 2px;border-bottom:1px solid #1d2d42;text-transform:uppercase;letter-spacing:.5px">
+        <span>#</span><span>Planta</span><span style="text-align:right">Total</span><span style="text-align:right">Frutos</span>
+      </div>
+      <div id="rank-total-list"></div>
+    </div>
+  </div>
+
+  <!-- COMPARATIVO ATUALIZADO -->
+  <div class="card" style="margin-top:0">
+    <div class="section-lbl">Comparativo — 100% Livre vs Campo BR vs Oishii (Japão)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">
+      <div style="background:#0a1e10;border:1px solid #1A7A4A44;border-radius:8px;padding:14px">
+        <div style="font-size:10px;color:var(--green);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px">100% LIVRE — OSASCO</div>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.8">
+          <div>🍓 Brix médio: <strong style="color:var(--text)">6,6°</strong> (meta 12°)</div>
+          <div>🍓 Brix máximo: <strong style="color:var(--green)">12,0°</strong> (colheita 13)</div>
+          <div>⚖️ Peso médio: <strong style="color:var(--text)">14,7g</strong></div>
+          <div>⚖️ Peso máximo planta: <strong style="color:var(--green)">40,3g</strong> (P32, Fibra Coco)</div>
+          <div>🌱 Frutos/planta/colheita: <strong style="color:var(--text)">~0,31</strong></div>
+          <div>🏆 Melhor planta: <strong style="color:var(--green)">P91</strong> (15 frutos, 13 col)</div>
+          <div>💊 Aplicações: <strong style="color:var(--amber)">3 H₂O₂ em 15d</strong></div>
+          <div>📅 Fase: <strong style="color:var(--amber)">Validação</strong></div>
+        </div>
+      </div>
+      <div style="background:#0a1218;border:1px solid #1d2d42;border-radius:8px;padding:14px">
+        <div style="font-size:10px;color:#64748b;font-family:var(--mono);letter-spacing:1px;margin-bottom:8px">CAMPO BR — REFERÊNCIA</div>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.8">
+          <div>🍓 Brix médio: <strong style="color:var(--text)">6–9°</strong></div>
+          <div>🍓 Brix máximo: <strong style="color:var(--text)">~9°</strong></div>
+          <div>⚖️ Peso médio: <strong style="color:var(--text)">10–20g</strong></div>
+          <div>⚖️ Peso máximo: <strong style="color:var(--text)">~25g</strong></div>
+          <div>🌱 Frutos/planta/colheita: <strong style="color:var(--text)">0,3–0,5</strong></div>
+          <div>🏆 Melhor planta: <strong style="color:var(--muted2)">não rastreado</strong></div>
+          <div>💊 Aplicações: <strong style="color:#E24B4A">20–40 por ciclo</strong></div>
+          <div>📅 Fase: <strong style="color:var(--text)">Produção</strong></div>
+        </div>
+      </div>
+      <div style="background:#0f0a1e;border:1px solid #7c3aed44;border-radius:8px;padding:14px">
+        <div style="font-size:10px;color:#a78bfa;font-family:var(--mono);letter-spacing:1px;margin-bottom:8px">OISHII — VERTICAL JAPÃO</div>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.8">
+          <div>🍓 Brix médio: <strong style="color:#a78bfa">13–18°</strong></div>
+          <div>🍓 Brix máximo: <strong style="color:#a78bfa">18°</strong></div>
+          <div>⚖️ Peso médio: <strong style="color:#a78bfa">15–60g</strong></div>
+          <div>⚖️ Peso máximo: <strong style="color:#a78bfa">60g+</strong></div>
+          <div>🌱 Frutos/planta/colheita: <strong style="color:#a78bfa">~0,5–1,0</strong></div>
+          <div>🏆 Melhor planta: <strong style="color:#a78bfa">não público</strong></div>
+          <div>💊 Aplicações: <strong style="color:var(--green)">Zero pesticidas</strong></div>
+          <div>📅 Fase: <strong style="color:#a78bfa">Comercial USD 50/cx</strong></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px;background:#0a1e10;border-left:2px solid var(--green);padding:10px 14px;border-radius:0 6px 6px 0;font-size:11px;color:var(--muted2)">
+      <strong style="color:var(--green)">Gap atual:</strong> nosso Brix máximo (12°) já alcança a faixa inferior do Oishii. Peso ainda abaixo (14,7g vs 15-60g). 
+      Planta 32 (Fibra de Coco) com 40,3g média mostra potencial — próximo passo: replicar condições dessa planta para toda a Fibra de Coco.
+    </div>
+  </div>
+
   <!-- LINHA DO TEMPO -->
   <div class="card">
     <div class="section-lbl">Linha do Tempo — Dias desde o Início do Ciclo (D0 = 26/Jan/2026)</div>
@@ -1023,9 +1102,93 @@ const PESO_SUBSTRATO = {
 const ctxPS = document.getElementById('chartPesoSub')?.getContext('2d');
 if(ctxPS){new Chart(ctxPS,{type:'line',data:{labels:PESO_SUBSTRATO.labels,datasets:PESO_SUBSTRATO.datasets},options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}}},y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},callback:v=>v+'g'},min:0,max:30,title:{display:true,text:'Gramas',color:C(100,116,139),font:{size:10}}}},plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',callbacks:{label:c=>c.dataset.label+': '+c.raw+'g'}}}}});}
 
+
+// ── Dados ranking plantas ──────────────────────
+const RANK_TOTAL = [
+  {p:'A-P91', pt:210.9, f:15, pm:14.1, s:'Casca Arroz', ini:'29/Abr', fim:'19/Jun', dias:51},
+  {p:'A-P29', pt:180.9, f:10, pm:18.1, s:'Fibra Coco',  ini:'28/Abr', fim:'18/Jun', dias:51},
+  {p:'A-P15', pt:175.9, f:8,  pm:22.0, s:'Casca Arroz', ini:'29/Abr', fim:'25/Jun', dias:57},
+  {p:'A-P72', pt:173.1, f:10, pm:17.3, s:'Casca Arroz', ini:'08/Jun', fim:'19/Jun', dias:11},
+  {p:'A-P17', pt:163.1, f:9,  pm:18.1, s:'Casca Arroz', ini:'27/Abr', fim:'18/Jun', dias:52},
+  {p:'A-P32', pt:161.1, f:4,  pm:40.3, s:'Fibra Coco',  ini:'05/Jun', fim:'18/Jun', dias:13},
+  {p:'A-P24', pt:156.7, f:9,  pm:17.4, s:'Casca Arroz', ini:'05/Mai', fim:'18/Jun', dias:44},
+  {p:'A-P68', pt:152.0, f:9,  pm:16.9, s:'Misto 50/50', ini:'19/Mai', fim:'25/Jun', dias:37},
+  {p:'A-P35', pt:145.1, f:9,  pm:16.1, s:'Fibra Coco',  ini:'19/Mai', fim:'25/Jun', dias:37},
+  {p:'A-P66', pt:144.0, f:11, pm:13.1, s:'Casca Arroz', ini:'12/Mai', fim:'19/Jun', dias:38},
+];
+const RANK_FRUTOS = [
+  {p:'A-P91',f:15,pm:14.1,s:'Casca Arroz'},
+  {p:'A-P97',f:12,pm:11.9,s:'Casca Arroz'},
+  {p:'A-P33',f:12,pm:11.7,s:'Fibra Coco'},
+  {p:'A-P155',f:12,pm:5.7,s:'Misto 50/50'},
+  {p:'A-P77',f:11,pm:9.9,s:'Casca Arroz'},
+  {p:'A-P66',f:11,pm:13.1,s:'Misto 50/50'},
+  {p:'A-P29',f:10,pm:18.1,s:'Fibra Coco'},
+  {p:'A-P95',f:10,pm:12.6,s:'Casca Arroz'},
+  {p:'A-P103',f:10,pm:13.0,s:'Casca Arroz'},
+  {p:'A-P72',f:10,pm:17.3,s:'Misto 50/50'},
+];
+const RANK_PESO = [
+  {p:'A-P64',f:6,pm:22.5,s:'Misto 50/50'},
+  {p:'A-P15',f:8,pm:22.0,s:'Casca Arroz'},
+  {p:'A-P55',f:6,pm:19.1,s:'Misto 50/50'},
+  {p:'A-P122',f:5,pm:19.0,s:'Fibra Coco'},
+  {p:'A-P102',f:6,pm:18.8,s:'Casca Arroz'},
+  {p:'A-P83',f:5,pm:18.6,s:'Casca Arroz'},
+  {p:'A-P22',f:7,pm:18.3,s:'Casca Arroz'},
+  {p:'A-P67',f:6,pm:18.2,s:'Misto 50/50'},
+  {p:'A-P17',f:9,pm:18.1,s:'Casca Arroz'},
+  {p:'A-P29',f:10,pm:18.1,s:'Fibra Coco'},
+];
+function renderRankings() {
+  const SUB_COR = {'Fibra Coco':'#22c55e','Casca Arroz':'#f59e0b','Misto 50/50':'#3b82f6'};
+  const r1 = document.getElementById('rank-frutos-list');
+  const r2 = document.getElementById('rank-peso-list');
+  if (!r1 || !r2) return;
+  const rowStyle = 'display:grid;grid-template-columns:24px 1fr 60px 60px 90px;gap:0;align-items:center;padding:6px 4px;border-bottom:0.5px solid #1d2d4215;font-size:12px';
+  const medals = ['🥇','🥈','🥉'];
+  r1.innerHTML = RANK_FRUTOS.map((p,i) => {
+    const cor = SUB_COR[p.s]||'#64748b';
+    return '<div style="'+rowStyle+'">'
+      +'<span style="font-size:13px">'+(medals[i]||('<span style=\'color:#64748b\'>'+String(i+1)+'.</span>'))+'</span>'
+      +'<span style="font-weight:600">'+p.p+'</span>'
+      +'<span style="text-align:right;color:var(--green);font-weight:700">'+p.f+'</span>'
+      +'<span style="text-align:right;color:var(--muted2)">'+p.pm+'g</span>'
+      +'</div>';
+  }).join('');
+  r2.innerHTML = RANK_PESO.map((p,i) => {
+    const cor = SUB_COR[p.s]||'#64748b';
+    return '<div style="'+rowStyle+'">'
+      +'<span style="font-size:13px">'+(medals[i]||('<span style=\'color:#64748b\'>'+String(i+1)+'.</span>'))+'</span>'
+      +'<span style="font-weight:600">'+p.p+'</span>'
+      +'<span style="text-align:right;color:#22c55e;font-weight:700">'+p.pm+'g</span>'
+      +'<span style="text-align:right;color:var(--muted2)">'+p.f+'fr</span>'
+      +'</div>';
+  }).join('');
+  const r3 = document.getElementById('rank-total-list');
+  if (r3) {
+    const rowStyle3 = 'display:grid;grid-template-columns:22px 1fr 54px 44px;gap:0;align-items:center;padding:5px 2px;border-bottom:0.5px solid #1d2d4215;font-size:12px';
+    r3.innerHTML = RANK_TOTAL.map((p,i) => {
+      const cor = SUB_COR[p.s]||'#64748b';
+      const barW = Math.round(p.pt/RANK_TOTAL[0].pt*100);
+      return '<div style="'+rowStyle3+'">'
+        +'<span style="font-size:13px">'+(medals[i]||('<span style=\'color:#64748b\'>'+String(i+1)+'.</span>'))+'</span>'
+        +'<div><span style="font-weight:600;font-size:11px">'+p.p+'</span>'
+        +'<div style="height:3px;background:linear-gradient(90deg,'+cor+','+cor+'22);width:'+barW+'%;border-radius:2px;margin-top:2px"></div>'
+        +'<div style="font-size:9px;color:'+cor+'">'+p.s+'</div></div>'
+        +'<span style="text-align:right;color:#f59e0b;font-weight:700;font-family:var(--mono)">'+p.pt+'g</span>'
+        +'<span style="text-align:right;color:var(--muted2);font-size:11px">'+p.f+' fr</span>'
+        +'</div>'
+        +'<div style="font-size:9px;color:#475569;padding:0 2px 4px 24px;font-family:var(--mono)">'+p.ini+' → '+p.fim+' · '+p.dias+'d</div>';
+    }).join('');
+  }
+}
+
+
 // Init
 calc();
 calcBE();
+renderRankings();
 </script>
 </body>
 </html>
