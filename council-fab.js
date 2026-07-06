@@ -409,7 +409,7 @@
     console.log('[Sprout v2] \u2713 installed \u2014 event delegation, domain-agnostic');
   }
 
-  // Boot — aguarda _dashLoaded (Firebase) ou fallback por tempo
+  // Boot \u2014 aguarda _dashLoaded (Firebase) ou fallback por tempo
   setTimeout(install, 1000);
   setTimeout(install, 3000);
   setTimeout(install, 6000);
@@ -424,7 +424,7 @@
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){setTimeout(install,1000);});}
 })();
 
-  // Morango B2B — usa setView('morango') que ja existe no HTML original
+  // Morango B2B \u2014 usa setView('morango') que ja existe no HTML original
   (function addMorangoNav() {
     function install() {
       var b2s = null;
