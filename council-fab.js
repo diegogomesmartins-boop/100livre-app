@@ -407,6 +407,19 @@
     } catch(e) {}
 
     console.log('[Sprout v2] \u2713 installed \u2014 event delegation, domain-agnostic');
+
+    // Patch setView to hide view-boticario when navigating away
+    if (typeof window.setView === 'function' && !window._setViewPatched) {
+      var _origSetView = window.setView;
+      window.setView = function(view) {
+        var vb = document.getElementById('view-boticario');
+        if (vb) vb.style.display = 'none';
+        var bb = document.querySelector('[onclick="sproutShowBoticario()"]');
+        if (bb) bb.classList.remove('active');
+        return _origSetView(view);
+      };
+      window._setViewPatched = true;
+    }
   }
 
   // Boot \u2014 aguarda _dashLoaded (Firebase) ou fallback por tempo
