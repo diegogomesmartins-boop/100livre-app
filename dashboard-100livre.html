@@ -8492,6 +8492,7 @@ try {
 
   // \u2500\u2500 INSTALL \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function install() {
+    if(document.querySelector('[data-sprout-done]'))return;
     var main = document.querySelector('main.main');
     if(!main) { setTimeout(install, 300); return; }
 
