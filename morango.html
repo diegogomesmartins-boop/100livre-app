@@ -982,7 +982,7 @@ function calc() {
 
   const plantas = Math.round(13 * 2 * ppb) * torres;
   const kg_mes = plantas * prod / 1000 * apr;
-  const receita = kg_mes * (preco / 0.2); // R$/kg from 200g price
+  const receita = kg_mes * preco_kg_medio;
   const custo = (opex * torres) + (muda * plantas / 12);
   const ebitda = receita - custo;
   const margem = receita > 0 ? ebitda/receita*100 : 0;
@@ -1001,7 +1001,7 @@ function calc() {
 
   // Gráfico projeção
   const arr_torres = [1,2,3,5,8,11,15,20,25,33];
-  const rev_arr = arr_torres.map(t=>t*832*prod/1000*apr*(preco/0.2));
+  const rev_arr = arr_torres.map(t=>t*832*prod/1000*apr*preco_kg_medio);
   const cost_arr = arr_torres.map(t=>t*opex);
 
   if (projChart) projChart.destroy();
@@ -1031,7 +1031,7 @@ function calc() {
   cens.forEach(c=>{
     const p=Math.round(13*2*ppb)*c.t;
     const k=p*prod/1000*apr;
-    const r=k*(preco/0.2);
+    const r=k*preco_kg_medio;
     const cs=c.t*opex+(muda*p/12);
     const m=r>0?(r-cs)/r*100:0;
     const mc = m>=30?'var(--green)':m>=0?'var(--amber)':'var(--red)';
@@ -1054,7 +1054,7 @@ function calc() {
   document.getElementById('proj-insight').innerHTML =
     `<strong style="color:var(--green)">${torres} torres</strong> · ${(torres*plantas_torre).toLocaleString('pt-BR')} plantas · 
     <strong>${(torres*plantas_torre*prod/1000*apr).toFixed(0)} kg/mês</strong> aproveitável · 
-    Preço R$${preco}/200g = <strong>R$${(preco/0.2*1000).toFixed(0)}/ton</strong>`;
+    Preço médio R$${preco_kg_medio.toFixed(0)}/kg = <strong>R$${(preco_kg_medio*1000).toFixed(0)}/ton</strong>`;
 }
 
 function calcBE() {
