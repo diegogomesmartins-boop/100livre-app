@@ -3,396 +3,613 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabaco Indoor — Sprout × BAT/SC</title>
+<title>Business Case — Joint Venture Nicotina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ══ RESET ═══════════════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ── RESET & BASE ─────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --green:      #1A7A4A;
+    --green-l:    #2AA35F;
+    --green-xl:   #E8F5EE;
+    --green-dim:  #0F3D22;
+    --amber:      #D97706;
+    --amber-l:    #FEF3C7;
+    --dark:       #0A0F1E;
+    --dark-2:     #111827;
+    --dark-3:     #1F2937;
+    --white:      #FFFFFF;
+    --off-w:      #F8FAF9;
+    --text-1:     #111827;
+    --text-2:     #374151;
+    --text-3:     #6B7280;
+    --border:     #E5E7EB;
+    --border-g:   #C7E8D6;
+    --r-md:       8px;
+    --r-lg:       12px;
+    --r-xl:       16px;
+    --shadow:     0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-lg:  0 4px 24px rgba(0,0,0,.12);
+  }
 
-/* ══ WRAPPER ═════════════════════════════════════════════════════════ */
-body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
-.top-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-  background: #0d1a0f; border-bottom: 1px solid #1e2d45;
-  display: flex; align-items: center; padding: 0 24px; height: 52px; gap: 4px;
-}
-.top-nav .logo { font-size: 13px; font-weight: 800; color: #22c55e; margin-right: 20px; white-space: nowrap; }
-.tab-btn {
-  padding: 8px 20px; border: none; border-radius: 8px;
-  background: transparent; color: #94a3b8; font-size: 13px;
-  font-weight: 600; cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif;
-}
-.tab-btn.active { background: #1A7A4A; color: #fff; }
-.tab-btn:hover:not(.active) { background: #1a2235; color: #f1f5f9; }
-.badge-conf {
-  margin-left: auto; font-size: 10px; font-weight: 700;
-  background: #1A7A4A; color: #fff; padding: 3px 10px;
-  border-radius: 20px; letter-spacing: .5px;
-}
-.tab-content { display: none; padding-top: 52px; }
-.tab-content.active { display: block; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--off-w);
+    color: var(--text-1);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
 
-/* ══ ROOT VARIABLES ══════════════════════════════════════════════════ */
-:root {
-  --green:      #1A7A4A;
-  --green-l:    #2AA35F;
-  --green-xl:   #E8F5EE;
-  --green-dim:  #0F3D22;
-  --amber:      #D97706;
-  --amber-l:    #FEF3C7;
-  --dark:       #0A0F1E;
-  --dark-2:     #111827;
-  --dark-3:     #1F2937;
-  --white:      #FFFFFF;
-  --off-w:      #F8FAF9;
-  --text-1:     #111827;
-  --text-2:     #374151;
-  --text-3:     #6B7280;
-  --border-g:   #C7E8D6;
-  --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
-  --shadow:    0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
-  --shadow-lg: 0 4px 24px rgba(0,0,0,.12);
-  --bg:         #0A0F1E;
-  --surface:    #111827;
-  --surface2:   #1a2235;
-  --green-light:#22c55e;
-  --amber-light:#f59e0b;
-  --blue:       #3b82f6;
-  --red:        #ef4444;
-  --text:       #f1f5f9;
-  --muted:      #94a3b8;
-}
-/* Scope --border conflict per tab */
-#tab-bc  { --border: #E5E7EB; }
-#tab-def { --border: #1e2d45; }
+  /* ── LAYOUT ───────────────────────────────────────────────────── */
+  .page { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
 
-/* ══ BC STYLES (scoped to #tab-bc) ══════════════════════════════════ */
-#tab-bc {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--off-w); color: var(--text-1);
-  font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
-}
-#tab-bc .page { max-width: 1200px; margin: 0 auto; padding: 16px 24px 80px; }
-#tab-bc .section { margin-bottom: 56px; }
-#tab-bc .section-header {
-  display: flex; align-items: baseline; gap: 12px;
-  margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
-}
-#tab-bc .section-num { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--green); text-transform: uppercase; }
-#tab-bc .section-title { font-size: 20px; font-weight: 700; color: var(--text-1); }
-#tab-bc .section-sub { font-size: 13px; color: var(--text-3); margin-left: auto; }
-#tab-bc .hero {
-  background: var(--dark); border-radius: var(--r-xl); padding: 48px;
-  margin-bottom: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
-}
-#tab-bc .hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: #4ADE80; text-transform: uppercase; margin-bottom: 16px; }
-#tab-bc .hero-title { font-size: 36px; font-weight: 800; line-height: 1.15; color: var(--white); margin-bottom: 20px; }
-#tab-bc .hero-title span { color: #4ADE80; }
-#tab-bc .hero-desc { font-size: 15px; color: #9CA3AF; line-height: 1.7; }
-#tab-bc .hero-right { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-#tab-bc .hero-kpi { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: var(--r-lg); padding: 20px; }
-#tab-bc .hero-kpi-val { font-size: 32px; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 6px; }
-#tab-bc .hero-kpi-val.amber { color: var(--amber); }
-#tab-bc .hero-kpi-val.green { color: #4ADE80; }
-#tab-bc .hero-kpi-label { font-size: 11px; color: #9CA3AF; line-height: 1.4; }
-#tab-bc .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-#tab-bc .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-#tab-bc .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-#tab-bc .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow); }
-#tab-bc .card-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
-#tab-bc .card-val { font-size: 28px; font-weight: 800; color: var(--text-1); line-height: 1; margin-bottom: 4px; }
-#tab-bc .card-val.green { color: var(--green); }
-#tab-bc .card-val.amber { color: var(--amber); }
-#tab-bc .card-sub { font-size: 12px; color: var(--text-3); }
-#tab-bc .compare-table { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--shadow); }
-#tab-bc .compare-table table { width: 100%; border-collapse: collapse; }
-#tab-bc .compare-table thead th { padding: 16px 20px; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-bottom: 2px solid var(--border); }
-#tab-bc .compare-table thead th:first-child { color: var(--text-3); background: var(--off-w); }
-#tab-bc .compare-table thead th:nth-child(2) { background: #FFF9F0; color: #92400E; }
-#tab-bc .compare-table thead th:nth-child(3) { background: #FFF9F0; color: var(--amber); }
-#tab-bc .compare-table thead th:nth-child(4) { background: var(--green-dim); color: #4ADE80; }
-#tab-bc .compare-table tbody tr { border-bottom: 1px solid var(--border); }
-#tab-bc .compare-table tbody tr:last-child { border-bottom: none; }
-#tab-bc .compare-table tbody td { padding: 14px 20px; font-size: 13px; vertical-align: middle; }
-#tab-bc .compare-table tbody td:first-child { font-weight: 500; color: var(--text-2); background: var(--off-w); }
-#tab-bc .compare-table tbody td:nth-child(2) { background: #FFFBF5; }
-#tab-bc .compare-table tbody td:nth-child(3) { background: #FFFBF5; }
-#tab-bc .compare-table tbody td:nth-child(4) { background: #F0FDF4; }
-#tab-bc .compare-table .highlight { font-weight: 700; color: var(--green); font-size: 14px; }
-#tab-bc .compare-table .amber-val { font-weight: 700; color: var(--amber); }
-#tab-bc .nic-bar-wrap { display: flex; align-items: center; gap: 8px; }
-#tab-bc .nic-bar-bg { flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden; max-width: 120px; }
-#tab-bc .nic-bar-fill { height: 100%; border-radius: 3px; }
-#tab-bc .nic-val { font-weight: 700; font-size: 14px; min-width: 50px; }
-#tab-bc .exp-timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
-#tab-bc .exp-timeline::before {
-  content: ''; position: absolute; top: 32px; left: calc(12.5% + 8px); right: calc(12.5% + 8px);
-  height: 2px; background: linear-gradient(90deg, var(--border-g), var(--green), var(--amber), #60A5FA);
-}
-#tab-bc .exp-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; margin: 0 8px; box-shadow: var(--shadow); position: relative; }
-#tab-bc .exp-card::before { content: ''; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--white); box-shadow: 0 0 0 2px currentColor; }
-#tab-bc .exp-card.done::before    { background: var(--green); color: var(--green); }
-#tab-bc .exp-card.current::before { background: var(--amber); color: var(--amber); }
-#tab-bc .exp-card.next::before    { background: #60A5FA;      color: #60A5FA; }
-#tab-bc .exp-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-bottom: 10px; }
-#tab-bc .exp-badge.done    { background: var(--green-xl); color: var(--green); }
-#tab-bc .exp-badge.current { background: var(--amber-l);  color: #92400E; }
-#tab-bc .exp-badge.next    { background: #EFF6FF; color: #1D4ED8; }
-#tab-bc .exp-nic { font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-#tab-bc .exp-nic.green { color: var(--green); }
-#tab-bc .exp-nic.amber { color: var(--amber); }
-#tab-bc .exp-nic.blue  { color: #60A5FA; }
-#tab-bc .exp-info  { font-size: 11px; color: var(--text-3); line-height: 1.6; margin-top: 8px; }
-#tab-bc .exp-delta { display: inline-block; font-size: 11px; font-weight: 700; color: var(--green); margin-top: 6px; }
-#tab-bc .edit-panel { background: var(--dark-2); border: 1px solid #374151; border-radius: var(--r-xl); padding: 28px; }
-#tab-bc .edit-panel-title { font-size: 13px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-#tab-bc .edit-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-#tab-bc .edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-#tab-bc .edit-field { display: flex; flex-direction: column; gap: 6px; }
-#tab-bc .edit-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: .08em; }
-#tab-bc .edit-input { background: #111827; border: 1px solid #374151; border-radius: var(--r-md); padding: 10px 14px; color: var(--white); font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; transition: border-color .2s; outline: none; }
-#tab-bc .edit-input:focus { border-color: var(--green); }
-#tab-bc .edit-input-select { background: #111827; border: 1px solid #374151; border-radius: var(--r-md); padding: 10px 14px; color: var(--white); font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; outline: none; appearance: none; }
-#tab-bc .edit-actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
-#tab-bc .btn-primary { background: var(--green); color: var(--white); border: none; border-radius: var(--r-md); padding: 10px 24px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: background .2s; }
-#tab-bc .btn-primary:hover { background: var(--green-l); }
-#tab-bc .btn-secondary { background: transparent; color: #9CA3AF; border: 1px solid #374151; border-radius: var(--r-md); padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: border-color .2s; }
-#tab-bc .btn-secondary:hover { border-color: #6B7280; color: var(--white); }
-#tab-bc .edit-saved { font-size: 12px; color: #4ADE80; display: none; }
-#tab-bc .breakeven-panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 28px; box-shadow: var(--shadow); }
-#tab-bc .slider-group { margin-bottom: 24px; }
-#tab-bc .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-#tab-bc .slider-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
-#tab-bc .slider-val { font-size: 18px; font-weight: 800; color: var(--green); }
-#tab-bc input[type="range"] { width: 100%; height: 4px; -webkit-appearance: none; background: linear-gradient(90deg, var(--green) var(--pct, 50%), #E5E7EB var(--pct, 50%)); border-radius: 2px; cursor: pointer; outline: none; }
-#tab-bc input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--green); border-radius: 50%; border: 3px solid var(--white); box-shadow: 0 0 0 2px var(--green); cursor: pointer; }
-#tab-bc .slider-range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 4px; }
-#tab-bc .be-outputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); }
-#tab-bc .be-out { background: var(--off-w); border-radius: var(--r-md); padding: 16px; text-align: center; }
-#tab-bc .be-out-label { font-size: 11px; color: var(--text-3); margin-bottom: 6px; font-weight: 500; }
-#tab-bc .be-out-val { font-size: 22px; font-weight: 800; color: var(--text-1); }
-#tab-bc .be-out-val.green { color: var(--green); }
-#tab-bc .be-out-val.amber { color: var(--amber); }
-#tab-bc .be-out-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-#tab-bc .be-scenario-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
-#tab-bc .be-toggle-btn { flex: 1; padding: 8px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--white); font-size: 12px; font-weight: 600; color: var(--text-3); cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif; }
-#tab-bc .be-toggle-btn.active { background: var(--green); color: var(--white); border-color: var(--green); }
-#tab-bc .scale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-#tab-bc .scale-card { border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--shadow-lg); }
-#tab-bc .scale-header { padding: 24px 28px; display: flex; justify-content: space-between; align-items: flex-start; }
-#tab-bc .scale-header.s33  { background: var(--green-dim); }
-#tab-bc .scale-header.s320 { background: var(--dark); border: 1px solid #374151; }
-#tab-bc .scale-tag  { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #4ADE80; margin-bottom: 6px; }
-#tab-bc .scale-name { font-size: 22px; font-weight: 800; color: var(--white); }
-#tab-bc .scale-sub  { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
-#tab-bc .scale-density-toggle { display: flex; gap: 4px; }
-#tab-bc .dens-btn { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.5); cursor: pointer; background: transparent; font-family: 'Inter', sans-serif; transition: all .2s; }
-#tab-bc .dens-btn.active { background: rgba(255,255,255,.15); color: var(--white); border-color: rgba(255,255,255,.4); }
-#tab-bc .scale-body { background: var(--white); padding: 24px 28px; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--r-xl) var(--r-xl); }
-#tab-bc .scale-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-#tab-bc .scale-kpi { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-#tab-bc .scale-kpi:nth-last-child(-n+2) { border-bottom: none; padding-bottom: 0; }
-#tab-bc .scale-kpi-label { font-size: 11px; color: var(--text-3); margin-bottom: 3px; }
-#tab-bc .scale-kpi-val { font-size: 18px; font-weight: 800; color: var(--text-1); }
-#tab-bc .scale-kpi-val.green { color: var(--green); }
-#tab-bc .scale-kpi-val.amber { color: var(--amber); }
-#tab-bc .scale-note { font-size: 11px; color: var(--text-3); padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px; line-height: 1.5; }
-#tab-bc .jv-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: stretch; }
-#tab-bc .jv-col { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow); }
-#tab-bc .jv-col.center-col { background: var(--dark); border-color: var(--green); border-width: 2px; }
-#tab-bc .jv-col-tag { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 12px; }
-#tab-bc .jv-col-tag.sprout { color: var(--green); }
-#tab-bc .jv-col-tag.bat    { color: var(--amber); }
-#tab-bc .jv-col-tag.result { color: #4ADE80; }
-#tab-bc .jv-col-name { font-size: 16px; font-weight: 800; color: var(--text-1); margin-bottom: 16px; }
-#tab-bc .jv-col.center-col .jv-col-name { color: var(--white); }
-#tab-bc .jv-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 13px; color: var(--text-2); }
-#tab-bc .jv-item:last-child { margin-bottom: 0; }
-#tab-bc .jv-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-size: 9px; font-weight: 800; }
-#tab-bc .jv-icon.g { background: var(--green-xl); color: var(--green); }
-#tab-bc .jv-icon.a { background: var(--amber-l); color: #92400E; }
-#tab-bc .jv-icon.w { background: rgba(74,222,128,.15); color: #4ADE80; }
-#tab-bc .jv-col.center-col .jv-item { color: #D1FAE5; }
-#tab-bc .jv-arrow { display: flex; align-items: center; justify-content: center; padding: 0 8px; font-size: 20px; color: var(--text-3); }
-#tab-bc .equiv-box { background: var(--dark); border-radius: var(--r-xl); padding: 36px; text-align: center; position: relative; overflow: hidden; }
-#tab-bc .equiv-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 50%, rgba(26,122,74,.3) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(217,119,6,.15) 0%, transparent 60%); }
-#tab-bc .equiv-content { position: relative; z-index: 1; }
-#tab-bc .equiv-label { font-size: 12px; font-weight: 600; color: #9CA3AF; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
-#tab-bc .equiv-number { font-size: 72px; font-weight: 900; color: var(--white); line-height: 1; margin-bottom: 8px; }
-#tab-bc .equiv-number span { color: #4ADE80; }
-#tab-bc .equiv-desc { font-size: 15px; color: #9CA3AF; max-width: 520px; margin: 0 auto; line-height: 1.6; }
-#tab-bc .equiv-desc strong { color: var(--white); }
-#tab-bc .equiv-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin-top: 32px; text-align: left; }
-#tab-bc .equiv-side { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: var(--r-lg); padding: 20px; }
-#tab-bc .equiv-side-tag { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
-#tab-bc .equiv-side-val { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-#tab-bc .equiv-side-desc { font-size: 12px; color: #9CA3AF; }
-#tab-bc .equiv-vs { font-size: 18px; font-weight: 800; color: #4B5563; text-align: center; }
-#tab-bc .trace-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-#tab-bc .trace-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow); border-top: 3px solid var(--green); }
-#tab-bc .trace-icon { font-size: 24px; margin-bottom: 10px; }
-#tab-bc .trace-title { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
-#tab-bc .trace-desc { font-size: 12px; color: var(--text-3); line-height: 1.6; }
-#tab-bc .trace-tag { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; background: var(--green-xl); color: var(--green); padding: 3px 8px; border-radius: 4px; }
-#tab-bc .return-bar { background: var(--dark); border-radius: var(--r-xl); padding: 32px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; text-align: center; }
-#tab-bc .return-item { padding: 0 20px; }
-#tab-bc .return-item + .return-item { border-left: 1px solid rgba(255,255,255,.08); }
-#tab-bc .return-label { font-size: 11px; color: #9CA3AF; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
-#tab-bc .return-val { font-size: 32px; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 4px; }
-#tab-bc .return-val.green { color: #4ADE80; }
-#tab-bc .return-val.amber { color: var(--amber); }
-#tab-bc .return-sub { font-size: 11px; color: #6B7280; }
-#tab-bc .disclaimer { margin-top: 40px; padding: 16px 20px; background: var(--amber-l); border-radius: var(--r-md); border-left: 3px solid var(--amber); font-size: 12px; color: #92400E; line-height: 1.6; }
-@media (max-width: 900px) {
-  #tab-bc .hero { grid-template-columns: 1fr; }
-  #tab-bc .hero-right { grid-template-columns: repeat(2, 1fr); }
-  #tab-bc .exp-timeline { grid-template-columns: 1fr 1fr; }
-  #tab-bc .exp-timeline::before { display: none; }
-  #tab-bc .scale-grid { grid-template-columns: 1fr; }
-  #tab-bc .jv-grid { grid-template-columns: 1fr; }
-  #tab-bc .jv-arrow { display: none; }
-  #tab-bc .return-bar { grid-template-columns: 1fr 1fr; gap: 20px; }
-  #tab-bc .return-item { border-left: none; }
-  #tab-bc .trace-grid { grid-template-columns: 1fr 1fr; }
-  #tab-bc .edit-grid { grid-template-columns: 1fr 1fr; }
-  #tab-bc .be-outputs { grid-template-columns: 1fr; }
-}
+  .section { margin-bottom: 56px; }
+  
+  .section-header {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-size: 11px; font-weight: 700; letter-spacing: .12em;
+    color: var(--green); text-transform: uppercase;
+  }
+  .section-title {
+    font-size: 20px; font-weight: 700; color: var(--text-1);
+  }
+  .section-sub {
+    font-size: 13px; color: var(--text-3); margin-left: auto;
+  }
 
-/* ══ DEFESA STYLES (scoped to #tab-def) ═════════════════════════════ */
-#tab-def { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: calc(100vh - 52px); }
-#tab-def .header { background: linear-gradient(135deg, #0d1f13 0%, var(--bg) 100%); border-bottom: 1px solid var(--border); padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
-#tab-def .header h1 { font-size: 22px; font-weight: 800; }
-#tab-def .header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
-#tab-def .badge { background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
-#tab-def .main { padding: 24px 32px; display: grid; grid-template-columns: 320px 1fr; gap: 24px; max-width: 1400px; }
-#tab-def .controls { display: flex; flex-direction: column; gap: 16px; }
-#tab-def .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-#tab-def .card-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
-#tab-def .field { margin-bottom: 14px; }
-#tab-def .field label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 6px; }
-#tab-def .field label span { color: var(--amber-light); font-weight: 700; }
-#tab-def input[type=range] { width: 100%; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
-#tab-def input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--amber); border-radius: 50%; cursor: pointer; }
-#tab-def .field-fixed { background: var(--surface2); border-radius: 8px; padding: 8px 12px; font-size: 13px; display: flex; justify-content: space-between; }
-#tab-def .field-fixed .val { font-weight: 700; color: var(--green-light); }
-#tab-def .toggle-group { display: flex; gap: 4px; }
-#tab-def .toggle-btn { flex: 1; padding: 7px 4px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s; text-align: center; }
-#tab-def .toggle-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
-#tab-def .results { display: flex; flex-direction: column; gap: 16px; }
-#tab-def .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-#tab-def .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-#tab-def .kpi .label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-#tab-def .kpi .value { font-size: 28px; font-weight: 900; line-height: 1; }
-#tab-def .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-#tab-def .kpi.highlight { border-color: var(--amber); }
-#tab-def .kpi.highlight .value { color: var(--amber-light); }
-#tab-def .kpi.green .value { color: var(--green-light); }
-#tab-def .compare-table { width: 100%; border-collapse: collapse; }
-#tab-def .compare-table th { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-#tab-def .compare-table th.campo  { color: #f59e0b66; }
-#tab-def .compare-table th.sprout { color: var(--green-light); }
-#tab-def .compare-table td { padding: 12px 16px; border-bottom: 1px solid #ffffff08; font-size: 13px; }
-#tab-def .compare-table tr:hover td { background: var(--surface2); }
-#tab-def .compare-table .row-label { color: var(--muted); font-size: 12px; }
-#tab-def .compare-table .val-campo  { color: var(--amber-light); font-weight: 600; }
-#tab-def .compare-table .val-sprout { color: var(--green-light); font-weight: 700; }
-#tab-def .compare-table .winner { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; letter-spacing: .5px; }
-#tab-def .compare-table .winner.sprout-win { background: #1A7A4A33; color: var(--green-light); }
-#tab-def .compare-table .winner.campo-win  { background: #D9770633; color: var(--amber-light); }
-#tab-def .nico-bar-wrap { margin-top: 8px; }
-#tab-def .nico-bar-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-#tab-def .nico-bar-track { height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; }
-#tab-def .nico-bar-fill { height: 100%; border-radius: 6px; transition: width .4s; }
-#tab-def .bar-campo  { background: var(--amber); }
-#tab-def .bar-sprout { background: linear-gradient(90deg, var(--green), var(--green-light)); }
-#tab-def .arg { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; border-left: 3px solid var(--green); }
-#tab-def .arg-num { display: inline-block; background: var(--green); color: #fff; font-size: 10px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; margin-right: 8px; }
-#tab-def .arg-title { font-size: 13px; font-weight: 700; display: inline; }
-#tab-def .arg-body { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
-#tab-def .arg-body strong { color: var(--amber-light); }
-#tab-def .args-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-#tab-def .section-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-#tab-def .note { font-size: 11px; color: var(--muted); padding: 10px 14px; background: #ffffff06; border-radius: 8px; margin-top: 8px; }
-@media (max-width: 1000px) {
-  #tab-def .main { grid-template-columns: 1fr; }
-  #tab-def .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  #tab-def .args-grid { grid-template-columns: 1fr; }
-}
+  /* ── HERO ─────────────────────────────────────────────────────── */
+  .hero {
+    background: var(--dark);
+    border-radius: var(--r-xl);
+    padding: 48px;
+    margin-bottom: 56px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .hero-left {}
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    color: #4ADE80; text-transform: uppercase; margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: 36px; font-weight: 800; line-height: 1.15;
+    color: var(--white); margin-bottom: 20px;
+  }
+  .hero-title span { color: #4ADE80; }
+  .hero-desc {
+    font-size: 15px; color: #9CA3AF; line-height: 1.7;
+  }
+  .hero-right {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .hero-kpi {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--r-lg);
+    padding: 20px;
+  }
+  .hero-kpi-val {
+    font-size: 32px; font-weight: 800;
+    color: var(--white); line-height: 1;
+    margin-bottom: 6px;
+  }
+  .hero-kpi-val.amber { color: var(--amber); }
+  .hero-kpi-val.green { color: #4ADE80; }
+  .hero-kpi-label { font-size: 11px; color: #9CA3AF; line-height: 1.4; }
+
+  /* ── CARDS GRID ───────────────────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .card-val { font-size: 28px; font-weight: 800; color: var(--text-1); line-height: 1; margin-bottom: 4px; }
+  .card-val.green { color: var(--green); }
+  .card-val.amber { color: var(--amber); }
+  .card-sub { font-size: 12px; color: var(--text-3); }
+
+  /* ── TABELA COMPARATIVA ───────────────────────────────────────── */
+  .compare-table {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .compare-table table {
+    width: 100%; border-collapse: collapse;
+  }
+  .compare-table thead th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    border-bottom: 2px solid var(--border);
+  }
+  .compare-table thead th:first-child { color: var(--text-3); background: var(--off-w); }
+  .compare-table thead th:nth-child(2) { background: #FFF9F0; color: #92400E; }
+  .compare-table thead th:nth-child(3) { background: #FFF9F0; color: var(--amber); }
+  .compare-table thead th:nth-child(4) { background: var(--green-dim); color: #4ADE80; }
+  .compare-table tbody tr { border-bottom: 1px solid var(--border); }
+  .compare-table tbody tr:last-child { border-bottom: none; }
+  .compare-table tbody td {
+    padding: 14px 20px; font-size: 13px; vertical-align: middle;
+  }
+  .compare-table tbody td:first-child { font-weight: 500; color: var(--text-2); background: var(--off-w); }
+  .compare-table tbody td:nth-child(2) { background: #FFFBF5; }
+  .compare-table tbody td:nth-child(3) { background: #FFFBF5; }
+  .compare-table tbody td:nth-child(4) { background: #F0FDF4; }
+  .compare-table .highlight { font-weight: 700; color: var(--green); font-size: 14px; }
+  .compare-table .amber-val { font-weight: 700; color: var(--amber); }
+
+  /* Barra nicotina */
+  .nic-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .nic-bar-bg { flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden; max-width: 120px; }
+  .nic-bar-fill { height: 100%; border-radius: 3px; }
+  .nic-val { font-weight: 700; font-size: 14px; min-width: 50px; }
+
+  /* ── EXPERIMENTOS TIMELINE ─────────────────────────────────────── */
+  .exp-timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+  .exp-timeline::before {
+    content: '';
+    position: absolute;
+    top: 32px; left: calc(12.5% + 8px); right: calc(12.5% + 8px);
+    height: 2px; background: linear-gradient(90deg, var(--border-g), var(--green), var(--amber), #60A5FA);
+  }
+  .exp-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    margin: 0 8px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .exp-card::before {
+    content: '';
+    position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px currentColor;
+  }
+  .exp-card.done::before { background: var(--green); color: var(--green); }
+  .exp-card.current::before { background: var(--amber); color: var(--amber); }
+  .exp-card.next::before { background: #60A5FA; color: #60A5FA; }
+  .exp-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px; margin-bottom: 10px;
+  }
+  .exp-badge.done { background: var(--green-xl); color: var(--green); }
+  .exp-badge.current { background: var(--amber-l); color: #92400E; }
+  .exp-badge.next { background: #EFF6FF; color: #1D4ED8; }
+  .exp-nic { font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .exp-nic.green { color: var(--green); }
+  .exp-nic.amber { color: var(--amber); }
+  .exp-nic.blue { color: #60A5FA; }
+  .exp-info { font-size: 11px; color: var(--text-3); line-height: 1.6; margin-top: 8px; }
+  .exp-delta {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    color: var(--green); margin-top: 6px;
+  }
+
+  /* ── PAINEL EDITÁVEL (EXP 3) ──────────────────────────────────── */
+  .edit-panel {
+    background: var(--dark-2);
+    border: 1px solid #374151;
+    border-radius: var(--r-xl);
+    padding: 28px;
+  }
+  .edit-panel-title {
+    font-size: 13px; font-weight: 700; color: #9CA3AF;
+    text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+  }
+  .edit-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber); animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .edit-field { display: flex; flex-direction: column; gap: 6px; }
+  .edit-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: .08em; }
+  .edit-input {
+    background: #111827; border: 1px solid #374151;
+    border-radius: var(--r-md); padding: 10px 14px;
+    color: var(--white); font-size: 14px; font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    transition: border-color .2s;
+    outline: none;
+  }
+  .edit-input:focus { border-color: var(--green); }
+  .edit-input-select {
+    background: #111827; border: 1px solid #374151;
+    border-radius: var(--r-md); padding: 10px 14px;
+    color: var(--white); font-size: 14px; font-weight: 600;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    outline: none; appearance: none;
+  }
+  .edit-actions { margin-top: 20px; display: flex; gap: 12px; align-items: center; }
+  .btn-primary {
+    background: var(--green); color: var(--white);
+    border: none; border-radius: var(--r-md);
+    padding: 10px 24px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: background .2s;
+  }
+  .btn-primary:hover { background: var(--green-l); }
+  .btn-secondary {
+    background: transparent; color: #9CA3AF;
+    border: 1px solid #374151; border-radius: var(--r-md);
+    padding: 10px 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: border-color .2s;
+  }
+  .btn-secondary:hover { border-color: #6B7280; color: var(--white); }
+  .edit-saved { font-size: 12px; color: #4ADE80; display: none; }
+
+  /* ── BREAKEVEN ─────────────────────────────────────────────────── */
+  .breakeven-panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 28px;
+    box-shadow: var(--shadow);
+  }
+  .slider-group { margin-bottom: 24px; }
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .slider-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+  .slider-val { font-size: 18px; font-weight: 800; color: var(--green); }
+  input[type="range"] {
+    width: 100%; height: 4px; -webkit-appearance: none;
+    background: linear-gradient(90deg, var(--green) var(--pct, 50%), #E5E7EB var(--pct, 50%));
+    border-radius: 2px; cursor: pointer; outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    background: var(--green); border-radius: 50%;
+    border: 3px solid var(--white); box-shadow: 0 0 0 2px var(--green);
+    cursor: pointer;
+  }
+  .slider-range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .be-outputs {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-top: 28px; padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .be-out {
+    background: var(--off-w); border-radius: var(--r-md);
+    padding: 16px; text-align: center;
+  }
+  .be-out-label { font-size: 11px; color: var(--text-3); margin-bottom: 6px; font-weight: 500; }
+  .be-out-val { font-size: 22px; font-weight: 800; color: var(--text-1); }
+  .be-out-val.green { color: var(--green); }
+  .be-out-val.amber { color: var(--amber); }
+  .be-out-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .be-scenario-toggle {
+    display: flex; gap: 8px; margin-bottom: 24px;
+  }
+  .be-toggle-btn {
+    flex: 1; padding: 8px; border-radius: var(--r-md);
+    border: 1px solid var(--border); background: var(--white);
+    font-size: 12px; font-weight: 600; color: var(--text-3);
+    cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif;
+  }
+  .be-toggle-btn.active {
+    background: var(--green); color: var(--white); border-color: var(--green);
+  }
+
+  /* ── CENÁRIOS ESCALA ──────────────────────────────────────────── */
+  .scale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .scale-card {
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .scale-header {
+    padding: 24px 28px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .scale-header.s33 { background: var(--green-dim); }
+  .scale-header.s320 { background: var(--dark); border: 1px solid #374151; }
+  .scale-header-left {}
+  .scale-tag { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #4ADE80; margin-bottom: 6px; }
+  .scale-name { font-size: 22px; font-weight: 800; color: var(--white); }
+  .scale-sub { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+  .scale-density-toggle {
+    display: flex; gap: 4px;
+  }
+  .dens-btn {
+    padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.5);
+    cursor: pointer; background: transparent; font-family: 'Inter', sans-serif;
+    transition: all .2s;
+  }
+  .dens-btn.active { background: rgba(255,255,255,.15); color: var(--white); border-color: rgba(255,255,255,.4); }
+  .scale-body {
+    background: var(--white); padding: 24px 28px;
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 var(--r-xl) var(--r-xl);
+  }
+  .scale-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .scale-kpi { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+  .scale-kpi:nth-last-child(-n+2) { border-bottom: none; padding-bottom: 0; }
+  .scale-kpi-label { font-size: 11px; color: var(--text-3); margin-bottom: 3px; }
+  .scale-kpi-val { font-size: 18px; font-weight: 800; color: var(--text-1); }
+  .scale-kpi-val.green { color: var(--green); }
+  .scale-kpi-val.amber { color: var(--amber); }
+  .scale-note {
+    font-size: 11px; color: var(--text-3); padding-top: 12px;
+    border-top: 1px solid var(--border); margin-top: 4px; line-height: 1.5;
+  }
+
+  /* ── JV TESE ──────────────────────────────────────────────────── */
+  .jv-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: stretch; }
+  .jv-col {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow);
+  }
+  .jv-col.center-col {
+    background: var(--dark); border-color: var(--green);
+    border-width: 2px;
+  }
+  .jv-col-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .jv-col-tag.sprout { color: var(--green); }
+  .jv-col-tag.bat { color: var(--amber); }
+  .jv-col-tag.result { color: #4ADE80; }
+  .jv-col-name { font-size: 16px; font-weight: 800; color: var(--text-1); margin-bottom: 16px; }
+  .jv-col.center-col .jv-col-name { color: var(--white); }
+  .jv-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-bottom: 10px; font-size: 13px; color: var(--text-2);
+  }
+  .jv-item:last-child { margin-bottom: 0; }
+  .jv-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-size: 9px; font-weight: 800; }
+  .jv-icon.g { background: var(--green-xl); color: var(--green); }
+  .jv-icon.a { background: var(--amber-l); color: #92400E; }
+  .jv-icon.w { background: rgba(74,222,128,.15); color: #4ADE80; }
+  .jv-col.center-col .jv-item { color: #D1FAE5; }
+  .jv-arrow {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 8px; font-size: 20px; color: var(--text-3);
+  }
+
+  /* ── EQUIVALENCIA CAMPO ───────────────────────────────────────── */
+  .equiv-box {
+    background: var(--dark);
+    border-radius: var(--r-xl);
+    padding: 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .equiv-box::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(26,122,74,.3) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(217,119,6,.15) 0%, transparent 60%);
+  }
+  .equiv-content { position: relative; z-index: 1; }
+  .equiv-label { font-size: 12px; font-weight: 600; color: #9CA3AF; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+  .equiv-number { font-size: 72px; font-weight: 900; color: var(--white); line-height: 1; margin-bottom: 8px; }
+  .equiv-number span { color: #4ADE80; }
+  .equiv-desc { font-size: 15px; color: #9CA3AF; max-width: 520px; margin: 0 auto; line-height: 1.6; }
+  .equiv-desc strong { color: var(--white); }
+  .equiv-row {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    gap: 20px; align-items: center;
+    margin-top: 32px; text-align: left;
+  }
+  .equiv-side {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--r-lg); padding: 20px;
+  }
+  .equiv-side-tag { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
+  .equiv-side-val { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .equiv-side-desc { font-size: 12px; color: #9CA3AF; }
+  .equiv-vs { font-size: 18px; font-weight: 800; color: #4B5563; text-align: center; }
+
+  /* ── RASTREABILIDADE ──────────────────────────────────────────── */
+  .trace-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .trace-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow);
+    border-top: 3px solid var(--green);
+  }
+  .trace-icon { font-size: 24px; margin-bottom: 10px; }
+  .trace-title { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+  .trace-desc { font-size: 12px; color: var(--text-3); line-height: 1.6; }
+  .trace-tag {
+    display: inline-block; margin-top: 8px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    background: var(--green-xl); color: var(--green);
+    padding: 3px 8px; border-radius: 4px;
+  }
+
+  /* ── RETORNO FINANCEIRO ───────────────────────────────────────── */
+  .return-bar {
+    background: var(--dark); border-radius: var(--r-xl);
+    padding: 32px; display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0; text-align: center;
+  }
+  .return-item { padding: 0 20px; }
+  .return-item + .return-item { border-left: 1px solid rgba(255,255,255,.08); }
+  .return-label { font-size: 11px; color: #9CA3AF; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .return-val { font-size: 32px; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 4px; }
+  .return-val.green { color: #4ADE80; }
+  .return-val.amber { color: var(--amber); }
+  .return-sub { font-size: 11px; color: #6B7280; }
+
+  /* ── DISCLAIMER ───────────────────────────────────────────────── */
+  .disclaimer {
+    margin-top: 40px; padding: 16px 20px;
+    background: var(--amber-l); border-radius: var(--r-md);
+    border-left: 3px solid var(--amber);
+    font-size: 12px; color: #92400E; line-height: 1.6;
+  }
+
+  /* ── RESPONSIVE ────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { grid-template-columns: repeat(2, 1fr); }
+    .exp-timeline { grid-template-columns: 1fr 1fr; }
+    .exp-timeline::before { display: none; }
+    .scale-grid { grid-template-columns: 1fr; }
+    .jv-grid { grid-template-columns: 1fr; }
+    .jv-arrow { display: none; }
+    .return-bar { grid-template-columns: 1fr 1fr; gap: 20px; }
+    .return-item { border-left: none; }
+    .trace-grid { grid-template-columns: 1fr 1fr; }
+    .edit-grid { grid-template-columns: 1fr 1fr; }
+    .be-outputs { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-
-<nav class="top-nav">
-  <span class="logo">🌿 SPROUT — TABACO</span>
-  <button class="tab-btn active" onclick="showTab('bc',this)">📊 Business Case JV</button>
-  <button class="tab-btn" onclick="showTab('def',this)">⚡ Defesa de Negociação</button>
-  <button class="tab-btn" onclick="showTab('council',this)">⚖️ Council de Negociação</button>
-  <span class="badge-conf">CONFIDENCIAL</span>
-</nav>
-
-<!-- ══ TAB: BUSINESS CASE JV ════════════════════════════════════════ -->
-<div id="tab-bc" class="tab-content active">
 <div class="page">
 
+  <!-- ══ HERO ══════════════════════════════════════════════════════ -->
   <div class="hero">
     <div class="hero-left">
       <div class="hero-eyebrow">Sprout Holdings · S LAB · Souza Cruz / BAT</div>
       <h1 class="hero-title">Business Case<br><span>Joint Venture</span><br>Nicotina Indoor</h1>
-      <p class="hero-desc">A única operação do mundo que combina fazenda vertical controlada, cultivar de alta potência e modelo B2B para grandes indústrias de nicotina — com rastreabilidade total seed-to-harvest.</p>
+      <p class="hero-desc">
+        A única operação do mundo que combina fazenda vertical controlada, cultivar de alta potência e modelo B2B para grandes indústrias de nicotina — com rastreabilidade total seed-to-harvest.
+      </p>
     </div>
     <div class="hero-right">
-      <div class="hero-kpi"><div class="hero-kpi-val green" id="hero-nic">6,86%</div><div class="hero-kpi-label">Teor máximo<br>de nicotina</div></div>
-      <div class="hero-kpi"><div class="hero-kpi-val amber" id="hero-mult">11,4×</div><div class="hero-kpi-label">Mais potente que<br>melhor campo SC</div></div>
-      <div class="hero-kpi"><div class="hero-kpi-val" id="hero-ciclo">35</div><div class="hero-kpi-label">Dias por ciclo<br>de cultivo</div></div>
-      <div class="hero-kpi"><div class="hero-kpi-val green">44,7%</div><div class="hero-kpi-label">TIR anual<br>modelo base</div></div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-val green" id="hero-nic">6,86%</div>
+        <div class="hero-kpi-label">Teor máximo<br>de nicotina</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-val amber" id="hero-mult">11,4×</div>
+        <div class="hero-kpi-label">Mais potente que<br>melhor campo SC</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-val" id="hero-ciclo">35</div>
+        <div class="hero-kpi-label">Dias por ciclo<br>de cultivo</div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-val green">44,7%</div>
+        <div class="hero-kpi-label">TIR anual<br>modelo base</div>
+      </div>
     </div>
   </div>
 
-  <!-- Bloco 01 -->
+  <!-- ══ BLOCO 1: HISTÓRICO EXPERIMENTAL ═══════════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 01</span>
       <span class="section-title">Evolução experimental — Sprout × BAT</span>
       <span class="section-sub">Cultivar BR22-21385 · 4 torres · Ipiranga SP</span>
     </div>
+
     <div class="exp-timeline">
       <div class="exp-card done">
         <span class="exp-badge done">Exp. 1 · Concluído</span>
         <div class="exp-nic green">4,8%</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Nicotina máxima</div>
-        <div class="exp-info">Solução: 50% NO₃ / 50% NH₄<br>Topping: 10 folhas<br>Ciclo: 57 dias<br>3 cultivares testadas</div>
+        <div class="exp-info">
+          Solução: 50% NO₃ / 50% NH₄<br>
+          Topping: 10 folhas<br>
+          Ciclo: 57 dias<br>
+          3 cultivares testadas
+        </div>
       </div>
       <div class="exp-card done">
         <span class="exp-badge done">Exp. 2 · Concluído</span>
         <div class="exp-nic green">6,86%</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Nicotina máxima</div>
         <span class="exp-delta">▲ +42,9% vs Exp. 1</span>
-        <div class="exp-info">Solução: 30% NO₃ / 70% NH₄<br>Topping: 5 folhas<br>Ciclo: 40 dias<br>EC escalonada</div>
+        <div class="exp-info">
+          Solução: 30% NO₃ / 70% NH₄<br>
+          Topping: 5 folhas<br>
+          Ciclo: 40 dias<br>
+          EC escalonada
+        </div>
       </div>
       <div class="exp-card current">
-        <span class="exp-badge current">Exp. 3 · Em curso</span>
-        <div class="exp-nic amber" id="exp3-nic-display">7%+</div>
+        <span class="exp-badge current">Exp. 3 · Colhido · Nic. pendente</span>
+        <div class="exp-nic amber" id="exp3-nic-display">19,0g*</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Meta · Aguardando colheita</div>
-        <div class="exp-info">3 densidades: 12 / 18 / 24 pl/andar<br>Topping: 5 folhas (fixo)<br>2 soluções × 2 níveis EC<br>11 torres · Ipiranga</div>
+        <div class="exp-info">
+          216 / 216 amostras colhidas<br>
+          Verde médio: 223 g/planta<br>
+          Seca est. (fator 8,5%): 19,0 g<br>
+          Nicotina %: Aguarda laboratório
+        </div>
       </div>
       <div class="exp-card next">
         <span class="exp-badge next">Fase 4 · Planejada</span>
         <div class="exp-nic blue">320</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Torres · Escala JV</div>
-        <div class="exp-info">Protocolo definitivo pós Exp. 3<br>Cenário: 18 ou 24 pl/andar<br>Investimento via JV<br>Operação comercial</div>
+        <div class="exp-info">
+          Protocolo definitivo pós Exp. 3<br>
+          Cenário: 18 ou 24 pl/andar<br>
+          Investimento via JV<br>
+          Operação comercial
+        </div>
       </div>
     </div>
+
+    <!-- Painel editável Exp. 3 -->
     <div class="edit-panel" style="margin-top:24px;">
-      <div class="edit-panel-title"><div class="edit-dot"></div>Atualizar com resultados do Experimento 3 — após colheita</div>
+      <div class="edit-panel-title">
+        <div class="edit-dot"></div>
+        Experimento 3 colhido · Inserir resultados laboratoriais quando disponíveis
+      </div>
       <div class="edit-grid">
-        <div class="edit-field"><label class="edit-label">% Nicotina atingida</label><input type="number" class="edit-input" id="inp-nic" value="6.86" step="0.01" min="0" max="15"></div>
-        <div class="edit-field"><label class="edit-label">Massa seca / planta (g)</label><input type="number" class="edit-input" id="inp-massa" value="15.46" step="0.1" min="1" max="100"></div>
-        <div class="edit-field"><label class="edit-label">Ciclo confirmado (dias)</label><input type="number" class="edit-input" id="inp-ciclo" value="35" step="1" min="20" max="90"></div>
-        <div class="edit-field"><label class="edit-label">Densidade ótima (pl/andar)</label><select class="edit-input-select" id="inp-densidade"><option value="12">12 plantas / andar</option><option value="18" selected>18 plantas / andar</option><option value="24">24 plantas / andar</option></select></div>
-        <div class="edit-field"><label class="edit-label">Solução nutritiva escolhida</label><input type="text" class="edit-input" id="inp-solucao" value="70% NH₄ / 30% NO₃"></div>
-        <div class="edit-field"><label class="edit-label">EC confirmada (mS/cm)</label><input type="number" class="edit-input" id="inp-ec" value="2.5" step="0.1" min="0.5" max="6"></div>
+        <div class="edit-field">
+          <label class="edit-label">% Nicotina atingida</label>
+          <input type="number" class="edit-input" id="inp-nic" value="6.86" step="0.01" min="0" max="15" placeholder="ex: 7.20">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Massa seca / planta (g)</label>
+          <input type="number" class="edit-input" id="inp-massa" value="19.0" step="0.1" min="1" max="100">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Ciclo confirmado (dias)</label>
+          <input type="number" class="edit-input" id="inp-ciclo" value="35" step="1" min="20" max="90">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Densidade ótima (pl/andar)</label>
+          <select class="edit-input-select" id="inp-densidade">
+            <option value="12">12 plantas / andar</option>
+            <option value="18" selected>18 plantas / andar</option>
+            <option value="24">24 plantas / andar</option>
+          </select>
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Solução nutritiva escolhida</label>
+          <input type="text" class="edit-input" id="inp-solucao" value="70% NH₄ / 30% NO₃" placeholder="ex: 70% NH₄ / 30% NO₃">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">EC confirmada (mS/cm)</label>
+          <input type="number" class="edit-input" id="inp-ec" value="2.5" step="0.1" min="0.5" max="6">
+        </div>
       </div>
       <div class="edit-actions">
         <button class="btn-primary" onclick="aplicarDados()">Aplicar resultados</button>
@@ -400,20 +617,210 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
         <span class="edit-saved" id="saved-msg">✓ Dashboard atualizado com dados do Exp. 3</span>
       </div>
     </div>
+
+    <!-- Resultados Exp 3 — dados de colheita validados -->
+    <div style="margin-top:20px;background:#111827;border:1px solid #374151;border-radius:12px;padding:24px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#4ADE80;margin-bottom:16px;">
+        ✅ Experimento 3 — Dados de colheita validados · 30/06/2026
+      </div>
+
+      <!-- Aviso fator -->
+      <div style="background:#1A2A12;border-left:3px solid #D97706;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#FCD34D;line-height:1.6;">
+        <strong style="color:#FDE68A;">⚠ Massa seca = ESTIMATIVA com fator 8,5%</strong> — calculado com dados reais do Exp. 2 (311,9g verde ÷ 26,5g seca real, 5% umidade). Valores reais substituirão após pesagem laboratorial.
+      </div>
+
+      <!-- KPIs gerais -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#FFFFFF;">216/216</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">amostras com peso</div>
+          <div style="font-size:10px;color:#6B7280;">#26: 85g · #34: 260g (inseridos)</div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#4ADE80;">223 g</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">verde média / planta</div>
+          <div style="font-size:10px;color:#6B7280;">topping 5 folhas · 4 torres</div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#D97706;">19,0 g*</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">seca estimada (8,5%)</div>
+          <div style="font-size:10px;color:#6B7280;">+22,6% vs Exp. 1 e 2</div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#9CA3AF;">Pendente</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">nicotina %</div>
+          <div style="font-size:10px;color:#6B7280;">análise laboratorial</div>
+        </div>
+      </div>
+
+      <!-- Por Torre -->
+      <div style="font-size:12px;font-weight:600;color:#9CA3AF;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Resultado por torre</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">
+        <thead>
+          <tr style="background:#1F2937;">
+            <th style="padding:8px 10px;text-align:left;color:#9CA3AF;font-weight:600;border-bottom:1px solid #374151;">Torre</th>
+            <th style="padding:8px 10px;text-align:left;color:#9CA3AF;font-weight:600;border-bottom:1px solid #374151;">Solução</th>
+            <th style="padding:8px 10px;text-align:left;color:#9CA3AF;font-weight:600;border-bottom:1px solid #374151;">EC</th>
+            <th style="padding:8px 10px;text-align:center;color:#9CA3AF;font-weight:600;border-bottom:1px solid #374151;">N</th>
+            <th style="padding:8px 10px;text-align:right;color:#9CA3AF;font-weight:600;border-bottom:1px solid #374151;">Verde</th>
+            <th style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;border-bottom:1px solid #374151;">Seca est.*</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #1F2937;">
+            <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 1</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">50% NO₃/50% NH₄</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">1,80→2,50 mS/cm</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">52</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">288 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">24,5 g</td>
+          </tr>
+          <tr style="background:#0D1117;border-bottom:1px solid #1F2937;">
+            <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 2</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">30% NO₃/70% NH₄</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">1,80→2,50 mS/cm</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">54</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">184 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">15,7 g</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1F2937;">
+            <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 3</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">50% NO₃/50% NH₄</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">1,80→3,00 mS/cm</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">52</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">234 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">19,9 g</td>
+          </tr>
+          <tr style="background:#0D1117;">
+            <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 4</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">30% NO₃/70% NH₄</td>
+            <td style="padding:8px 10px;color:#9CA3AF;">1,80→3,00 mS/cm</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">56</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">190 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">16,2 g</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Por Cultivar -->
+      <div style="font-size:12px;font-weight:600;color:#9CA3AF;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Resultado por cultivar</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:#1F2937;border-radius:8px;padding:14px;border-top:2px solid #2563EB;">
+          <div style="font-size:11px;font-weight:700;color:#60A5FA;margin-bottom:8px;">BR22-21385 · n=69</div>
+          <div style="font-size:11px;color:#9CA3AF;">am. #9–#212</div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;">
+            <span style="color:#9CA3AF;">Verde:</span><span style="color:#4ADE80;font-weight:600;">211 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Seca est.*:</span><span style="color:#D97706;font-weight:600;">18,0 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Δ vs Exp1/2:</span><span style="color:#4ADE80;font-weight:600;">+16,2%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Nic. Exp.2:</span><span style="color:#4ADE80;font-weight:700;">6,86% ★</span>
+          </div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:14px;border-top:2px solid #1A7A4A;">
+          <div style="font-size:11px;font-weight:700;color:#4ADE80;margin-bottom:8px;">BR22-21371 · n=70 ★ maior crescimento</div>
+          <div style="font-size:11px;color:#9CA3AF;">am. #1–#208</div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;">
+            <span style="color:#9CA3AF;">Verde:</span><span style="color:#4ADE80;font-weight:600;">233 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Seca est.*:</span><span style="color:#D97706;font-weight:600;">19,8 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Δ vs Exp1/2:</span><span style="color:#4ADE80;font-weight:600;">+28,1% ★</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Pico T1 18v:</span><span style="color:#4ADE80;font-weight:700;">380 g verde</span>
+          </div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:14px;border-top:2px solid #7C3AED;">
+          <div style="font-size:11px;font-weight:700;color:#A78BFA;margin-bottom:8px;">BAT-2101 · n=69 · controle</div>
+          <div style="font-size:11px;color:#9CA3AF;">am. #17–#216</div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;">
+            <span style="color:#9CA3AF;">Verde:</span><span style="color:#4ADE80;font-weight:600;">219 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Seca est.*:</span><span style="color:#D97706;font-weight:600;">18,6 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Δ vs Exp1/2:</span><span style="color:#4ADE80;font-weight:600;">+20,2%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Pico T3 12v:</span><span style="color:#A78BFA;font-weight:700;">354 g verde</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Por Densidade -->
+      <div style="font-size:12px;font-weight:600;color:#9CA3AF;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Resultado por densidade</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div style="background:#1F2937;border-radius:8px;padding:12px;">
+          <div style="font-size:13px;font-weight:700;color:#9CA3AF;margin-bottom:6px;">12 vasos/prat</div>
+          <div style="font-size:11px;color:#6B7280;">n=46 amostras</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px;">
+            <span style="color:#9CA3AF;">Verde:</span><span style="color:#4ADE80;">169 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Seca est.*:</span><span style="color:#D97706;">14,4 g</span>
+          </div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:12px;border:1px solid #2AA35F;">
+          <div style="font-size:13px;font-weight:700;color:#4ADE80;margin-bottom:6px;">18 vasos/prat</div>
+          <div style="font-size:11px;color:#6B7280;">n=72 amostras</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px;">
+            <span style="color:#9CA3AF;">Verde:</span><span style="color:#4ADE80;font-weight:600;">237 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Seca est.*:</span><span style="color:#D97706;font-weight:600;">20,1 g</span>
+          </div>
+        </div>
+        <div style="background:#1F2937;border-radius:8px;padding:12px;border:1px solid #2AA35F;">
+          <div style="font-size:13px;font-weight:700;color:#4ADE80;margin-bottom:6px;">24 vasos/prat ★</div>
+          <div style="font-size:11px;color:#6B7280;">n=96 amostras</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px;">
+            <span style="color:#9CA3AF;">Verde:</span><span style="color:#4ADE80;font-weight:600;">239 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#9CA3AF;">Seca est.*:</span><span style="color:#D97706;font-weight:600;">20,3 g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 5 combos -->
+      <div style="margin-top:14px;padding:12px;background:#0D1117;border-radius:8px;border:1px solid #374151;">
+        <div style="font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Top 5 combinações — maior seca estimada</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <tr><td style="padding:4px 0;color:#6B7280;">#1</td><td style="color:#9CA3AF;">Torre 1 · BR22-21371 · 18v</td><td style="text-align:right;color:#4ADE80;font-weight:600;">380g verde → 32,3g seca</td></tr>
+          <tr><td style="padding:4px 0;color:#6B7280;">#2</td><td style="color:#9CA3AF;">Torre 3 · BAT-2101 · 12v</td><td style="text-align:right;color:#4ADE80;font-weight:600;">354g verde → 30,1g seca</td></tr>
+          <tr><td style="padding:4px 0;color:#6B7280;">#3</td><td style="color:#9CA3AF;">Torre 1 · BR22-21371 · 24v</td><td style="text-align:right;color:#4ADE80;font-weight:600;">351g verde → 29,9g seca</td></tr>
+          <tr><td style="padding:4px 0;color:#6B7280;">#4</td><td style="color:#9CA3AF;">Torre 1 · BR22-21385 · 18v</td><td style="text-align:right;color:#4ADE80;font-weight:600;">345g verde → 29,3g seca</td></tr>
+          <tr><td style="padding:4px 0;color:#6B7280;">#5</td><td style="color:#9CA3AF;">Torre 1 · BR22-21385 · 24v</td><td style="text-align:right;color:#4ADE80;font-weight:600;">341g verde → 29,0g seca</td></tr>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <!-- Bloco 02 -->
+  <!-- ══ BLOCO 2: COMPARATIVO CAMPO × SC × SPROUT ══════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 02</span>
       <span class="section-title">Comparativo de qualidade e potência</span>
       <span class="section-sub">Por que indoor de alta potência muda a equação</span>
     </div>
+
+    <!-- Caixa de equivalência — número destaque -->
     <div class="equiv-box" style="margin-bottom:24px;">
       <div class="equiv-content">
         <div class="equiv-label">Equivalência em biomassa para extrair a mesma nicotina</div>
         <div class="equiv-number"><span id="equiv-num">11,4</span>×</div>
-        <div class="equiv-desc">Para obter a mesma quantidade de nicotina de <strong>1 kg da folha Sprout</strong>,<br>a Souza Cruz precisaria de <strong id="equiv-desc-val">11,4 kg</strong> da sua melhor folha cultivada no campo aberto (Sul BR).</div>
+        <div class="equiv-desc">
+          Para obter a mesma quantidade de nicotina de <strong>1 kg da folha Sprout</strong>,<br>
+          a Souza Cruz precisaria de <strong id="equiv-desc-val">11,4 kg</strong> da sua melhor folha cultivada no campo aberto (Sul BR).
+        </div>
         <div class="equiv-row">
           <div class="equiv-side">
             <div class="equiv-side-tag" style="color:#D97706;">Souza Cruz — campo aberto Sul BR</div>
@@ -429,6 +836,8 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
         </div>
       </div>
     </div>
+
+    <!-- Tabela comparativa -->
     <div class="compare-table">
       <table>
         <thead>
@@ -440,21 +849,81 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
           </tr>
         </thead>
         <tbody>
-          <tr><td>Teor de nicotina</td><td><div class="nic-bar-wrap"><div class="nic-bar-bg"><div class="nic-bar-fill" style="width:8%;background:#9CA3AF;"></div></div><span class="nic-val" style="color:var(--text-3);">0,35–0,8%</span></div></td><td><div class="nic-bar-wrap"><div class="nic-bar-bg"><div class="nic-bar-fill" style="width:29%;background:#D97706;"></div></div><span class="nic-val amber-val">~2%</span></div></td><td><div class="nic-bar-wrap"><div class="nic-bar-bg"><div class="nic-bar-fill" id="nic-bar-sprout" style="width:100%;background:#1A7A4A;"></div></div><span class="nic-val highlight" id="comp-nic-val">6,86%</span></div></td></tr>
-          <tr><td>Ciclos por ano</td><td>1</td><td>1</td><td class="highlight" id="comp-ciclos">10,4</td></tr>
-          <tr><td>Rastreabilidade</td><td style="color:var(--text-3);">Não</td><td style="color:var(--text-3);">Parcial (integração)</td><td class="highlight">Total · Seed-to-harvest</td></tr>
-          <tr><td>Agroquímicos</td><td style="color:var(--text-3);">Sim</td><td style="color:var(--text-3);">Sim</td><td class="highlight">Zero</td></tr>
-          <tr><td>Variabilidade climática</td><td style="color:#DC2626;">Alta</td><td style="color:#D97706;">Média-alta</td><td class="highlight">Zero · Ambiente controlado</td></tr>
-          <tr><td>Perfil TSNA (nitrosaminas)</td><td style="color:var(--text-3);">Variável / alto</td><td style="color:var(--text-3);">Variável</td><td class="highlight">Controlado e documentado</td></tr>
-          <tr><td>Isômero S(-)-nicotina</td><td style="color:var(--text-3);">Natural (100%)</td><td style="color:var(--text-3);">Natural (100%)</td><td class="highlight">Natural · Rastreado por lote</td></tr>
-          <tr><td>Preço base de mercado (R$/kg)</td><td>R$20–34/kg</td><td class="amber-val">Integração contratual SC</td><td class="highlight">Prêmio por potência + certificação</td></tr>
-          <tr><td>ESG / Scope 3 BAT</td><td style="color:var(--text-3);">Neutro</td><td style="color:var(--text-3);">Neutro</td><td class="highlight">−97,5% água · −90% CO₂ logística</td></tr>
+          <tr>
+            <td>Teor de nicotina</td>
+            <td>
+              <div class="nic-bar-wrap">
+                <div class="nic-bar-bg"><div class="nic-bar-fill" style="width:8%;background:#9CA3AF;"></div></div>
+                <span class="nic-val" style="color:var(--text-3);">0,35–0,8%</span>
+              </div>
+            </td>
+            <td>
+              <div class="nic-bar-wrap">
+                <div class="nic-bar-bg"><div class="nic-bar-fill" style="width:29%;background:#D97706;"></div></div>
+                <span class="nic-val amber-val">~2%</span>
+              </div>
+            </td>
+            <td>
+              <div class="nic-bar-wrap">
+                <div class="nic-bar-bg"><div class="nic-bar-fill" id="nic-bar-sprout" style="width:100%;background:#1A7A4A;"></div></div>
+                <span class="nic-val highlight" id="comp-nic-val">6,86%</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Ciclos por ano</td>
+            <td>1</td>
+            <td>1</td>
+            <td class="highlight" id="comp-ciclos">10,4</td>
+          </tr>
+          <tr>
+            <td>Rastreabilidade</td>
+            <td style="color:var(--text-3);">Não</td>
+            <td style="color:var(--text-3);">Parcial (integração)</td>
+            <td class="highlight">Total · Seed-to-harvest</td>
+          </tr>
+          <tr>
+            <td>Agroquímicos</td>
+            <td style="color:var(--text-3);">Sim</td>
+            <td style="color:var(--text-3);">Sim</td>
+            <td class="highlight">Zero</td>
+          </tr>
+          <tr>
+            <td>Variabilidade climática</td>
+            <td style="color:#DC2626;">Alta</td>
+            <td style="color:#D97706;">Média-alta</td>
+            <td class="highlight">Zero · Ambiente controlado</td>
+          </tr>
+          <tr>
+            <td>Perfil TSNA (nitrosaminas)</td>
+            <td style="color:var(--text-3);">Variável / alto</td>
+            <td style="color:var(--text-3);">Variável</td>
+            <td class="highlight">Controlado e documentado</td>
+          </tr>
+          <tr>
+            <td>Isômero S(-)-nicotina</td>
+            <td style="color:var(--text-3);">Natural (100%)</td>
+            <td style="color:var(--text-3);">Natural (100%)</td>
+            <td class="highlight">Natural · Rastreado por lote</td>
+          </tr>
+          <tr>
+            <td>Preço base de mercado (R$/kg)</td>
+            <td>R$20–34/kg</td>
+            <td class="amber-val">Integração contratual SC</td>
+            <td class="highlight">Prêmio por potência + certificação</td>
+          </tr>
+          <tr>
+            <td>ESG / Scope 3 BAT</td>
+            <td style="color:var(--text-3);">Neutro</td>
+            <td style="color:var(--text-3);">Neutro</td>
+            <td class="highlight">−97,5% água · −90% CO₂ logística</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Bloco 03 -->
+  <!-- ══ BLOCO 3: RASTREABILIDADE ══════════════════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 03</span>
@@ -462,16 +931,46 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
       <span class="section-sub">6 vetores que a nicotina sintética e o campo convencional não replicam</span>
     </div>
     <div class="trace-grid">
-      <div class="trace-card"><div class="trace-icon">🧬</div><div class="trace-title">Isômero S(−)-nicotina natural</div><div class="trace-desc">Nicotina sintética é racêmica (~50% isômero R, menos ativo). A folha Sprout entrega 100% S(−) naturalmente — sem custo de separação de isômeros.</div><span class="trace-tag">Vantagem farmacológica</span></div>
-      <div class="trace-card"><div class="trace-icon">📋</div><div class="trace-title">Rastreabilidade seed-to-extract</div><div class="trace-desc">Cultivar, lote, solução nutritiva, ciclo, EC e análise química documentados por colheita. Nenhum produtor convencional de campo tem isso.</div><span class="trace-tag">Compliance regulatório</span></div>
-      <div class="trace-card"><div class="trace-icon">🧪</div><div class="trace-title">Perfil TSNA controlado</div><div class="trace-desc">Sem variação climática e com protocolo de secagem padronizado, o perfil de nitrosaminas é consistente por lote — argumento direto no dossiê PMTA do cliente.</div><span class="trace-tag">Aceleração regulatória</span></div>
-      <div class="trace-card"><div class="trace-icon">🔒</div><div class="trace-title">Protocolo proprietário de cultivo</div><div class="trace-desc">O know-how de topping, EC, nutrição e ciclo para maximizar nicotina é da Sprout — não replicável sem o protocolo. Cultivar é da SC; protocolo é da Sprout.</div><span class="trace-tag">IP defensável</span></div>
-      <div class="trace-card"><div class="trace-icon">⚡</div><div class="trace-title">Supply chain resiliente</div><div class="trace-desc">10,4 ciclos/ano vs 1 ciclo do campo. Previsibilidade total de volume e qualidade, independente de clima, pragas ou geopolítica.</div><span class="trace-tag">Segurança de fornecimento</span></div>
-      <div class="trace-card"><div class="trace-icon">🌿</div><div class="trace-title">Narrativa ESG para BAT</div><div class="trace-desc">−97,5% consumo de água vs campo, zero agroquímicos, −90% emissão CO₂ logística. Crédito real no Scope 3 da BAT — quantificável no relatório anual.</div><span class="trace-tag">Valor ESG mensurável</span></div>
+      <div class="trace-card">
+        <div class="trace-icon">🧬</div>
+        <div class="trace-title">Isômero S(−)-nicotina natural</div>
+        <div class="trace-desc">Nicotina sintética é racêmica (~50% isômero R, menos ativo). A folha Sprout entrega 100% S(−) naturalmente — sem custo de separação de isômeros.</div>
+        <span class="trace-tag">Vantagem farmacológica</span>
+      </div>
+      <div class="trace-card">
+        <div class="trace-icon">📋</div>
+        <div class="trace-title">Rastreabilidade seed-to-extract</div>
+        <div class="trace-desc">Cultivar, lote, solução nutritiva, ciclo, EC e análise química documentados por colheita. Nenhum produtor convencional de campo tem isso.</div>
+        <span class="trace-tag">Compliance regulatório</span>
+      </div>
+      <div class="trace-card">
+        <div class="trace-icon">🧪</div>
+        <div class="trace-title">Perfil TSNA controlado</div>
+        <div class="trace-desc">Sem variação climática e com protocolo de secagem padronizado, o perfil de nitrosaminas é consistente por lote — argumento direto no dossiê PMTA do cliente.</div>
+        <span class="trace-tag">Aceleração regulatória</span>
+      </div>
+      <div class="trace-card">
+        <div class="trace-icon">🔒</div>
+        <div class="trace-title">Protocolo proprietário de cultivo</div>
+        <div class="trace-desc">O know-how de topping, EC, nutrição e ciclo para maximizar nicotina é da Sprout — não replicável sem o protocolo. Cultivar é da SC; protocolo é da Sprout.</div>
+        <span class="trace-tag">IP defensável</span>
+      </div>
+      <div class="trace-card">
+        <div class="trace-icon">⚡</div>
+        <div class="trace-title">Supply chain resiliente</div>
+        <div class="trace-desc">10,4 ciclos/ano vs 1 ciclo do campo. Previsibilidade total de volume e qualidade, independente de clima, pragas ou geopolítica.</div>
+        <span class="trace-tag">Segurança de fornecimento</span>
+      </div>
+      <div class="trace-card">
+        <div class="trace-icon">🌿</div>
+        <div class="trace-title">Narrativa ESG para BAT</div>
+        <div class="trace-desc">−97,5% consumo de água vs campo, zero agroquímicos, −90% emissão CO₂ logística. Crédito real no Scope 3 da BAT — quantificável no relatório anual.</div>
+        <span class="trace-tag">Valor ESG mensurável</span>
+      </div>
     </div>
   </div>
 
-  <!-- Bloco 04 -->
+  <!-- ══ BLOCO 4: BREAKEVEN ═════════════════════════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 04</span>
@@ -483,33 +982,70 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
         <button class="be-toggle-btn active" onclick="setBeScenario(33, this)">33 Torres (Fase 3)</button>
         <button class="be-toggle-btn" onclick="setBeScenario(320, this)">320 Torres (Escala JV)</button>
       </div>
+
       <div class="slider-group">
-        <div class="slider-header"><span class="slider-label">Preço da folha seca (R$/kg)</span><span class="slider-val" id="price-leaf-val">R$ 140/kg</span></div>
+        <div class="slider-header">
+          <span class="slider-label">Preço da folha seca (R$/kg)</span>
+          <span class="slider-val" id="price-leaf-val">R$ 140/kg</span>
+        </div>
         <input type="range" id="sl-leaf" min="50" max="400" value="140" oninput="updateBreakeven()">
         <div class="slider-range-labels"><span>R$ 50 (campo)</span><span>R$ 140 (atual)</span><span>R$ 400 (premium)</span></div>
       </div>
+
       <div class="slider-group">
-        <div class="slider-header"><span class="slider-label">Preço do óleo de nicotina (R$/kg)</span><span class="slider-val" id="price-oil-val">R$ 500/kg</span></div>
+        <div class="slider-header">
+          <span class="slider-label">Preço do óleo de nicotina (R$/kg)</span>
+          <span class="slider-val" id="price-oil-val">R$ 500/kg</span>
+        </div>
         <input type="range" id="sl-oil" min="300" max="1500" value="500" oninput="updateBreakeven()">
         <div class="slider-range-labels"><span>R$ 300 (mínimo)</span><span>R$ 500 (mercado spot)</span><span>R$ 1.500 (premium cert.)</span></div>
       </div>
+
       <div class="slider-group">
-        <div class="slider-header"><span class="slider-label">Mix receita — % da biomassa vendida como folha (restante → óleo)</span><span class="slider-val" id="price-mix-val">60% folha · 40% óleo</span></div>
+        <div class="slider-header">
+          <span class="slider-label">Mix receita — % da biomassa vendida como folha (restante → óleo)</span>
+          <span class="slider-val" id="price-mix-val">60% folha · 40% óleo</span>
+        </div>
         <input type="range" id="sl-mix" min="0" max="100" value="60" oninput="updateBreakeven()">
         <div class="slider-range-labels"><span>0% (100% óleo)</span><span>50% / 50%</span><span>100% (folha pura)</span></div>
       </div>
+
       <div class="be-outputs">
-        <div class="be-out"><div class="be-out-label">Receita bruta / ciclo</div><div class="be-out-val green" id="be-receita-ciclo">—</div><div class="be-out-sub" id="be-ciclo-sub">35 dias · cenário atual</div></div>
-        <div class="be-out"><div class="be-out-label">Receita bruta / mês</div><div class="be-out-val green" id="be-receita-mes">—</div><div class="be-out-sub" id="be-mes-sub">pro-rata 30 dias</div></div>
-        <div class="be-out"><div class="be-out-label">EBITDA estimado / mês</div><div class="be-out-val" id="be-ebitda">—</div><div class="be-out-sub">custo proporcional planilha</div></div>
-        <div class="be-out"><div class="be-out-label">Receita bruta / ano</div><div class="be-out-val green" id="be-receita-ano">—</div><div class="be-out-sub" id="be-ano-ciclos">10,4 ciclos/ano</div></div>
-        <div class="be-out"><div class="be-out-label">Breakeven — torres mínimas</div><div class="be-out-val amber" id="be-torres">—</div><div class="be-out-sub">para cobrir custos operacionais</div></div>
-        <div class="be-out"><div class="be-out-label">Payback estimado</div><div class="be-out-val" id="be-payback">—</div><div class="be-out-sub" id="be-payback-sub">sobre Capex do cenário</div></div>
+        <div class="be-out">
+          <div class="be-out-label">Receita bruta / ciclo</div>
+          <div class="be-out-val green" id="be-receita-ciclo">—</div>
+          <div class="be-out-sub" id="be-ciclo-sub">35 dias · cenário atual</div>
+        </div>
+        <div class="be-out">
+          <div class="be-out-label">Receita bruta / mês</div>
+          <div class="be-out-val green" id="be-receita-mes">—</div>
+          <div class="be-out-sub" id="be-mes-sub">pro-rata 30 dias</div>
+        </div>
+        <div class="be-out">
+          <div class="be-out-label">EBITDA estimado / mês</div>
+          <div class="be-out-val" id="be-ebitda">—</div>
+          <div class="be-out-sub">custo proporcional planilha</div>
+        </div>
+        <div class="be-out">
+          <div class="be-out-label">Receita bruta / ano</div>
+          <div class="be-out-val green" id="be-receita-ano">—</div>
+          <div class="be-out-sub" id="be-ano-ciclos">10,4 ciclos/ano</div>
+        </div>
+        <div class="be-out">
+          <div class="be-out-label">Breakeven — torres mínimas</div>
+          <div class="be-out-val amber" id="be-torres">—</div>
+          <div class="be-out-sub">para cobrir custos operacionais</div>
+        </div>
+        <div class="be-out">
+          <div class="be-out-label">Payback estimado</div>
+          <div class="be-out-val" id="be-payback">—</div>
+          <div class="be-out-sub" id="be-payback-sub">sobre Capex do cenário</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Bloco 05 -->
+  <!-- ══ BLOCO 5: CENÁRIOS DE ESCALA ═══════════════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 05</span>
@@ -517,44 +1053,97 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
       <span class="section-sub">Selecione a densidade para recalcular · Protocolo definitivo pós Exp. 3</span>
     </div>
     <div class="scale-grid">
+      <!-- 33 torres -->
       <div class="scale-card">
         <div class="scale-header s33">
-          <div class="scale-header-left"><div class="scale-tag">Fase 3 — Ipiranga</div><div class="scale-name">33 Torres</div><div class="scale-sub">14 andares × 60 cm · Estrutura existente</div></div>
-          <div class="scale-density-toggle"><button class="dens-btn" onclick="setDens(33,18,this)">18 pl</button><button class="dens-btn active" onclick="setDens(33,24,this)">24 pl</button></div>
+          <div class="scale-header-left">
+            <div class="scale-tag">Fase 3 — Ipiranga</div>
+            <div class="scale-name">33 Torres</div>
+            <div class="scale-sub">14 andares × 60 cm · Estrutura existente</div>
+          </div>
+          <div class="scale-density-toggle">
+            <button class="dens-btn" onclick="setDens(33,18,this)">18 pl</button>
+            <button class="dens-btn active" onclick="setDens(33,24,this)">24 pl</button>
+          </div>
         </div>
         <div class="scale-body">
           <div class="scale-kpis">
-            <div class="scale-kpi"><div class="scale-kpi-label">Plantas por ciclo</div><div class="scale-kpi-val green" id="s33-plantas">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Biomassa / mês (kg)</div><div class="scale-kpi-val" id="s33-biomassa">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Nicotina / ano (kg)</div><div class="scale-kpi-val green" id="s33-nic-ano">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Ciclos / ano</div><div class="scale-kpi-val" id="s33-ciclos">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Receita bruta / ano*</div><div class="scale-kpi-val amber" id="s33-receita">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Equiv. campo (kg folha SC)</div><div class="scale-kpi-val" id="s33-equiv">—</div></div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Plantas por ciclo</div>
+              <div class="scale-kpi-val green" id="s33-plantas">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Biomassa / mês (kg)</div>
+              <div class="scale-kpi-val" id="s33-biomassa">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Nicotina / ano (kg)</div>
+              <div class="scale-kpi-val green" id="s33-nic-ano">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Ciclos / ano</div>
+              <div class="scale-kpi-val" id="s33-ciclos">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Receita bruta / ano*</div>
+              <div class="scale-kpi-val amber" id="s33-receita">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Equiv. campo (kg folha SC)</div>
+              <div class="scale-kpi-val" id="s33-equiv">—</div>
+            </div>
           </div>
-          <div class="scale-note">* Preço folha: R$140/kg · Preço óleo: R$500/kg · Mix 60/40 · Ajuste pelos sliders do Bloco 04</div>
+          <div class="scale-note" id="scale-note-33">* Preço folha: <span id="note33-leaf">R$140/kg</span> · Preço óleo: <span id="note33-oil">R$500/kg</span> · Mix <span id="note33-mix">60% folha · 40% óleo</span></div>
         </div>
       </div>
+
+      <!-- 320 torres -->
       <div class="scale-card">
         <div class="scale-header s320">
-          <div class="scale-header-left"><div class="scale-tag">Fase 5 — Escala JV</div><div class="scale-name">320 Torres</div><div class="scale-sub">18 andares × premissas planilha base</div></div>
-          <div class="scale-density-toggle"><button class="dens-btn" onclick="setDens(320,18,this)">18 pl</button><button class="dens-btn active" onclick="setDens(320,24,this)">24 pl</button></div>
+          <div class="scale-header-left">
+            <div class="scale-tag">Fase 5 — Escala JV</div>
+            <div class="scale-name">320 Torres</div>
+            <div class="scale-sub">18 andares × premissas planilha base</div>
+          </div>
+          <div class="scale-density-toggle">
+            <button class="dens-btn" onclick="setDens(320,18,this)">18 pl</button>
+            <button class="dens-btn active" onclick="setDens(320,24,this)">24 pl</button>
+          </div>
         </div>
         <div class="scale-body">
           <div class="scale-kpis">
-            <div class="scale-kpi"><div class="scale-kpi-label">Plantas por ciclo</div><div class="scale-kpi-val green" id="s320-plantas">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Biomassa / mês (kg)</div><div class="scale-kpi-val" id="s320-biomassa">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Nicotina / ano (kg)</div><div class="scale-kpi-val green" id="s320-nic-ano">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Ciclos / ano</div><div class="scale-kpi-val" id="s320-ciclos">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Receita bruta / ano*</div><div class="scale-kpi-val amber" id="s320-receita">—</div></div>
-            <div class="scale-kpi"><div class="scale-kpi-label">Equiv. campo (kg folha SC)</div><div class="scale-kpi-val" id="s320-equiv">—</div></div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Plantas por ciclo</div>
+              <div class="scale-kpi-val green" id="s320-plantas">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Biomassa / mês (kg)</div>
+              <div class="scale-kpi-val" id="s320-biomassa">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Nicotina / ano (kg)</div>
+              <div class="scale-kpi-val green" id="s320-nic-ano">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Ciclos / ano</div>
+              <div class="scale-kpi-val" id="s320-ciclos">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Receita bruta / ano*</div>
+              <div class="scale-kpi-val amber" id="s320-receita">—</div>
+            </div>
+            <div class="scale-kpi">
+              <div class="scale-kpi-label">Equiv. campo (kg folha SC)</div>
+              <div class="scale-kpi-val" id="s320-equiv">—</div>
+            </div>
           </div>
-          <div class="scale-note">* Preço folha: R$140/kg · Preço óleo: R$500/kg · Mix 60/40 · Ajuste pelos sliders do Bloco 04</div>
+          <div class="scale-note" id="scale-note-320">* Preço folha: <span id="note320-leaf">R$140/kg</span> · Preço óleo: <span id="note320-oil">R$500/kg</span> · Mix <span id="note320-mix">60% folha · 40% óleo</span></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Bloco 06 -->
+  <!-- ══ BLOCO 6: TESE DA JV ════════════════════════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 06</span>
@@ -596,7 +1185,7 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 
-  <!-- Bloco 07 -->
+  <!-- ══ BLOCO 7: RETORNO FINANCEIRO RESUMIDO ══════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 07</span>
@@ -604,454 +1193,268 @@ body { background: #0A0F1E; color: #f1f5f9; font-family: 'Inter', sans-serif; }
       <span class="section-sub">Fonte: planilha Projeto JV Tabaco — Sprout · BRL '000 · Ciclo 35 dias</span>
     </div>
     <div class="return-bar">
-      <div class="return-item"><div class="return-label">TIR Anual</div><div class="return-val green">44,7%</div><div class="return-sub">vs 15% custo capital típico</div></div>
-      <div class="return-item"><div class="return-label">EBITDA / mês</div><div class="return-val amber" id="ret-ebitda">R$491k</div><div class="return-sub">escala 320 torres</div></div>
-      <div class="return-item"><div class="return-label">Receita bruta / ano</div><div class="return-val" id="ret-receita">R$7,7M</div><div class="return-sub">modelo base planilha</div></div>
-      <div class="return-item"><div class="return-label">Capex estimado</div><div class="return-val">R$7,9M</div><div class="return-sub">320 torres · construção 5m</div></div>
+      <div class="return-item">
+        <div class="return-label">TIR Anual</div>
+        <div class="return-val green">44,7%</div>
+        <div class="return-sub">vs 15% custo capital típico</div>
+      </div>
+      <div class="return-item">
+        <div class="return-label">EBITDA / mês</div>
+        <div class="return-val amber" id="ret-ebitda">R$491k</div>
+        <div class="return-sub">escala 320 torres</div>
+      </div>
+      <div class="return-item">
+        <div class="return-label">Receita bruta / ano</div>
+        <div class="return-val" id="ret-receita">R$7,7M</div>
+        <div class="return-sub">modelo base planilha</div>
+      </div>
+      <div class="return-item">
+        <div class="return-label">Capex estimado</div>
+        <div class="return-val">R$7,9M</div>
+        <div class="return-sub">320 torres · construção 5m</div>
+      </div>
     </div>
-    <div class="disclaimer"><strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo ajustado para 35 dias (10,43 ciclos/ano). Preços de nicotina/óleo sujeitos a negociação; breakeven interativo no Bloco 04 permite análise de sensibilidade. Cenário de densidade (18 ou 24 plantas/andar) será definido após resultados do Experimento 3. Dados de campo convencional: Tobacco Reporter (2024), DatamarNews (2025), Emater-RS. Preço de nicotina USP-grade: Chemnovatic / Pharmaoffer (2025), US$80–95/kg. Comparativo Souza Cruz campo aberto (~2% nicotina) baseado em referência fornecida pela equipe comercial SC.</div>
+
+    <div class="disclaimer">
+      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo ajustado para 35 dias (10,43 ciclos/ano). Preços de nicotina/óleo sujeitos a negociação; breakeven interativo no Bloco 04 permite análise de sensibilidade. Exp. 3 colhido: 216/216 amostras · massa verde 223g · seca est. 19,0g (+22,6%). Nicotina % pendente laboratório. Dados de campo convencional: Tobacco Reporter (2024), DatamarNews (2025), Emater-RS. Preço de nicotina USP-grade: Chemnovatic / Pharmaoffer (2025), US$80–95/kg. Comparativo Souza Cruz campo aberto (~2% nicotina) baseado em referência fornecida pela equipe comercial SC.
+    </div>
   </div>
 
 </div><!-- /page -->
-</div><!-- /tab-bc -->
-
-<!-- ══ TAB: DEFESA DE NEGOCIAÇÃO ════════════════════════════════════ -->
-<div id="tab-def" class="tab-content">
-
-<div class="header">
-  <div>
-    <h1>🌿 Defesa de Negociação — Tabaco Indoor vs Campo</h1>
-    <p>Sprout Holdings × Souza Cruz / BAT · Base: 35 dias/ciclo · 10,4 ciclos/ano · Campo 2,5% nicotina</p>
-  </div>
-  <span class="badge">CONFIDENCIAL</span>
-</div>
-
-<div class="main">
-  <div class="controls">
-    <div class="card">
-      <div class="card-title">📐 Base de Cálculo — Fixa</div>
-      <div class="field-fixed"><span>Dias por ciclo</span><span class="val">35 dias</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Ciclos por ano</span><span class="val">10,4</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Nicotina campo (Burley)</span><span class="val">2,5%</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Folha campo (kg/ha)</span><span class="val">2.356 kg/ha</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Custo campo/ha</span><span class="val">R$ 40.000</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Preço folha ao produtor</span><span class="val">R$ 14,60/kg</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Preço mercado nicotina 99%</span><span class="val">£200/litro</span></div>
-      <div class="field-fixed" style="margin-top:6px"><span>Massa seca/planta Sprout</span><span class="val">15,46 g</span></div>
-    </div>
-    <div class="card">
-      <div class="card-title">⚙️ Variáveis — Ajustar</div>
-      <div class="field">
-        <label>Torres Sprout <span id="lbl-torres">11</span></label>
-        <div class="toggle-group">
-          <button class="toggle-btn active" onclick="setTorres(11,this)">11</button>
-          <button class="toggle-btn" onclick="setTorres(33,this)">33</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>Vasos por andar <span id="lbl-vasos">18</span></label>
-        <div class="toggle-group">
-          <button class="toggle-btn" onclick="setVasos(12,this)">12</button>
-          <button class="toggle-btn active" onclick="setVasos(18,this)">18</button>
-          <button class="toggle-btn" onclick="setVasos(24,this)">24</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>Nicotina Sprout (%) <span id="lbl-nico">6,86%</span></label>
-        <input type="range" id="sl-nico" min="4" max="10" step="0.1" value="6.86" oninput="calc()">
-      </div>
-      <div class="field">
-        <label>OPEX/ciclo (R$) <span id="lbl-opex">R$ 15.000</span></label>
-        <input type="range" id="sl-opex" min="5000" max="60000" step="1000" value="15000" oninput="calc()">
-      </div>
-      <div class="field">
-        <label>Câmbio £ → R$ <span id="lbl-cambio">R$ 6,40</span></label>
-        <input type="range" id="sl-cambio" min="5" max="8" step="0.1" value="6.4" oninput="calc()">
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">📝 Notas de Negociação</div>
-      <textarea id="notas" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:12px;font-family:Inter,sans-serif;resize:vertical;min-height:120px;outline:none;line-height:1.5" placeholder="Anote argumentos, objeções e respostas durante a reunião..."></textarea>
-    </div>
-  </div>
-
-  <div class="results">
-    <div class="kpi-grid">
-      <div class="kpi green"><div class="label">Nicotina Sprout/ano</div><div class="value" id="kpi-nico-sprout">—</div><div class="sub" id="kpi-nico-sub">torres · cenário</div></div>
-      <div class="kpi"><div class="label">Nicotina Campo/ano</div><div class="value" style="color:var(--amber-light)">58,9 kg</div><div class="sub">por hectare · 1 ciclo</div></div>
-      <div class="kpi highlight"><div class="label">Custo/kg nic. Sprout (OPEX)</div><div class="value" id="kpi-custo-sprout">—</div><div class="sub" id="kpi-custo-sub">vs R$ 679/kg campo</div></div>
-      <div class="kpi green"><div class="label">Eficiência de área</div><div class="value" id="kpi-area">—</div><div class="sub" id="kpi-area-sub">vs 1 ha campo</div></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Comparativo direto</div>
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th style="width:35%">Métrica</th>
-            <th class="campo">Campo (Burley · SC)</th>
-            <th class="sprout">Sprout Indoor</th>
-            <th style="width:120px">Vantagem</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="row-label">Nicotina % na folha</td><td class="val-campo">2,5%</td><td class="val-sprout" id="cmp-nico">6,86%</td><td><span class="winner sprout-win" id="cmp-nico-win">SPROUT 2,7×</span></td></tr>
-          <tr><td class="row-label">Ciclos/ano</td><td class="val-campo">1 ciclo</td><td class="val-sprout">10,4 ciclos</td><td><span class="winner sprout-win">SPROUT 10,4×</span></td></tr>
-          <tr><td class="row-label">Área de chão necessária</td><td class="val-campo">10.000 m² (1 ha)</td><td class="val-sprout" id="cmp-area">132 m²</td><td><span class="winner sprout-win" id="cmp-area-win">SPROUT 76×</span></td></tr>
-          <tr><td class="row-label">Nicotina/ano (base comparação)</td><td class="val-campo">58,9 kg/ha</td><td class="val-sprout" id="cmp-prod">—</td><td><span class="winner" id="cmp-prod-win">—</span></td></tr>
-          <tr><td class="row-label">Custo/kg nicotina bruta (OPEX)</td><td class="val-campo">R$ 679/kg</td><td class="val-sprout" id="cmp-custo">—</td><td><span class="winner" id="cmp-custo-win">—</span></td></tr>
-          <tr><td class="row-label">Folha necessária p/ 1 kg nic. pura</td><td class="val-campo">40 kg folha</td><td class="val-sprout" id="cmp-folha">14,6 kg</td><td><span class="winner sprout-win" id="cmp-folha-win">SPROUT 2,7×</span></td></tr>
-          <tr><td class="row-label">Risco climático</td><td class="val-campo">Alto (safra)</td><td class="val-sprout">Zero</td><td><span class="winner sprout-win">SPROUT</span></td></tr>
-          <tr><td class="row-label">Rastreabilidade</td><td class="val-campo">Lote/safra</td><td class="val-sprout">Vaso a vaso</td><td><span class="winner sprout-win">SPROUT</span></td></tr>
-          <tr><td class="row-label">Pesticidas</td><td class="val-campo">Sim</td><td class="val-sprout">Zero</td><td><span class="winner sprout-win">SPROUT</span></td></tr>
-          <tr><td class="row-label">Preço mercado nic. 99% (£200)</td><td class="val-campo" id="cmp-price-campo">R$ 1.280/kg</td><td class="val-sprout" id="cmp-price-sprout">R$ 1.280/kg</td><td><span class="winner sprout-win" id="cmp-price-win">MARGEM ↑</span></td></tr>
-        </tbody>
-      </table>
-      <div class="note">* OPEX/ciclo configurável no painel. Não inclui CAPEX de infraestrutura (amortizado separadamente). Campo = custo por hectare ÷ kg de nicotina produzida.</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Concentração de nicotina — visualização proporcional</div>
-      <div class="nico-bar-wrap">
-        <div class="nico-bar-label">Campo Burley — 2,5%</div>
-        <div class="nico-bar-track"><div class="nico-bar-fill bar-campo" style="width:25%"></div></div>
-      </div>
-      <div class="nico-bar-wrap" style="margin-top:12px">
-        <div class="nico-bar-label" id="bar-sprout-label">Sprout Indoor — 6,86% (Exp. 2 confirmado)</div>
-        <div class="nico-bar-track"><div class="nico-bar-fill bar-sprout" id="bar-sprout-fill" style="width:68.6%"></div></div>
-      </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--muted)">
-        Para extrair <strong style="color:#fff">1 kg de nicotina pura</strong>:
-        campo = <strong style="color:var(--amber-light)">40 kg de folha</strong> ·
-        Sprout = <strong style="color:var(--green-light)" id="folha-sprout-text">14,6 kg de folha</strong>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Análise de margem — Nicotina 99% a £200/litro</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Campo → extração → 99% puro</div>
-          <div style="background:var(--surface2);border-radius:8px;padding:14px">
-            <div style="font-size:11px;color:var(--muted)">Custo folha para 1 kg nicotina bruta</div>
-            <div style="font-size:20px;font-weight:800;color:var(--amber-light)" id="campo-folha-custo">R$ 584/kg</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:8px">+ extração industrial estimada</div>
-            <div style="font-size:20px;font-weight:800;color:var(--amber-light)">R$ 400/kg</div>
-            <div style="height:1px;background:var(--border);margin:10px 0"></div>
-            <div style="font-size:11px;color:var(--muted)">Custo total campo → 99%</div>
-            <div style="font-size:22px;font-weight:900;color:var(--amber-light)" id="campo-total-custo">R$ 984/kg</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:8px">Margem sobre £200</div>
-            <div style="font-size:22px;font-weight:900;" id="campo-margem">—</div>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Sprout → extração reduzida → 99%</div>
-          <div style="background:var(--surface2);border-radius:8px;padding:14px">
-            <div style="font-size:11px;color:var(--muted)">Folha necessária p/ 1 kg nicotina</div>
-            <div style="font-size:20px;font-weight:800;color:var(--green-light)" id="sprout-folha-kg">14,6 kg folha</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:8px">+ extração (proporcional, menor)</div>
-            <div style="font-size:20px;font-weight:800;color:var(--green-light)" id="sprout-extr-custo">~R$ 154/kg</div>
-            <div style="height:1px;background:var(--border);margin:10px 0"></div>
-            <div style="font-size:11px;color:var(--muted)">OPEX/kg nicotina + extração</div>
-            <div style="font-size:22px;font-weight:900;color:var(--green-light)" id="sprout-total-custo">—</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:8px">Margem sobre £200</div>
-            <div style="font-size:22px;font-weight:900;" id="sprout-margem">—</div>
-          </div>
-        </div>
-      </div>
-      <div class="note" style="margin-top:12px" id="nota-producao-campo">
-        * Produtor de campo recebe R$14,60/kg e produz 2.356 kg/ha → receita R$34.398/ha vs custo R$40.000/ha = <strong style="color:var(--red)">−R$5.602/ha</strong>. O produtor opera no negativo sem a integração da SC.
-      </div>
-    </div>
-
-    <div>
-      <div class="section-title">Pontos de Defesa — Reunião BAT/SC</div>
-      <div class="args-grid">
-        <div class="arg"><span class="arg-num">1</span><span class="arg-title">Produto diferente</span><div class="arg-body" id="arg1">Sprout produz nicotina para NRT/pouches/farmacêutico. Campo produz commodity para cigarro convencional. O comprador correto na BAT é o departamento de RRP, não tabaco tradicional.</div></div>
-        <div class="arg"><span class="arg-num">2</span><span class="arg-title">Curva de aprendizado acelerada</span><div class="arg-body">Exp.1 → <strong>4,8%</strong>. Exp.2 → <strong>6,86% (+42,9%)</strong>. Exp.3 → <strong>7%+</strong>. Nenhum campo melhora 42,9% em um ciclo. Estamos no início da curva.</div></div>
-        <div class="arg"><span class="arg-num">3</span><span class="arg-title">Extração 2,7× mais eficiente</span><div class="arg-body">Para 1 kg de nicotina pura: campo processa <strong>40 kg de folha</strong>, Sprout processa <strong id="arg3-folha">14,6 kg</strong>. Reduz custo de extração proporcionalmente — processo industrial menor e mais barato.</div></div>
-        <div class="arg"><span class="arg-num">4</span><span class="arg-title">Produtor de campo opera no negativo</span><div class="arg-body">Receita produtor: <strong>R$34.398/ha</strong> vs custo <strong>R$40.000/ha = −R$5.602/ha</strong>. Dependem de integração/subsídio SC. Sprout não precisa desse sistema para ser sustentável.</div></div>
-        <div class="arg"><span class="arg-num">5</span><span class="arg-title">CAPEX vs OPEX — comparação justa</span><div class="arg-body">O R$179.020 da Fase 3 inclui ~R$120k de infraestrutura (amortização 5 anos). Custo de campo não inclui amortização do trator, secadora e irrigação — mas existe.</div></div>
-        <div class="arg"><span class="arg-num">6</span><span class="arg-title" id="arg6-title">77× mais eficiente em área</span><div class="arg-body"><span id="arg6-text">33 torres = 396 m² → 91,7 kg nicotina/ano.</span> Equivalente a mais de 1 ha de campo convencional em <strong>0,04 ha</strong>. Supply chain em SP, indoor, sem dependência de safra ou região Sul.</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div><!-- /tab-def -->
-
-<!-- ══ TAB: COUNCIL DE NEGOCIAÇÃO ══════════════════════════════════ -->
-<div id="tab-council" class="tab-content"><iframe src="/council.html?v=nicotina" style="width:100%;height:calc(100vh - 52px);border:none;" style="width:100%;height:calc(100vh - 52px);border:none;" allow="same-origin"></iframe>
-  
-</div>
-
-<!-- ══ SCRIPTS ════════════════════════════════════════════════════════ -->
-<script>
-function showTab(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  btn.classList.add('active');
-  if (tab === 'def' && typeof calc === 'function') calc();
-  if (tab === 'bc'  && typeof updateAll === 'function') updateAll();
-}
-</script>
 
 <script>
-/* ── Business Case JS ─────────────────────────────────────────────── */
+// ══ ESTADO GLOBAL ═════════════════════════════════════════════════
 const STATE = {
-  nic: 6.86, massa: 15.46, ciclo: 35, densidade: 24,
-  priceLeaf: 140, priceOil: 500, mixLeaf: 60, beNTorres: 33,
-  dens33: 24, dens320: 24,
-  andares33: 14, andares320: 18,
-  custoMensal320: 112.46, capex320: 7927.58, capex33: 760,
-  extracaoOleo: 0.06, nicSC: 2.0,
+  nic:      6.86,   // % nicotina
+  massa:    19.0,   // g/planta (seca est. Exp 3 · fator 8,5%)
+  ciclo:    35,     // dias
+  densidade: 24,    // plantas/andar (default)
+  priceLeaf: 140,   // R$/kg folha
+  priceOil:  500,   // R$/kg óleo
+  mixLeaf:   60,    // % biomassa → folha (resto → óleo)
+  beNTorres: 33,    // torres no breakeven
+  dens33:    24,
+  dens320:   24,
+  // Constantes da planilha (320 torres, 18 andares, 18 pl/andar)
+  andares33:  14,
+  andares320: 18,
+  custoMensal320: 112.46,  // R$ mil / mês (da planilha)
+  capex320: 7927.58,       // R$ mil
+  capex33:  760,           // estimativa proporcional 33/320
+  extracaoOleo: 0.06,      // 6% massa → óleo
+  nicSC: 2.0,              // % nicotina SC campo
 };
+
+// ── Formatadores ──────────────────────────────────────────────────
 const fmt0 = n => n.toLocaleString('pt-BR', {maximumFractionDigits:0});
 const fmt1 = n => n.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1});
 const fmt2 = n => n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const fmtK = n => n >= 1000 ? 'R$' + fmt1(n/1000) + 'M' : 'R$' + fmt0(n) + 'k';
+
 function $ (id) { return document.getElementById(id); }
 
+// ══ CÁLCULOS CORE ════════════════════════════════════════════════
 function ciclosAno () { return 365 / STATE.ciclo; }
 
 function calcTorres (nTorres, nAndares, nPlantas) {
   const ciclosAno_ = ciclosAno();
   const plantasCiclo = nTorres * nAndares * nPlantas;
-  const massaCiclo   = plantasCiclo * STATE.massa / 1000;
-  const massaMes     = massaCiclo * (30 / STATE.ciclo);
-  const nicCiclo     = massaCiclo * (STATE.nic / 100);
-  const nicAno       = nicCiclo * ciclosAno_;
-  const oleoMes      = massaMes * STATE.extracaoOleo;
+  const massaCiclo   = plantasCiclo * STATE.massa / 1000;          // kg/ciclo
+  const massaMes     = massaCiclo * (30 / STATE.ciclo);            // kg/mês
+  const nicCiclo     = massaCiclo * (STATE.nic / 100);             // kg nic/ciclo
+  const nicAno       = nicCiclo * ciclosAno_;                      // kg nic/ano
+  const oleoMes      = massaMes * STATE.extracaoOleo;              // kg óleo/mês
+
+  // Receita
   const mixLeaf = STATE.mixLeaf / 100;
   const mixOil  = 1 - mixLeaf;
-  const recLeafMes = massaMes * mixLeaf * STATE.priceLeaf / 1000;
+  const recLeafMes = massaMes * mixLeaf * STATE.priceLeaf / 1000;  // R$ mil
   const recOilMes  = oleoMes * mixOil * STATE.priceOil  / 1000;
   const recMes     = recLeafMes + recOilMes;
   const recCiclo   = recMes * (STATE.ciclo / 30);
   const recAno     = recMes * 12;
+
+  // Equiv campo SC
   const equivFator = STATE.nic / STATE.nicSC;
+
   return { plantasCiclo, massaMes, nicAno, ciclosAno_, recMes, recCiclo, recAno, equivFator, nTorres };
 }
 
+// ══ APLICAR DADOS EXP 3 ═════════════════════════════════════════
 function aplicarDados () {
   STATE.nic      = parseFloat($('inp-nic').value)      || 6.86;
   STATE.massa    = parseFloat($('inp-massa').value)    || 15.46;
   STATE.ciclo    = parseInt  ($('inp-ciclo').value)    || 35;
   STATE.densidade = parseInt ($('inp-densidade').value) || 24;
+
+  // Atualiza hero e comparativo
   $('hero-nic').textContent     = fmt2(STATE.nic) + '%';
   $('hero-ciclo').textContent   = STATE.ciclo;
   $('comp-nic-val').textContent = fmt2(STATE.nic) + '%';
   $('exp3-nic-display').textContent = fmt2(STATE.nic) + '%';
-  updateEquiv(); updateAll();
-  const s = $('saved-msg'); s.style.display = 'inline';
+
+  updateEquiv();
+  updateAll();
+
+  const s = $('saved-msg');
+  s.style.display = 'inline';
   setTimeout(() => s.style.display = 'none', 3000);
 }
 
 function resetarDados () {
-  STATE.nic = 6.86; STATE.massa = 15.46; STATE.ciclo = 35;
-  $('inp-nic').value = 6.86; $('inp-massa').value = 15.46;
+  STATE.nic = 6.86; STATE.massa = 19.0; STATE.ciclo = 35;
+  $('inp-nic').value = 6.86; $('inp-massa').value = 19.0;
   $('inp-ciclo').value = 35; $('inp-densidade').value = 24;
   aplicarDados();
 }
 
+// ══ EQUIVALÊNCIA ════════════════════════════════════════════════
 function updateEquiv () {
   const fator = STATE.nic / STATE.nicSC;
-  $('equiv-num').textContent      = fmt1(fator);
+  $('equiv-num').textContent     = fmt1(fator);
   $('equiv-desc-val').textContent = fmt1(fator) + ' kg';
-  $('hero-mult').textContent      = fmt1(fator) + '×';
+  $('hero-mult').textContent     = fmt1(fator) + '×';
   $('equiv-sprout-val').textContent = fmt2(STATE.nic) + '%';
   const cicBar = Math.min(100, (STATE.nic / 10) * 100);
   $('nic-bar-sprout').style.width = cicBar + '%';
 }
 
-let beNTorres = 33;
+// ══ BREAKEVEN + ESCALA + RETORNO — fluxo único ════════════════════
+
+// Cenário do breakeven: 33 ou 320 torres
+// Movendo para STATE para evitar variável solta
+STATE.beNTorres = 33;
+
 function setBeScenario (n, btn) {
-  beNTorres = n;
+  STATE.beNTorres = n;
   document.querySelectorAll('.be-toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  updateBreakeven();
-}
-
-function updateBreakeven () {
-  const leaf = parseInt($('sl-leaf').value);
-  const oil  = parseInt($('sl-oil').value);
-  const mix  = parseInt($('sl-mix').value);
-  STATE.priceLeaf = leaf; STATE.priceOil = oil; STATE.mixLeaf = mix;
-  $('price-leaf-val').textContent = 'R$ ' + leaf + '/kg';
-  $('price-oil-val').textContent  = 'R$ ' + oil  + '/kg';
-  $('price-mix-val').textContent  = mix + '% folha · ' + (100-mix) + '% óleo';
-  ['sl-leaf','sl-oil','sl-mix'].forEach(id => {
-    const el = $(id);
-    const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1);
-    el.style.background = `linear-gradient(90deg, var(--green) ${pct}%, #E5E7EB ${pct}%)`;
-  });
-  const nAndares = beNTorres === 33 ? STATE.andares33 : STATE.andares320;
-  const nPlantas = beNTorres === 33 ? STATE.dens33    : STATE.dens320;
-  const d = calcTorres(beNTorres, nAndares, nPlantas);
-  const ciclosAno_ = ciclosAno();
-  const propCusto = beNTorres / 320;
-  const custoMes = STATE.custoMensal320 * propCusto;
-  const ebitdaMes = d.recMes - custoMes;
-  const capex = beNTorres === 33 ? STATE.capex33 : STATE.capex320;
-  const recPorTorre = d.recMes / beNTorres;
-  const custoFixoPorTorre = STATE.custoMensal320 / 320;
-  const beMin = Math.ceil(custoFixoPorTorre / recPorTorre);
-  const paybackMeses = ebitdaMes > 0 ? capex / ebitdaMes : null;
-  $('be-receita-ciclo').textContent  = fmtK(d.recCiclo);
-  $('be-receita-mes').textContent    = fmtK(d.recMes);
-  $('be-ebitda').textContent         = fmtK(ebitdaMes);
-  $('be-ebitda').className           = 'be-out-val ' + (ebitdaMes > 0 ? 'green' : 'amber');
-  $('be-receita-ano').textContent    = fmtK(d.recAno);
-  $('be-torres').textContent         = beMin + ' torres';
-  $('be-ciclo-sub').textContent      = STATE.ciclo + ' dias/ciclo · ' + beNTorres + ' torres';
-  $('be-ano-ciclos').textContent     = fmt1(ciclosAno_) + ' ciclos/ano';
-  if (paybackMeses && paybackMeses > 0 && paybackMeses < 999) {
-    $('be-payback').textContent = paybackMeses < 24 ? fmt1(paybackMeses) + ' meses' : fmt1(paybackMeses/12) + ' anos';
-    $('be-payback').className = 'be-out-val ' + (paybackMeses < 36 ? 'green' : '');
-  } else {
-    $('be-payback').textContent = ebitdaMes <= 0 ? 'EBITDA negativo' : '—';
-    $('be-payback').className = 'be-out-val amber';
-  }
-  $('be-payback-sub').textContent = 'Capex ' + fmtK(capex) + ' · ' + beNTorres + ' torres';
-  updateScale();
+  recalcularTudo();
 }
 
 function setDens (nTorres, dens, btn) {
   if (nTorres === 33) STATE.dens33  = dens;
   else               STATE.dens320 = dens;
-  const siblings = btn.parentElement.querySelectorAll('.dens-btn');
-  siblings.forEach(b => b.classList.remove('active'));
+  btn.parentElement.querySelectorAll('.dens-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  updateScale();
+  recalcularTudo();
 }
 
-function updateScale () {
+// Lê sliders → atualiza STATE → recalcula tudo
+function updateBreakeven () {
+  STATE.priceLeaf = parseInt($('sl-leaf').value);
+  STATE.priceOil  = parseInt($('sl-oil').value);
+  STATE.mixLeaf   = parseInt($('sl-mix').value);
+  recalcularTudo();
+}
+
+// Ponto central único de recálculo — chamado por qualquer mudança
+function recalcularTudo () {
+  const leaf = STATE.priceLeaf;
+  const oil  = STATE.priceOil;
+  const mix  = STATE.mixLeaf;
+
+  // ── Labels dos sliders
+  $('price-leaf-val').textContent = 'R$ ' + leaf + '/kg';
+  $('price-oil-val').textContent  = 'R$ ' + oil  + '/kg';
+  $('price-mix-val').textContent  = mix + '% folha · ' + (100 - mix) + '% óleo';
+
+  // ── Gradientes dos sliders
+  ['sl-leaf','sl-oil','sl-mix'].forEach(id => {
+    const el = $(id);
+    const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1);
+    el.style.background = `linear-gradient(90deg, var(--green) ${pct}%, #E5E7EB ${pct}%)`;
+  });
+
+  // ── Bloco 04: Breakeven
+  const beN      = STATE.beNTorres;
+  const nAndares = beN === 33 ? STATE.andares33 : STATE.andares320;
+  const nPlantas = beN === 33 ? STATE.dens33    : STATE.dens320;
+  const d        = calcTorres(beN, nAndares, nPlantas);
+  const ciclosAno_ = ciclosAno();
+  const custoMes = STATE.custoMensal320 * (beN / 320);
+  const ebitdaMes = d.recMes - custoMes;
+  const capex    = beN === 33 ? STATE.capex33 : STATE.capex320;
+  const recPorTorre = d.recMes / beN;
+  const custoFixoPorTorre = STATE.custoMensal320 / 320;
+  const beMin    = Math.max(1, Math.ceil(custoFixoPorTorre / recPorTorre));
+  const paybackMeses = ebitdaMes > 0 ? capex / ebitdaMes : null;
+
+  $('be-receita-ciclo').textContent = fmtK(d.recCiclo);
+  $('be-receita-mes').textContent   = fmtK(d.recMes);
+  $('be-ebitda').textContent        = fmtK(ebitdaMes);
+  $('be-ebitda').className          = 'be-out-val ' + (ebitdaMes > 0 ? 'green' : 'amber');
+  $('be-receita-ano').textContent   = fmtK(d.recAno);
+  $('be-torres').textContent        = beMin + ' torres';
+  $('be-ciclo-sub').textContent     = STATE.ciclo + ' dias/ciclo · ' + beN + ' torres';
+  $('be-ano-ciclos').textContent    = fmt1(ciclosAno_) + ' ciclos/ano';
+  $('be-mes-sub').textContent       = 'pro-rata 30 dias';
+
+  if (paybackMeses && paybackMeses > 0 && paybackMeses < 999) {
+    $('be-payback').textContent = paybackMeses < 24
+      ? fmt1(paybackMeses) + ' meses'
+      : fmt1(paybackMeses / 12) + ' anos';
+    $('be-payback').className = 'be-out-val ' + (paybackMeses < 36 ? 'green' : '');
+  } else {
+    $('be-payback').textContent = ebitdaMes <= 0 ? 'EBITDA negativo' : '—';
+    $('be-payback').className   = 'be-out-val amber';
+  }
+  $('be-payback-sub').textContent = 'Capex ' + fmtK(capex) + ' · ' + beN + ' torres';
+
+  // ── Bloco 05: Cenários de escala
   [[33, STATE.andares33, STATE.dens33, 's33'],
    [320, STATE.andares320, STATE.dens320, 's320']].forEach(([n, and, pl, pfx]) => {
-    const d = calcTorres(n, and, pl);
-    $(pfx + '-plantas').textContent  = fmt0(d.plantasCiclo);
-    $(pfx + '-biomassa').textContent = fmt0(d.massaMes) + ' kg';
-    $(pfx + '-nic-ano').textContent  = fmt0(d.nicAno) + ' kg';
-    $(pfx + '-ciclos').textContent   = fmt1(d.ciclosAno_) + '/ano';
-    $(pfx + '-receita').textContent  = fmtK(d.recAno);
-    $(pfx + '-equiv').textContent    = fmt1(d.nicAno * d.equivFator / 1000) + ' ton/ano';
+    const ds = calcTorres(n, and, pl);
+    $(pfx + '-plantas').textContent  = fmt0(ds.plantasCiclo);
+    $(pfx + '-biomassa').textContent = fmt0(ds.massaMes) + ' kg';
+    $(pfx + '-nic-ano').textContent  = fmt0(ds.nicAno) + ' kg';
+    $(pfx + '-ciclos').textContent   = fmt1(ds.ciclosAno_) + '/ano';
+    $(pfx + '-receita').textContent  = fmtK(ds.recAno);
+    $(pfx + '-equiv').textContent    = fmt1(ds.nicAno * ds.equivFator / 1000) + ' ton/ano';
   });
-  $('comp-ciclos').textContent = fmt1(ciclosAno()) + '/ano';
-}
+  $('comp-ciclos').textContent = fmt1(ciclosAno_) + '/ano';
 
-function updateAll () {
-  updateEquiv(); updateBreakeven(); updateScale();
-  $('hero-ciclo').textContent = STATE.ciclo;
+  // Atualizar notas de preço nas scale-cards
+  const leafFmt = 'R$' + leaf + '/kg';
+  const oilFmt  = 'R$' + oil  + '/kg';
+  const mixFmt  = mix  + '% folha · ' + (100 - mix) + '% óleo';
+  ['33','320'].forEach(sfx => {
+    const nL = $('note' + sfx + '-leaf');
+    const nO = $('note' + sfx + '-oil');
+    const nM = $('note' + sfx + '-mix');
+    if (nL) nL.textContent = leafFmt;
+    if (nO) nO.textContent = oilFmt;
+    if (nM) nM.textContent = mixFmt;
+  });
+
+  // ── Bloco 07: Retorno financeiro (sempre 320 torres como escala JV)
   const d320 = calcTorres(320, STATE.andares320, STATE.dens320);
-  $('ret-ebitda').textContent  = fmtK(d320.recMes - STATE.custoMensal320);
+  const ebitda320 = d320.recMes - STATE.custoMensal320;
+  $('ret-ebitda').textContent  = fmtK(ebitda320);
   $('ret-receita').textContent = fmtK(d320.recAno);
-  $('be-ano-ciclos').textContent = fmt1(ciclosAno()) + ' ciclos/ano';
 }
 
+// ══ UPDATE ALL ═══════════════════════════════════════════════════
+function updateAll () {
+  updateEquiv();
+  recalcularTudo();
+  $('hero-ciclo').textContent = STATE.ciclo;
+}
+
+// Manter compatibilidade com chamadas existentes
+function updateScale    () { recalcularTudo(); }
+
+
+// ══ INIT ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   updateAll();
+  // Inicializar gradientes dos sliders
   ['sl-leaf','sl-oil','sl-mix'].forEach(id => {
     const el = $(id);
     const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1);
     el.style.background = `linear-gradient(90deg, var(--green) ${pct}%, #E5E7EB ${pct}%)`;
   });
 });
-</script>
-
-<script>
-/* ── Defesa JS ────────────────────────────────────────────────────── */
-let torres = 11, vasos = 18;
-const CAMPO_FOLHA_KG = 2356, CAMPO_NIC_PCT = 0.025, CAMPO_CUSTO_HA = 40000;
-const CAMPO_CICLOS = 1, PLANTA_MASSA_G = 15.46, ANDARES = 14;
-const CICLOS_ANO = 10.4, CAMPO_PRECO_FOLHA = 14.60, EXTR_CAMPO = 400;
-
-function fmtR(v, dec=0) { return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:dec,maximumFractionDigits:dec}); }
-function fmtKg(v, dec=1) { return v.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+' kg'; }
-
-function setTorres(v, btn) {
-  torres = v;
-  document.querySelectorAll('[onclick^="setTorres"]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('lbl-torres').textContent = v;
-  calc();
-}
-function setVasos(v, btn) {
-  vasos = v;
-  document.querySelectorAll('[onclick^="setVasos"]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('lbl-vasos').textContent = v;
-  calc();
-}
-
-function calc() {
-  const nicoPct  = parseFloat(document.getElementById('sl-nico').value);
-  const opexCiclo = parseFloat(document.getElementById('sl-opex').value);
-  const cambio   = parseFloat(document.getElementById('sl-cambio').value);
-  document.getElementById('lbl-nico').textContent   = nicoPct.toFixed(2).replace('.',',')+'%';
-  document.getElementById('lbl-opex').textContent   = fmtR(opexCiclo);
-  document.getElementById('lbl-cambio').textContent = 'R$ '+cambio.toFixed(2).replace('.',',');
-  const plantas = vasos * ANDARES * torres;
-  const massaTotalG = plantas * PLANTA_MASSA_G;
-  const nicGCiclo = massaTotalG * (nicoPct/100);
-  const nicKgCiclo = nicGCiclo / 1000;
-  const nicKgAno = nicKgCiclo * CICLOS_ANO;
-  const campoNicAno = CAMPO_FOLHA_KG * CAMPO_NIC_PCT * CAMPO_CICLOS;
-  const campoCustoKgNic = CAMPO_CUSTO_HA / campoNicAno;
-  const campoFolhaPorKgNic = 1 / CAMPO_NIC_PCT;
-  const campoFolhaCustoKgNic = campoFolhaPorKgNic * CAMPO_PRECO_FOLHA;
-  const opexAno = opexCiclo * CICLOS_ANO;
-  const custoKgNicSprout = opexAno / nicKgAno;
-  const areaSproutM2 = torres * 4;
-  const areaFator = 10000 / areaSproutM2;
-  const precoPuro = 200 * cambio;
-  const campoTotalKgNic = campoFolhaCustoKgNic + EXTR_CAMPO;
-  const campoMargem = precoPuro - campoTotalKgNic;
-  const sproutFolhaPorKgNic = 1 / (nicoPct/100);
-  const sproutExtrKgNic = (sproutFolhaPorKgNic / campoFolhaPorKgNic) * EXTR_CAMPO;
-  const sproutTotalKgNic = custoKgNicSprout + sproutExtrKgNic;
-  const sproutMargem = precoPuro - sproutTotalKgNic;
-  const nicopFator = (nicoPct / 2.5).toFixed(1);
-  document.getElementById('kpi-nico-sprout').textContent = fmtKg(nicKgAno);
-  document.getElementById('kpi-nico-sub').textContent = torres+' torres · '+vasos+'v/andar · 10,4 ciclos';
-  document.getElementById('kpi-custo-sprout').textContent = fmtR(custoKgNicSprout);
-  document.getElementById('kpi-custo-sub').textContent = 'vs R$ '+Math.round(campoCustoKgNic)+'/kg campo';
-  document.getElementById('kpi-area').textContent = Math.round(areaFator)+'×';
-  document.getElementById('kpi-area-sub').textContent = areaSproutM2+' m² vs 10.000 m² campo';
-  document.getElementById('cmp-nico').textContent = nicoPct.toFixed(2).replace('.',',')+'%';
-  document.getElementById('cmp-nico-win').textContent = 'SPROUT '+nicopFator+'×';
-  document.getElementById('cmp-area').textContent = areaSproutM2+' m²';
-  document.getElementById('cmp-area-win').textContent = 'SPROUT '+Math.round(areaFator)+'×';
-  document.getElementById('cmp-prod').textContent = fmtKg(nicKgAno);
-  const prodFator = nicKgAno / campoNicAno;
-  const prodWin = document.getElementById('cmp-prod-win');
-  if (prodFator >= 1) { prodWin.textContent = 'SPROUT '+prodFator.toFixed(1)+'×'; prodWin.className = 'winner sprout-win'; }
-  else { prodWin.textContent = 'CAMPO '+(campoNicAno/nicKgAno).toFixed(1)+'×'; prodWin.className = 'winner campo-win'; }
-  document.getElementById('cmp-custo').textContent = fmtR(custoKgNicSprout);
-  const custoWin = document.getElementById('cmp-custo-win');
-  if (custoKgNicSprout < campoCustoKgNic) { custoWin.textContent = 'SPROUT '+((campoCustoKgNic/custoKgNicSprout)).toFixed(1)+'× menor'; custoWin.className = 'winner sprout-win'; }
-  else { custoWin.textContent = 'CAMPO '+(custoKgNicSprout/campoCustoKgNic).toFixed(1)+'× menor'; custoWin.className = 'winner campo-win'; }
-  document.getElementById('cmp-folha').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg';
-  document.getElementById('cmp-folha-win').textContent = 'SPROUT '+(campoFolhaPorKgNic/sproutFolhaPorKgNic).toFixed(1)+'×';
-  document.getElementById('bar-sprout-fill').style.width = (nicoPct*10)+'%';
-  document.getElementById('bar-sprout-label').textContent = 'Sprout Indoor — '+nicoPct.toFixed(2).replace('.',',')+'%';
-  document.getElementById('folha-sprout-text').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg de folha';
-  document.getElementById('cmp-price-campo').textContent = fmtR(precoPuro)+'/kg';
-  document.getElementById('cmp-price-sprout').textContent = fmtR(precoPuro)+'/kg';
-  document.getElementById('campo-folha-custo').textContent = fmtR(campoFolhaCustoKgNic);
-  document.getElementById('campo-total-custo').textContent = fmtR(campoTotalKgNic);
-  document.getElementById('campo-margem').textContent = fmtR(campoMargem);
-  document.getElementById('campo-margem').style.color = campoMargem > 0 ? 'var(--green-light)' : 'var(--red)';
-  document.getElementById('sprout-folha-kg').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg folha';
-  document.getElementById('sprout-extr-custo').textContent = '~'+fmtR(sproutExtrKgNic);
-  document.getElementById('sprout-total-custo').textContent = fmtR(sproutTotalKgNic);
-  document.getElementById('sprout-margem').textContent = fmtR(sproutMargem);
-  document.getElementById('sprout-margem').style.color = sproutMargem > 0 ? 'var(--green-light)' : 'var(--red)';
-  document.getElementById('arg3-folha').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg';
-  document.getElementById('arg6-text').textContent = torres+' torres = '+areaSproutM2+' m² → '+nicKgAno.toFixed(1)+' kg nicotina/ano.';
-}
-
-calc();
 </script>
 </body>
 </html>
