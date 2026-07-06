@@ -345,27 +345,7 @@
   };
 
   // \u2500\u2500 SHOW MORANGO B2B \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  window.sproutShowMorango = function() {
-    var allViews = document.querySelectorAll('[id^="view-"]');
-    for(var i=0;i<allViews.length;i++) allViews[i].style.display = 'none';
-    var vm = document.getElementById('view-morango');
-    if(vm) {
-      vm.style.display = '';
-      if(!vm.querySelector('iframe')) {
-        var ifr = document.createElement('iframe');
-        ifr.src = './morango.html';
-        ifr.style.cssText = 'width:100%;height:calc(100vh - 60px);border:none;display:block;';
-        vm.appendChild(ifr);
-      }
-    }
-    var pt=document.getElementById('page-title'), ps=document.getElementById('page-sub');
-    if(pt) pt.textContent = 'Morango B2B';
-    if(ps) ps.textContent = 'Indoor \u00b7 Vertical \u00b7 Benchmark Oishii';
-    var navItems = document.querySelectorAll('.nav-item');
-    for(var i=0;i<navItems.length;i++) navItems[i].classList.remove('active');
-    var btn = document.querySelector('[onclick="sproutShowMorango()"]');
-    if(btn) btn.classList.add('active');
-  };
+  
 
   // \u2500\u2500 LIRIO HTML para aba Experimentos \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   function buildLirioExpHtml() {
@@ -385,14 +365,6 @@
       main.appendChild(vb);
     }
 
-    // 1b. Create view-morango
-    if(!document.getElementById('view-morango')) {
-      var vmn = document.createElement('div');
-      vmn.id = 'view-morango';
-      vmn.style.display = 'none';
-      main.appendChild(vmn);
-    }
-
     // 2. Add Botic\u00e1rio nav button (uses sproutShowBoticario \u2014 always works)
     var navLbls = document.querySelectorAll('.nav-lbl'), b2s = null;
     for(var i=0;i<navLbls.length;i++){if(navLbls[i].textContent.trim()==='B2B / JV'){b2s=navLbls[i].parentElement;break;}}
@@ -402,15 +374,6 @@
       nb.setAttribute('onclick', 'sproutShowBoticario()');
       nb.innerHTML = '<span class="nav-dot"></span>Botic\u00e1rio';
       b2s.appendChild(nb);
-    }
-
-    // 2b. Add Morango B2B nav button
-    if(!document.querySelector('[onclick="sproutShowMorango()"]')) {
-      var nm = document.createElement('button');
-      nm.className = 'nav-item';
-      nm.setAttribute('onclick', 'sproutShowMorango()');
-      nm.innerHTML = '<span class="nav-dot"></span>Morango B2B';
-      if(b2s) b2s.appendChild(nm);
     }
 
     // 3. ALSO patch setView if it exists on window (for localhost)
@@ -458,3 +421,26 @@
   }
 
 })();
+
+  // Morango B2B — usa setView('morango') que ja existe no HTML original
+  (function addMorangoNav() {
+    function install() {
+      var b2s = null;
+      document.querySelectorAll('.nav-lbl').forEach(function(e) {
+        if (e.textContent.trim() === 'B2B / JV') b2s = e.parentElement;
+      });
+      if (!b2s) return;
+      if (document.querySelector('[onclick="setView(\'morango\')"]')) return;
+      var nb = document.createElement('button');
+      nb.className = 'nav-item';
+      nb.setAttribute('onclick', "setView('morango')");
+      nb.innerHTML = '<span class="nav-dot"></span>Morango';
+      var botic = document.querySelector('[onclick="sproutShowBoticario()"]');
+      if (botic) b2s.insertBefore(nb, botic);
+      else b2s.appendChild(nb);
+    }
+    setTimeout(install, 1000);
+    setTimeout(install, 2500);
+    setTimeout(install, 5000);
+  })();
+
