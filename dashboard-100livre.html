@@ -8135,6 +8135,31 @@ try {
 
 
 
-<script src="/council-fab.js" defer></script>
+<script src="./council-fab.js" defer></script>
+<script>
+(function(){
+  var _t=[1000,2500,5000,10000],_i=0;
+  function _install(){
+    var b2s=null;
+    document.querySelectorAll('.nav-lbl').forEach(function(e){if(e.textContent.trim()==='B2B / JV')b2s=e.parentElement;});
+    if(!b2s){if(_i<_t.length)setTimeout(_install,_t[_i++]);return;}
+    if(!document.querySelector('[onclick="setView('morango')"]')){
+      var m=document.createElement('button');m.className='nav-item';
+      m.setAttribute('onclick',"setView('morango')");
+      m.innerHTML='<span class="nav-dot"></span>Morango';
+      var botic=document.querySelector('[onclick="sproutShowBoticario()"]');
+      botic?b2s.insertBefore(m,botic):b2s.appendChild(m);
+    }
+    if(!document.querySelector('[onclick="sproutShowBoticario()"]')&&typeof window.sproutShowBoticario==='function'){
+      var bn=document.createElement('button');bn.className='nav-item';
+      bn.setAttribute('onclick','sproutShowBoticario()');
+      bn.innerHTML='<span class="nav-dot"></span>Boticario';
+      b2s.appendChild(bn);
+    }
+  }
+  var _w=setInterval(function(){if(window._dashLoaded){clearInterval(_w);setTimeout(_install,300);}},500);
+  _t.forEach(function(ms){setTimeout(_install,ms);});
+})();
+</script>
 </body>
 </html>
