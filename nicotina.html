@@ -569,13 +569,13 @@
       </div>
       <div class="exp-card current">
         <span class="exp-badge current">Exp. 3 · Colhido · Nic. pendente</span>
-        <div class="exp-nic amber" id="exp3-nic-display">19,0g*</div>
+        <div class="exp-nic amber" id="exp3-nic-display">51,8g*</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Meta · Aguardando colheita</div>
         <div class="exp-info">
           216 / 216 amostras colhidas<br>
-          Verde médio: 223 g/planta<br>
-          Seca est. (fator 8,5%): 19,0 g<br>
-          Nicotina %: Aguarda laboratório
+          Verde médio (folhas): 345 g/planta<br>
+          Seca est. (fator 15%): 51,8 g<br>
+          +10,8% vs Exp. 2 · Nicotina %: aguarda lab
         </div>
       </div>
       <div class="exp-card next">
@@ -659,7 +659,7 @@
         </div>
         <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:22px;font-weight:700;color:#D97706;">19,0 g*</div>
-          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">seca estimada (8,5%)</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">seca estimada (15%)</div>
           <div style="font-size:10px;color:#6B7280;">+22,6% vs Exp. 1 e 2</div>
         </div>
         <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
@@ -1277,7 +1277,7 @@
           <tr style="border-bottom:1px solid #F3F4F6;">
             <td style="padding:9px 16px;color:#374151;">Massa seca por planta</td>
             <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-massa">19,0 g/planta</td>
-            <td style="padding:9px 16px;color:#9CA3AF;">Estimativa Exp. 3 · fator 8,5% verde→seco (dado real Exp. 2)</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Estimativa Exp. 3 · fator 15% (Exp. 2 → 8,5%, recalibrado)</td>
           </tr>
           <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
             <td style="padding:9px 16px;color:#374151;">Ciclo de cultivo</td>
@@ -1366,7 +1366,7 @@
     </div>
 
     <div class="disclaimer" style="margin-top:16px;">
-      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo 35 dias = 10,43 ciclos/ano. Receita = óleo (rendimento% da biomassa × preço óleo) + folha pós-extração ((100-rendimento)% × preço folha) — ambos vendidos à Souza Cruz. EBITDA e receita do Bloco 07 atualizam com os sliders do Bloco 04. Massa seca Exp. 3: estimativa fator 8,5% (dado real Exp. 2 · 311,9g verde → 26,5g seca lab). Nicotina % pendente laboratório.
+      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo 35 dias = 10,43 ciclos/ano. Receita = óleo (rendimento% da biomassa × preço óleo) + folha pós-extração ((100-rendimento)% × preço folha) — ambos vendidos à Souza Cruz. EBITDA e receita do Bloco 07 atualizam com os sliders do Bloco 04. Massa seca Exp. 3: estimativa fator 15% · verde 345g → seca 51,8g (Exp. 2: 8,5%, 311,9g→26,5g lab). Nicotina % pendente laboratório.
     </div>
   </div>
 
@@ -1376,7 +1376,7 @@
 // ══ ESTADO GLOBAL ═════════════════════════════════════════════════
 const STATE = {
   nic:        6.86,   // % nicotina (Exp 2 — aguarda Exp 3)
-  massa:      19.0,   // g seca/planta (est. fator 8,5%, Exp 3)
+  massa:      51.8,   // g seca/planta (est. fator 15%, Exp 3)
   ciclo:      35,     // dias por ciclo
   densidade:  24,     // plantas/andar (default)
   priceLeaf:  140,    // R$/kg folha pós-extração
