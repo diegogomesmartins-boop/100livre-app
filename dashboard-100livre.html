@@ -8582,26 +8582,7 @@ try {
 })();
 
   // Morango B2B \u2014 usa setView('morango') que ja existe no HTML original
-  (function addMorangoNav() {
-    function install() {
-      var b2s = null;
-      document.querySelectorAll('.nav-lbl').forEach(function(e) {
-        if (e.textContent.trim() === 'B2B / JV') b2s = e.parentElement;
-      });
-      if (!b2s) return;
-      if (document.querySelector('[onclick="setView(\'morango\')"]')) return;
-      var nb = document.createElement('button');
-      nb.className = 'nav-item';
-      nb.setAttribute('onclick', "setView('experimentos');setTimeout(function(){setExpTab&&setExpTab('morango');},150);");
-      nb.innerHTML = '<span class="nav-dot"></span>Morango';
-      var botic = document.querySelector('[onclick="sproutShowBoticario()"]');
-      if (botic) b2s.insertBefore(nb, botic);
-      else b2s.appendChild(nb);
-    }
-    setTimeout(install, 1000);
-    setTimeout(install, 2500);
-    setTimeout(install, 5000);
-  })();
+  // [removido addMorangoNav antigo]
 
 
 </script>
