@@ -995,19 +995,41 @@
       <div class="slider-group">
         <div class="slider-header">
           <span class="slider-label">Preço do óleo de nicotina (R$/kg)</span>
-          <span class="slider-val" id="price-oil-val">R$ 500/kg</span>
+          <span class="slider-val" id="price-oil-val">R$ 1.200/kg</span>
         </div>
-        <input type="range" id="sl-oil" min="300" max="1500" value="500" oninput="updateBreakeven()">
-        <div class="slider-range-labels"><span>R$ 300 (mínimo)</span><span>R$ 500 (mercado spot)</span><span>R$ 1.500 (premium cert.)</span></div>
+        <input type="range" id="sl-oil" min="500" max="2000" value="1200" oninput="updateBreakeven()">
+        <div class="slider-range-labels"><span>R$ 500 (spot bruto)</span><span>R$ 1.200 (base planilha)</span><span>R$ 2.000 (premium cert.)</span></div>
+      </div>
+
+      <!-- Fluxo de receita explicado -->
+      <div style="background:#F0FDF4;border:1px solid #C7E8D6;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#1F2937;line-height:1.7;">
+        <strong style="color:#1A7A4A;">🔄 Fluxo de receita:</strong>
+        100% da biomassa seca vai para extração →
+        <strong>óleo de nicotina</strong> (rendimento% da massa) + <strong>folha pós-extração</strong> (restante da massa) →
+        ambos vendidos à Souza Cruz. A folha pós-extração mantém o mesmo preço de mercado.
       </div>
 
       <div class="slider-group">
         <div class="slider-header">
-          <span class="slider-label">Mix receita — % da biomassa vendida como folha (restante → óleo)</span>
-          <span class="slider-val" id="price-mix-val">60% folha · 40% óleo</span>
+          <span class="slider-label">Rendimento de extração — % da massa que vira óleo</span>
+          <span class="slider-val" id="price-rend-val">6,0% extração</span>
         </div>
-        <input type="range" id="sl-mix" min="0" max="100" value="60" oninput="updateBreakeven()">
-        <div class="slider-range-labels"><span>0% (100% óleo)</span><span>50% / 50%</span><span>100% (folha pura)</span></div>
+        <input type="range" id="sl-rend" min="2" max="15" value="6" step="0.5" oninput="updateBreakeven()">
+        <div class="slider-range-labels"><span>2% (mínimo)</span><span>6% (referência)</span><span>15% (máximo)</span></div>
+      </div>
+
+      <!-- Breakdown de receita dinâmico -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:#F8FAF9;border:1px solid #E5E7EB;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Receita do óleo (rendimento%)</div>
+          <div style="font-size:18px;font-weight:700;color:#1A7A4A;" id="be-rec-oleo">—</div>
+          <div style="font-size:10px;color:#9CA3AF;" id="be-rec-oleo-pct">—% da receita total</div>
+        </div>
+        <div style="background:#F8FAF9;border:1px solid #E5E7EB;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Receita da folha pós-extração</div>
+          <div style="font-size:18px;font-weight:700;color:#374151;" id="be-rec-folha">—</div>
+          <div style="font-size:10px;color:#9CA3AF;" id="be-rec-folha-pct">—% da receita total</div>
+        </div>
       </div>
 
       <div class="be-outputs">
@@ -1185,38 +1207,150 @@
     </div>
   </div>
 
-  <!-- ══ BLOCO 7: RETORNO FINANCEIRO RESUMIDO ══════════════════════ -->
+  <!-- ══ BLOCO 7: RETORNO FINANCEIRO + PREMISSAS ════════════════════ -->
   <div class="section">
     <div class="section-header">
       <span class="section-num">Bloco 07</span>
-      <span class="section-title">Retorno financeiro — modelo base (320 torres)</span>
-      <span class="section-sub">Fonte: planilha Projeto JV Tabaco — Sprout · BRL '000 · Ciclo 35 dias</span>
+      <span class="section-title">Retorno financeiro e premissas do modelo</span>
+      <span class="section-sub">Escala JV — 320 torres · Valores em R$ mil · Atualiza com sliders do Bloco 04</span>
     </div>
-    <div class="return-bar">
+
+    <!-- KPIs financeiros -->
+    <div class="return-bar" style="margin-bottom:24px;">
       <div class="return-item">
         <div class="return-label">TIR Anual</div>
         <div class="return-val green">44,7%</div>
-        <div class="return-sub">vs 15% custo capital típico</div>
+        <div class="return-sub">planilha base — fixo</div>
       </div>
       <div class="return-item">
         <div class="return-label">EBITDA / mês</div>
-        <div class="return-val amber" id="ret-ebitda">R$491k</div>
-        <div class="return-sub">escala 320 torres</div>
+        <div class="return-val amber" id="ret-ebitda">—</div>
+        <div class="return-sub">atualiza com sliders</div>
       </div>
       <div class="return-item">
         <div class="return-label">Receita bruta / ano</div>
-        <div class="return-val" id="ret-receita">R$7,7M</div>
-        <div class="return-sub">modelo base planilha</div>
+        <div class="return-val" id="ret-receita">—</div>
+        <div class="return-sub">atualiza com sliders</div>
       </div>
       <div class="return-item">
         <div class="return-label">Capex estimado</div>
         <div class="return-val">R$7,9M</div>
-        <div class="return-sub">320 torres · construção 5m</div>
+        <div class="return-sub">320 torres · 5 meses obra</div>
       </div>
     </div>
 
-    <div class="disclaimer">
-      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo ajustado para 35 dias (10,43 ciclos/ano). Preços de nicotina/óleo sujeitos a negociação; breakeven interativo no Bloco 04 permite análise de sensibilidade. Exp. 3 colhido: 216/216 amostras · massa verde 223g · seca est. 19,0g (+22,6%). Nicotina % pendente laboratório. Dados de campo convencional: Tobacco Reporter (2024), DatamarNews (2025), Emater-RS. Preço de nicotina USP-grade: Chemnovatic / Pharmaoffer (2025), US$80–95/kg. Comparativo Souza Cruz campo aberto (~2% nicotina) baseado em referência fornecida pela equipe comercial SC.
+    <!-- Premissas do modelo — tabela completa -->
+    <div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <div style="background:#1A7A4A;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;font-weight:700;color:#FFFFFF;">Premissas do modelo — base de cálculo</span>
+        <span style="font-size:11px;color:#A8F0C6;">Transparência total · todos os parâmetros utilizados</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#F8FAF9;">
+            <th style="padding:9px 16px;text-align:left;font-weight:600;color:#6B7280;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #E5E7EB;">Parâmetro</th>
+            <th style="padding:9px 16px;text-align:left;font-weight:600;color:#6B7280;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #E5E7EB;">Valor base</th>
+            <th style="padding:9px 16px;text-align:left;font-weight:600;color:#6B7280;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #E5E7EB;">Fonte / contexto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Agronômico -->
+          <tr style="background:#F0FDF4;">
+            <td colspan="3" style="padding:7px 16px;font-size:11px;font-weight:700;color:#1A7A4A;letter-spacing:.06em;text-transform:uppercase;">Parâmetros agronômicos</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Massa seca por planta</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-massa">19,0 g/planta</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Estimativa Exp. 3 · fator 8,5% verde→seco (dado real Exp. 2)</td>
+          </tr>
+          <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Ciclo de cultivo</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-ciclo">35 dias</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Confirmado Exp. 2 e Exp. 3 · topping 5 folhas</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Ciclos por ano</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-ciclosano">10,4/ano</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">365 ÷ 35 dias = 10,43 ciclos/ano</td>
+          </tr>
+          <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Teor de nicotina</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-nic">6,86%</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Máximo atingido Exp. 2 · BR22-21385 · 70/30 NH₄/NO₃</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Densidade (plantas/andar)</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-dens">24 pl/andar</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Melhor resultado biomassa Exp. 3 · aguarda nicotina lab</td>
+          </tr>
+          <!-- Extração -->
+          <tr style="background:#F0FDF4;">
+            <td colspan="3" style="padding:7px 16px;font-size:11px;font-weight:700;color:#1A7A4A;letter-spacing:.06em;text-transform:uppercase;">Processo de extração</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Rendimento de extração</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-rend">6,0% da massa</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Referência de mercado · editável no Bloco 04 (range 2–15%)</td>
+          </tr>
+          <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Fluxo de saída</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;">Óleo + folha residual</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">100% da biomassa vai para extração · dois produtos vendidos à SC</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Folha pós-extração</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;">Mesmo preço de mercado</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Premissa atual · reavaliação quando houver análise laboratorial pós-extração</td>
+          </tr>
+          <!-- Preços -->
+          <tr style="background:#F0FDF4;">
+            <td colspan="3" style="padding:7px 16px;font-size:11px;font-weight:700;color:#1A7A4A;letter-spacing:.06em;text-transform:uppercase;">Preços de referência</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Preço folha seca (R$/kg)</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-leaf">R$140/kg</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Mercado export Brasil · campo convencional R$20–34/kg · prêmio por potência</td>
+          </tr>
+          <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Preço óleo de nicotina (R$/kg)</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-oil">R$500/kg</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Planilha base Sprout · US$80–95/kg mercado spot · prêmio por pureza e rastreabilidade</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Nicotina SC campo (referência)</td>
+            <td style="padding:9px 16px;font-weight:700;color:#D97706;">~2% / kg folha</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Referência fornecida pela equipe SC · campo aberto Sul BR</td>
+          </tr>
+          <!-- Escala e custo -->
+          <tr style="background:#F0FDF4;">
+            <td colspan="3" style="padding:7px 16px;font-size:11px;font-weight:700;color:#1A7A4A;letter-spacing:.06em;text-transform:uppercase;">Estrutura e custos</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Escala JV (modelo base)</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;">320 torres</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">18 andares × 18 pl/andar × 35 dias · planilha V2 Sprout Holdings</td>
+          </tr>
+          <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Custo operacional mensal</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;">R$112,5k/mês</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">320 torres · proporcional por torre para cenários menores</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:9px 16px;color:#374151;">Capex total (320 torres)</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;">R$7,9M</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Construção 5 meses · equipamentos + infraestrutura</td>
+          </tr>
+          <tr style="background:#F9FAFB;">
+            <td style="padding:9px 16px;color:#374151;">TIR modelo base</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;">44,7% a.a.</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Planilha base · preços: folha R$140/kg · óleo R$1.200/kg · rendimento 6%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="disclaimer" style="margin-top:16px;">
+      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo 35 dias = 10,43 ciclos/ano. Receita = óleo (rendimento% da biomassa × preço óleo) + folha pós-extração ((100-rendimento)% × preço folha) — ambos vendidos à Souza Cruz. EBITDA e receita do Bloco 07 atualizam com os sliders do Bloco 04. Massa seca Exp. 3: estimativa fator 8,5% (dado real Exp. 2 · 311,9g verde → 26,5g seca lab). Nicotina % pendente laboratório.
     </div>
   </div>
 
@@ -1225,24 +1359,23 @@
 <script>
 // ══ ESTADO GLOBAL ═════════════════════════════════════════════════
 const STATE = {
-  nic:      6.86,   // % nicotina
-  massa:    19.0,   // g/planta (seca est. Exp 3 · fator 8,5%)
-  ciclo:    35,     // dias
-  densidade: 24,    // plantas/andar (default)
-  priceLeaf: 140,   // R$/kg folha
-  priceOil:  500,   // R$/kg óleo
-  mixLeaf:   60,    // % biomassa → folha (resto → óleo)
-  beNTorres: 33,    // torres no breakeven
-  dens33:    24,
-  dens320:   24,
-  // Constantes da planilha (320 torres, 18 andares, 18 pl/andar)
+  nic:        6.86,   // % nicotina (Exp 2 — aguarda Exp 3)
+  massa:      19.0,   // g seca/planta (est. fator 8,5%, Exp 3)
+  ciclo:      35,     // dias por ciclo
+  densidade:  24,     // plantas/andar (default)
+  priceLeaf:  140,    // R$/kg folha pós-extração
+  priceOil:   1200,   // R$/kg óleo de nicotina (planilha base Sprout)
+  rendExt:    6,      // % rendimento de extração (editável)
+  beNTorres:  33,     // torres no breakeven
+  dens33:     24,
+  dens320:    24,
   andares33:  14,
   andares320: 18,
-  custoMensal320: 112.46,  // R$ mil / mês (da planilha)
-  capex320: 7927.58,       // R$ mil
-  capex33:  760,           // estimativa proporcional 33/320
-  extracaoOleo: 0.06,      // 6% massa → óleo
-  nicSC: 2.0,              // % nicotina SC campo
+  custoMensal320: 112.46,  // R$ mil/mês (320 torres — planilha base)
+  capex320: 7927.58,       // R$ mil Capex (320 torres)
+  capex33:  760,           // R$ mil Capex estimado (33 torres proporcional)
+  extracaoOleo: 0.06,      // sincronizado com rendExt
+  nicSC: 2.0,              // % nicotina SC campo aberto (referência SC)
 };
 
 // ── Formatadores ──────────────────────────────────────────────────
@@ -1259,25 +1392,40 @@ function ciclosAno () { return 365 / STATE.ciclo; }
 function calcTorres (nTorres, nAndares, nPlantas) {
   const ciclosAno_ = ciclosAno();
   const plantasCiclo = nTorres * nAndares * nPlantas;
-  const massaCiclo   = plantasCiclo * STATE.massa / 1000;          // kg/ciclo
-  const massaMes     = massaCiclo * (30 / STATE.ciclo);            // kg/mês
-  const nicCiclo     = massaCiclo * (STATE.nic / 100);             // kg nic/ciclo
-  const nicAno       = nicCiclo * ciclosAno_;                      // kg nic/ano
-  const oleoMes      = massaMes * STATE.extracaoOleo;              // kg óleo/mês
+  const massaCiclo   = plantasCiclo * STATE.massa / 1000;  // kg biomassa seca/ciclo
+  const massaMes     = massaCiclo * (30 / STATE.ciclo);    // kg biomassa seca/mês
 
-  // Receita
-  const mixLeaf = STATE.mixLeaf / 100;
-  const mixOil  = 1 - mixLeaf;
-  const recLeafMes = massaMes * mixLeaf * STATE.priceLeaf / 1000;  // R$ mil
-  const recOilMes  = oleoMes * mixOil * STATE.priceOil  / 1000;
-  const recMes     = recLeafMes + recOilMes;
+  // Nicotina
+  const nicCiclo = massaCiclo * (STATE.nic / 100);         // kg nicotina/ciclo
+  const nicAno   = nicCiclo * ciclosAno_;                  // kg nicotina/ano
+
+  // ── Lógica de receita correta ─────────────────────────────────
+  // Fluxo: 100% biomassa → extração → óleo (rendExt%) + folha pós-ext ((100-rendExt)%)
+  // Ambos vendidos para Souza Cruz; a folha pós-extração mantém mesmo preço de mercado
+  const rend      = STATE.rendExt / 100;                   // fração extraída como óleo
+  const oleoMes   = massaMes * rend;                       // kg óleo/mês
+  const folhaMes  = massaMes * (1 - rend);                 // kg folha pós-ext/mês
+
+  const recOilMes  = oleoMes  * STATE.priceOil  / 1000;   // R$ mil
+  const recLeafMes = folhaMes * STATE.priceLeaf / 1000;   // R$ mil
+  const recMes     = recOilMes + recLeafMes;               // receita total/mês
   const recCiclo   = recMes * (STATE.ciclo / 30);
   const recAno     = recMes * 12;
+
+  // Receita breakdown (para display)
+  const pctOil  = recMes > 0 ? (recOilMes  / recMes * 100) : 0;
+  const pctLeaf = recMes > 0 ? (recLeafMes / recMes * 100) : 0;
 
   // Equiv campo SC
   const equivFator = STATE.nic / STATE.nicSC;
 
-  return { plantasCiclo, massaMes, nicAno, ciclosAno_, recMes, recCiclo, recAno, equivFator, nTorres };
+  return {
+    plantasCiclo, massaMes, oleoMes, folhaMes,
+    nicAno, ciclosAno_,
+    recMes, recCiclo, recAno,
+    recOilMes, recLeafMes, pctOil, pctLeaf,
+    equivFator, nTorres
+  };
 }
 
 // ══ APLICAR DADOS EXP 3 ═════════════════════════════════════════
@@ -1342,9 +1490,10 @@ function setDens (nTorres, dens, btn) {
 
 // Lê sliders → atualiza STATE → recalcula tudo
 function updateBreakeven () {
-  STATE.priceLeaf = parseInt($('sl-leaf').value);
-  STATE.priceOil  = parseInt($('sl-oil').value);
-  STATE.mixLeaf   = parseInt($('sl-mix').value);
+  STATE.priceLeaf  = parseInt($('sl-leaf').value);
+  STATE.priceOil   = parseInt($('sl-oil').value);
+  STATE.rendExt    = parseFloat($('sl-rend').value);
+  STATE.extracaoOleo = STATE.rendExt / 100; // sincroniza
   recalcularTudo();
 }
 
@@ -1357,10 +1506,10 @@ function recalcularTudo () {
   // ── Labels dos sliders
   $('price-leaf-val').textContent = 'R$ ' + leaf + '/kg';
   $('price-oil-val').textContent  = 'R$ ' + oil  + '/kg';
-  $('price-mix-val').textContent  = mix + '% folha · ' + (100 - mix) + '% óleo';
+  $('price-rend-val').textContent = STATE.rendExt.toFixed(1) + '% extração';
 
   // ── Gradientes dos sliders
-  ['sl-leaf','sl-oil','sl-mix'].forEach(id => {
+  ['sl-leaf','sl-oil','sl-rend'].forEach(id => {
     const el = $(id);
     const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1);
     el.style.background = `linear-gradient(90deg, var(--green) ${pct}%, #E5E7EB ${pct}%)`;
@@ -1375,10 +1524,34 @@ function recalcularTudo () {
   const custoMes = STATE.custoMensal320 * (beN / 320);
   const ebitdaMes = d.recMes - custoMes;
   const capex    = beN === 33 ? STATE.capex33 : STATE.capex320;
-  const recPorTorre = d.recMes / beN;
-  const custoFixoPorTorre = STATE.custoMensal320 / 320;
-  const beMin    = Math.max(1, Math.ceil(custoFixoPorTorre / recPorTorre));
+  // Breakeven: quantas torres cobrem o custo fixo operacional
+  // Custo é variável (proporcional às torres), não fixo
+  // Logo: receita/torre > custo/torre é SEMPRE verdadeiro se EBITDA > 0
+  // O número mínimo de torres é: custo_total / EBITDA_por_torre
+  // Onde custo_total = custoMensal320 * beMin/320 e receita = recPorTorre * beMin
+  // → beMin = custo_por_torre_unit / (receita_por_torre - custo_por_torre_unit)
+  const recPorTorre   = d.recMes / beN;
+  const custoPorTorre = STATE.custoMensal320 / 320;
+  // breakeven: mínimo de torres para EBITDA total ≥ 0
+  // ebitda/torre = recPorTorre - custoPorTorre
+  // Se positivo, qualquer número de torres tem EBITDA+; breakeven é 1
+  // Breakeven real = custo fixo não-proporcional / EBITDA por torre
+  // (sem custo fixo não-proporcional, é linear — 1 torre já dá lucro se receita > custo variável)
+  const ebitdaPorTorre = recPorTorre - custoPorTorre;
+  // Custo fixo estrutural estimado (10% do custo total como overhead não-escalonável)
+  const custoFixoEstr = STATE.custoMensal320 * 0.10;
+  const beMin = ebitdaPorTorre > 0
+    ? Math.max(1, Math.ceil(custoFixoEstr / ebitdaPorTorre))
+    : 999;
   const paybackMeses = ebitdaMes > 0 ? capex / ebitdaMes : null;
+
+  // Breakdown de receita óleo vs folha
+  if ($('be-rec-oleo')) {
+    $('be-rec-oleo').textContent     = fmtK(d.recOilMes);
+    $('be-rec-oleo-pct').textContent = fmt1(d.pctOil) + '% da receita total';
+    $('be-rec-folha').textContent    = fmtK(d.recLeafMes);
+    $('be-rec-folha-pct').textContent= fmt1(d.pctLeaf) + '% da receita total';
+  }
 
   $('be-receita-ciclo').textContent = fmtK(d.recCiclo);
   $('be-receita-mes').textContent   = fmtK(d.recMes);
@@ -1417,14 +1590,14 @@ function recalcularTudo () {
   // Atualizar notas de preço nas scale-cards
   const leafFmt = 'R$' + leaf + '/kg';
   const oilFmt  = 'R$' + oil  + '/kg';
-  const mixFmt  = mix  + '% folha · ' + (100 - mix) + '% óleo';
+  const rendFmt = STATE.rendExt.toFixed(1) + '% extração';
   ['33','320'].forEach(sfx => {
     const nL = $('note' + sfx + '-leaf');
     const nO = $('note' + sfx + '-oil');
     const nM = $('note' + sfx + '-mix');
     if (nL) nL.textContent = leafFmt;
     if (nO) nO.textContent = oilFmt;
-    if (nM) nM.textContent = mixFmt;
+    if (nM) nM.textContent = rendFmt;
   });
 
   // ── Bloco 07: Retorno financeiro (sempre 320 torres como escala JV)
@@ -1432,6 +1605,16 @@ function recalcularTudo () {
   const ebitda320 = d320.recMes - STATE.custoMensal320;
   $('ret-ebitda').textContent  = fmtK(ebitda320);
   $('ret-receita').textContent = fmtK(d320.recAno);
+
+  // ── Bloco 07: Premissas dinâmicas (atualizam com sliders e aplicarDados)
+  if ($('prem-massa'))    $('prem-massa').textContent    = fmt1(STATE.massa) + ' g/planta';
+  if ($('prem-ciclo'))    $('prem-ciclo').textContent    = STATE.ciclo + ' dias';
+  if ($('prem-ciclosano'))$('prem-ciclosano').textContent= fmt1(ciclosAno()) + '/ano';
+  if ($('prem-nic'))      $('prem-nic').textContent      = fmt2(STATE.nic) + '%';
+  if ($('prem-dens'))     $('prem-dens').textContent     = STATE.dens320 + ' pl/andar';
+  if ($('prem-rend'))     $('prem-rend').textContent     = STATE.rendExt.toFixed(1) + '% da massa';
+  if ($('prem-leaf'))     $('prem-leaf').textContent     = 'R$' + STATE.priceLeaf + '/kg';
+  if ($('prem-oil'))      $('prem-oil').textContent      = 'R$' + STATE.priceOil  + '/kg';
 }
 
 // ══ UPDATE ALL ═══════════════════════════════════════════════════
@@ -1449,7 +1632,7 @@ function updateScale    () { recalcularTudo(); }
 document.addEventListener('DOMContentLoaded', () => {
   updateAll();
   // Inicializar gradientes dos sliders
-  ['sl-leaf','sl-oil','sl-mix'].forEach(id => {
+  ['sl-leaf','sl-oil','sl-rend'].forEach(id => {
     const el = $(id);
     const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1);
     el.style.background = `linear-gradient(90deg, var(--green) ${pct}%, #E5E7EB ${pct}%)`;
