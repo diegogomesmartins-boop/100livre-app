@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Council — JV Nicotina Sprout × SC/BAT</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080d16;
+  --surface: #0f1824;
+  --surface2: #162030;
+  --border: #1d2d42;
+  --green: #1A7A4A;
+  --green-hi: #22c55e;
+  --amber: #d97706;
+  --amber-hi: #f59e0b;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --text: #e8f0fe;
+  --muted: #64748b;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Inter', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+
+/* ─── HEADER ─── */
+.header{
+  border-bottom:1px solid var(--border);
+  padding:20px 32px;
+  display:flex;align-items:center;gap:16px;
+  background:linear-gradient(90deg,#06111e 0%,#080d16 100%);
+}
+.header-logo{font-size:12px;font-weight:700;color:var(--green-hi);font-family:var(--mono);letter-spacing:2px;}
+.header h1{font-size:17px;font-weight:700;color:var(--text);}
+.header p{font-size:12px;color:var(--muted);margin-top:2px;}
+.badge-conf{margin-left:auto;font-size:10px;font-weight:700;background:transparent;
+  color:var(--amber);border:1px solid var(--amber);padding:3px 12px;border-radius:3px;letter-spacing:2px;font-family:var(--mono);}
+
+/* ─── LAYOUT ─── */
+.container{max-width:1280px;margin:0 auto;padding:28px 32px;}
+
+/* ─── FRAMING CARD ─── */
+.framing{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:22px 26px;margin-bottom:24px;border-left:3px solid var(--amber);
+}
+.framing-label{font-size:10px;font-weight:700;color:var(--amber);letter-spacing:2px;font-family:var(--mono);margin-bottom:10px;}
+.framing h2{font-size:16px;font-weight:700;line-height:1.5;margin-bottom:14px;}
+.framing-context{font-size:12px;color:var(--muted);line-height:1.7;}
+.framing-context strong{color:var(--text);}
+
+/* ─── LAUNCH BUTTON ─── */
+.launch-wrap{text-align:center;margin:28px 0;}
+.btn-launch{
+  background:linear-gradient(135deg,var(--green) 0%,#0f5132 100%);
+  color:#fff;border:none;border-radius:8px;
+  padding:16px 40px;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:var(--sans);letter-spacing:.3px;
+  transition:all .2s;box-shadow:0 0 30px #1A7A4A44;
+}
+.btn-launch:hover{transform:translateY(-2px);box-shadow:0 0 45px #1A7A4A66;}
+.btn-launch:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+/* ─── PHASE INDICATOR ─── */
+.phase-bar{
+  display:flex;gap:0;margin-bottom:28px;
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.phase{flex:1;padding:10px 16px;font-size:11px;font-weight:600;color:var(--muted);
+  text-align:center;font-family:var(--mono);transition:all .3s;border-right:1px solid var(--border);}
+.phase:last-child{border-right:none;}
+.phase.active{background:var(--green);color:#fff;}
+.phase.done{background:#0f2a1a;color:var(--green-hi);}
+
+/* ─── ADVISORS GRID ─── */
+.section-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;
+  font-family:var(--mono);margin-bottom:14px;text-transform:uppercase;}
+.advisors-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px;}
+.advisor-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:16px;position:relative;overflow:hidden;min-height:200px;
+}
+.advisor-card.loading{border-color:var(--border);}
+.advisor-card.done{border-color:var(--green);}
+.advisor-name{font-size:11px;font-weight:700;color:var(--green-hi);font-family:var(--mono);
+  letter-spacing:1px;margin-bottom:4px;}
+.advisor-role{font-size:10px;color:var(--muted);margin-bottom:12px;}
+.advisor-body{font-size:12px;color:#94a3b8;line-height:1.65;}
+.advisor-body strong{color:var(--text);}
+.advisor-body em{color:var(--amber-hi);font-style:normal;}
+
+.spinner{
+  width:20px;height:20px;border:2px solid var(--border);
+  border-top-color:var(--green-hi);border-radius:50%;
+  animation:spin 1s linear infinite;margin:20px auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.status-dot{
+  width:6px;height:6px;border-radius:50%;
+  display:inline-block;margin-right:6px;
+}
+.status-dot.waiting{background:var(--muted);}
+.status-dot.loading{background:var(--amber);animation:pulse 1s ease-in-out infinite;}
+.status-dot.done{background:var(--green-hi);}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ─── PEER REVIEW ─── */
+.peer-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px;}
+.peer-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;min-height:160px;
+}
+.peer-card.done{border-color:var(--blue);}
+.peer-label{font-size:10px;color:var(--blue);font-family:var(--mono);font-weight:700;
+  letter-spacing:1px;margin-bottom:8px;}
+.peer-body{font-size:11px;color:#94a3b8;line-height:1.6;}
+.peer-body strong{color:var(--text);}
+
+/* ─── VERDICT ─── */
+.verdict{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:28px;
+}
+.verdict-header{
+  background:linear-gradient(90deg,#0d2418 0%,var(--surface) 100%);
+  padding:20px 26px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.verdict-header h2{font-size:18px;font-weight:800;color:var(--green-hi);}
+.verdict-header p{font-size:12px;color:var(--muted);margin-top:2px;}
+.verdict-body{padding:24px 26px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.verdict-section{}
+.vs-label{
+  font-size:10px;font-weight:700;letter-spacing:2px;font-family:var(--mono);
+  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.vs-label.agree{color:var(--green-hi);}
+.vs-label.clash{color:var(--red);}
+.vs-label.blind{color:var(--amber);}
+.vs-label.rec{color:var(--blue);}
+.vs-content{font-size:13px;color:#94a3b8;line-height:1.7;}
+.vs-content strong{color:var(--text);}
+.vs-content em{color:var(--amber-hi);font-style:normal;}
+.verdict-one{
+  grid-column:1/-1;
+  background:linear-gradient(90deg,#0a2218 0%,#0f2030 100%);
+  border:1px solid var(--green);border-radius:8px;padding:18px 20px;
+}
+.verdict-one .vs-label{color:var(--green-hi);border-color:var(--green);}
+.verdict-one .vs-content{font-size:14px;color:var(--text);font-weight:500;}
+
+/* ─── LOG ─── */
+.log{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:14px 18px;margin-bottom:20px;font-family:var(--mono);font-size:11px;
+  color:var(--muted);max-height:120px;overflow-y:auto;
+}
+.log-entry{margin-bottom:3px;}
+.log-entry .ts{color:var(--border);}
+.log-entry .msg{color:var(--muted);}
+.log-entry .msg.ok{color:var(--green-hi);}
+.log-entry .msg.warn{color:var(--amber);}
+.log-entry .msg.err{color:var(--red);}
+
+/* ─── RESET BUTTON ─── */
+.btn-reset{
+  background:transparent;color:var(--muted);border:1px solid var(--border);
+  border-radius:6px;padding:8px 20px;font-size:12px;cursor:pointer;
+  font-family:var(--sans);transition:all .2s;
+}
+.btn-reset:hover{color:var(--text);border-color:var(--muted);}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">SPROUT // COUNCIL</div>
+    <h1>LLM Council — Posicionamento Fase 3 × SC/BAT</h1>
+    <p>5 conselheiros independentes · peer review anônimo · síntese do chairman · via Anthropic API</p>
+  </div>
+  <span class="badge-conf">CONFIDENCIAL</span>
+</div>
+
+<div class="container">
+
+  <!-- FRAMING -->
+  <div class="framing">
+    <div class="framing-label">PERGUNTA AO COUNCIL</div>
+    <h2>"Como posicionar a Proposta Fase 3 da Sprout Holdings para a SC/BAT superar a objeção de custo por kg de nicotina vs campo convencional e aprovar o modelo de pesquisa avançada em fazenda vertical?"</h2>
+    <div class="framing-context">
+      <strong>Stakes:</strong> Aprovação = valida escala, protocolo definitivo, caminho para Fase 4 (offtake comercial). Rejeição = IP sem monetização, projeto encerrado. ·
+      <strong>Objeção central:</strong> Custo/kg nicotina Sprout (~R$8.818/kg Fase 3) vs campo (R$679/kg) — 13× mais caro hoje. ·
+      <strong>Trunfo Sprout:</strong> Exp.1→4,8% · Exp.2→6,86% (+42,9%) · Exp.3→7%+ · Campo Burley: 2.356 kg/ha, 2,5% nic., R$40k/ha, produtor opera no negativo (−R$5.602/ha) · Nicotina 99% mercado: £200/litro · Extração Sprout 2,7× mais eficiente.
+    </div>
+  </div>
+
+  <!-- LAUNCH -->
+  <div class="launch-wrap" id="launch-section">
+    <button class="btn-launch" id="btn-launch" onclick="runCouncil()">
+      ⚡ Convocar o Council
+    </button>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;">11 chamadas à API · ~2-4 minutos</p>
+  </div>
+
+  <!-- PHASE BAR -->
+  <div class="phase-bar" id="phase-bar" style="display:none;">
+    <div class="phase" id="ph-0">01 FRAMING</div>
+    <div class="phase" id="ph-1">02 ADVISORS</div>
+    <div class="phase" id="ph-2">03 PEER REVIEW</div>
+    <div class="phase" id="ph-3">04 CHAIRMAN</div>
+    <div class="phase" id="ph-4">05 VERDICT</div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log" id="log" style="display:none;"></div>
+
+  <!-- ADVISORS -->
+  <div id="section-advisors" style="display:none;">
+    <div class="section-label">FASE 2 — CONSELHEIROS (paralelo)</div>
+    <div class="advisors-grid" id="advisors-grid">
+      <div class="advisor-card" id="card-contrarian">
+        <div class="advisor-name"><span class="status-dot waiting" id="dot-contrarian"></span>CONTRARIAN</div>
+        <div class="advisor-role">Caçador de falhas fatais</div>
+        <div class="spinner" id="spin-contrarian" style="display:none;"></div>
+        <div class="advisor-body" id="body-contrarian"></div>
+      </div>
+      <div class="advisor-card" id="card-firstprinciples">
+        <div class="advisor-name"><span class="status-dot waiting" id="dot-firstprinciples"></span>FIRST PRINCIPLES</div>
+        <div class="advisor-role">Desestrutura o problema</div>
+        <div class="spinner" id="spin-firstprinciples" style="display:none;"></div>
+        <div class="advisor-body" id="body-firstprinciples"></div>
+      </div>
+      <div class="advisor-card" id="card-expansionist">
+        <div class="advisor-name"><span class="status-dot waiting" id="dot-expansionist"></span>EXPANSIONIST</div>
+        <div class="advisor-role">Vê o upside oculto</div>
+        <div class="spinner" id="spin-expansionist" style="display:none;"></div>
+        <div class="advisor-body" id="body-expansionist"></div>
+      </div>
+      <div class="advisor-card" id="card-outsider">
+        <div class="advisor-name"><span class="status-dot waiting" id="dot-outsider"></span>OUTSIDER</div>
+        <div class="advisor-role">Sem contexto prévio</div>
+        <div class="spinner" id="spin-outsider" style="display:none;"></div>
+        <div class="advisor-body" id="body-outsider"></div>
+      </div>
+      <div class="advisor-card" id="card-executor">
+        <div class="advisor-name"><span class="status-dot waiting" id="dot-executor"></span>EXECUTOR</div>
+        <div class="advisor-role">O que fazer segunda-feira</div>
+        <div class="spinner" id="spin-executor" style="display:none;"></div>
+        <div class="advisor-body" id="body-executor"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEER REVIEW -->
+  <div id="section-peers" style="display:none;">
+    <div class="section-label">FASE 3 — PEER REVIEW ANÔNIMO</div>
+    <div class="peer-grid" id="peer-grid">
+      <div class="peer-card" id="pr-0"><div class="peer-label">REVIEWER 1</div><div class="spinner"></div><div class="peer-body" id="prb-0"></div></div>
+      <div class="peer-card" id="pr-1"><div class="peer-label">REVIEWER 2</div><div class="spinner"></div><div class="peer-body" id="prb-1"></div></div>
+      <div class="peer-card" id="pr-2"><div class="peer-label">REVIEWER 3</div><div class="spinner"></div><div class="peer-body" id="prb-2"></div></div>
+      <div class="peer-card" id="pr-3"><div class="peer-label">REVIEWER 4</div><div class="spinner"></div><div class="peer-body" id="prb-3"></div></div>
+      <div class="peer-card" id="pr-4"><div class="peer-label">REVIEWER 5</div><div class="spinner"></div><div class="peer-body" id="prb-4"></div></div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div id="section-verdict" style="display:none;">
+    <div class="verdict" id="verdict-card">
+      <div class="verdict-header">
+        <div>
+          <h2>⚖️ Veredicto do Council</h2>
+          <p>Chairman synthesis — 5 advisors · 5 peer reviews</p>
+        </div>
+      </div>
+      <div class="verdict-body" id="verdict-body"></div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn-reset" onclick="reset()">↺ Novo council</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ─── CONTEXT ───────────────────────────────────────────────────
+const CONTEXT = `
+EMPRESA: Sprout Holdings S.A. (100% Livre) — fazenda vertical indoor, Ipiranga, São Paulo.
+
+TRAJETÓRIA EXPERIMENTAL (prova de capacidade de melhoria):
+- Exp. 1: 4,8% nicotina (baseline, Cultivar BR22-21385, topping 10)
+- Exp. 2: 6,86% nicotina (+42,9% em UM único experimento — EC escalonada 70/30 NH4, topping 5)
+- Exp. 3: 7%+ (em curso, 3 densidades: 12/18/24 vasos/andar)
+- Nenhum campo de tabaco melhora 42,9% em uma safra. Isso levaria décadas de melhoramento genético.
+
+PROPOSTA FASE 3 — O QUE ESTÁ SENDO PEDIDO À SC/BAT:
+- Investimento: R$179.020
+- Estrutura: 11 torres × 14 andares × espaçamento 60cm, Fazenda Ipiranga
+- Base de cálculo: 10,4 ciclos/ano (365 ÷ 35 dias por ciclo)
+- Cenário B (referência): 18 vasos/andar → 2.772 vasos → 20,3 kg nicotina/ano (11 torres)
+- Inclui: CAPEX infraestrutura único (~R$120k em LED + hidráulica + estrutura) + OPEX pesquisa 2 ciclos
+- Histórico: Fase 1 R$61.500 (concluída), Fase 2 R$133.106 (concluída)
+- Visão Fase 4: 33 torres → 60,9 kg nicotina/ano (equivale a ~1 ha de campo convencional em nicotina)
+
+COMPARATIVO COM CAMPO (dados reais fornecidos pela própria SC/BAT):
+- Campo Burley: 2.356 kg folha/ha, 2,5% nicotina = 58,9 kg nicotina/ha/ano
+- Custo campo: R$40.000/ha → R$679/kg nicotina bruta em folha
+- Preço folha ao produtor: R$14,60/kg
+- Receita do produtor: 2.356 × R$14,60 = R$34.398/ha vs custo R$40.000 = NEGATIVO (−R$5.602/ha)
+  O produtor de campo OPERA NO PREJUÍZO sem a integração/subsídio da SC. A SC sustenta esse sistema.
+
+OBJEÇÃO MATEMÁTICA QUE VIRA A REUNIÃO:
+- Custo/kg nicotina Sprout Fase 3: ~R$8.818/kg (R$179.020 ÷ 20,3 kg × 1 ano)
+- Custo/kg nicotina campo: R$679/kg
+- A SC vai dizer: "vocês são 13× mais caros. Por quê pagaríamos isso?"
+
+ARGUMENTOS DISPONÍVEIS PARA DEFESA:
+1. Produto diferente: 6,86% vs 2,5% → 2,7× menos folha para extrair 1 kg nicotina pura → custo de extração industrial 2,7× menor
+2. Pureza mercado: nicotina 99% vale £200/litro (~R$1.280/kg) — para NRT/pouches/farmacêutico, não para cigarro convencional
+3. O produtor de campo opera no negativo sem integração SC — a Sprout não precisa desse sistema
+4. O R$179.020 inclui ~R$120k de CAPEX único (amortizado em 5 anos). OPEX recorrente é ~R$29.510/ciclo
+5. 10,4 ciclos/ano vs 1 ciclo campo: sem risco climático, sem dependência de safra
+6. Área: 11 torres = 132 m² vs 1 ha campo. 33 torres = 396 m² → equivalente em nicotina a 1 ha de campo
+7. Velocidade de R&D: +42,9% em 1 experimento. Campo levaria décadas
+
+O QUE ESTÁ EM JOGO:
+- Se aprovado: Sprout valida a escala, establece protocolo definitivo, abre Fase 4 (offtake comercial)
+- Se rejeitado: IP sem monetização, projeto encerrado, todo investimento das Fases 1+2 perdido
+
+PERGUNTA CENTRAL AO COUNCIL:
+"Como posicionar a Proposta Fase 3 da Sprout Holdings para a SC/BAT superar a objeção de custo por kg de nicotina vs campo convencional e aprovar o modelo de pesquisa avançada em fazenda vertical?"
+`;
+
+const FRAMED_Q = `
+A Sprout Holdings negocia com a Souza Cruz / BAT (British American Tobacco) a aprovação da Fase 3 
+de pesquisa de tabaco em fazenda vertical indoor. O obstáculo central: o custo por kg de nicotina 
+da Sprout hoje é ~R$8.818/kg vs R$679/kg do campo convencional — 13× mais caro.
+
+CONTEXTO COMPLETO:
+${CONTEXT}
+
+Como a Sprout deve posicionar essa proposta para superar essa objeção e conseguir aprovação?
+`;
+
+const ADVISORS = [
+  {
+    id: 'contrarian',
+    name: 'CONTRARIAN',
+    desc: 'Você procura ativamente o que está errado, o que vai falhar, a falta fatal. Assume que a proposta tem um problema grave e tenta encontrá-lo. Não é pessimismo — é a função de quem salva o parceiro de um mau negócio fazendo as perguntas que ele está evitando.',
+  },
+  {
+    id: 'firstprinciples',
+    name: 'FIRST PRINCIPLES',
+    desc: 'Você ignora a pergunta superficial e pergunta: o que estamos tentando resolver aqui de verdade? Desconstrói premissas. Reconstrói o problema do zero. Às vezes o output mais valioso é dizer: "você está fazendo a pergunta errada."',
+  },
+  {
+    id: 'expansionist',
+    name: 'EXPANSIONIST',
+    desc: 'Você busca o upside que todos estão perdendo. O que poderia ser maior? Qual oportunidade adjacente está escondida? O que está sendo subvalorizado? Você não cuida de risco — isso é trabalho do Contrarian. Você cuida do que acontece se isso funcionar ainda melhor que o esperado.',
+  },
+  {
+    id: 'outsider',
+    name: 'OUTSIDER',
+    desc: 'Você não tem contexto sobre a empresa, o setor, ou o histórico. Responde puramente ao que está na sua frente. É o conselheiro mais subestimado: especialistas desenvolvem pontos cegos. Você pega a maldição do conhecimento — coisas óbvias para quem está dentro mas confusas para todos de fora.',
+  },
+  {
+    id: 'executor',
+    name: 'EXECUTOR',
+    desc: 'Você só se importa com uma coisa: isso pode ser feito, e qual é o caminho mais rápido? Ignora teoria, estratégia e visão de longo prazo. Vê tudo pelo filtro "ok, mas o que você faz na segunda-feira de manhã?" Se uma ideia soa genial mas não tem um primeiro passo claro, você diz isso.',
+  },
+];
+
+// ─── STATE ──────────────────────────────────────────────────────
+let advisorResponses = {};
+let peerReviews = [];
+let running = false;
+
+// ─── LOGGING ────────────────────────────────────────────────────
+function log(msg, type='') {
+  const el = document.getElementById('log');
+  const ts = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="ts">[${ts}]</span> <span class="msg ${type}">${msg}</span>`;
+  el.appendChild(entry);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ─── PHASE ──────────────────────────────────────────────────────
+function setPhase(n) {
+  for(let i=0;i<5;i++){
+    const el = document.getElementById('ph-'+i);
+    el.className = 'phase' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+// ─── API CALL ───────────────────────────────────────────────────
+async function callAPI(prompt, maxTokens=800) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return data.content.map(c => c.text || '').join('');
+}
+
+// ─── RENDER MARKDOWN LITE ───────────────────────────────────────
+function mdLight(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^[-•]\s(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+// ─── ADVISOR CALL ───────────────────────────────────────────────
+async function runAdvisor(advisor) {
+  const dot = document.getElementById('dot-'+advisor.id);
+  const spin = document.getElementById('spin-'+advisor.id);
+  const body = document.getElementById('body-'+advisor.id);
+  const card = document.getElementById('card-'+advisor.id);
+
+  dot.className = 'status-dot loading';
+  spin.style.display = 'block';
+  log(`Convocando ${advisor.name}...`);
+
+  const prompt = `Você é ${advisor.name} em um LLM Council.
+
+Seu estilo de pensamento: ${advisor.desc}
+
+Um usuário trouxe esta questão ao council:
+
+---
+${FRAMED_Q}
+---
+
+Responda da sua perspectiva. Seja direto e específico. Não tente ser equilibrado — o seu trabalho é representar seu ângulo com força total. Os outros conselheiros cobrem os ângulos que você não cobre.
+
+Resposta em 150-250 palavras. Em português. Sem preâmbulo. Vá direto à análise.`;
+
+  try {
+    const text = await callAPI(prompt, 600);
+    advisorResponses[advisor.id] = text;
+    dot.className = 'status-dot done';
+    spin.style.display = 'none';
+    body.innerHTML = mdLight(text);
+    card.classList.remove('loading');
+    card.classList.add('done');
+    log(`${advisor.name} — concluído ✓`, 'ok');
+  } catch(e) {
+    dot.className = 'status-dot waiting';
+    spin.style.display = 'none';
+    body.innerHTML = `<span style="color:var(--red)">Erro: ${e.message}</span>`;
+    log(`${advisor.name} — erro: ${e.message}`, 'err');
+  }
+}
+
+// ─── PEER REVIEW ────────────────────────────────────────────────
+async function runPeer(idx, anonymized) {
+  const prBody = document.getElementById('prb-'+idx);
+  const prCard = document.getElementById('pr-'+idx);
+  log(`Peer review ${idx+1}/5...`);
+
+  const prompt = `Você está revisando os outputs de um LLM Council. Cinco conselheiros responderam independentemente a esta questão:
+
+---
+${FRAMED_Q}
+---
+
+Aqui estão as respostas anonimizadas:
+
+**Resposta A:**
+${anonymized[0]}
+
+**Resposta B:**
+${anonymized[1]}
+
+**Resposta C:**
+${anonymized[2]}
+
+**Resposta D:**
+${anonymized[3]}
+
+**Resposta E:**
+${anonymized[4]}
+
+Responda estas três perguntas. Seja específico. Referencie as respostas pela letra.
+
+1. Qual resposta é a mais forte? Por quê?
+2. Qual resposta tem o maior ponto cego? O que está faltando?
+3. O que TODAS as cinco respostas deixaram de considerar?
+
+Máximo 200 palavras. Em português. Seja direto.`;
+
+  try {
+    const text = await callAPI(prompt, 500);
+    peerReviews[idx] = text;
+    prBody.innerHTML = mdLight(text);
+    prCard.classList.add('done');
+    // Remove spinner from peer card
+    const spin = prCard.querySelector('.spinner');
+    if(spin) spin.style.display='none';
+    log(`Peer review ${idx+1} — concluído ✓`, 'ok');
+  } catch(e) {
+    prBody.innerHTML = `<span style="color:var(--red)">Erro: ${e.message}</span>`;
+    log(`Peer review ${idx+1} — erro: ${e.message}`, 'err');
+  }
+}
+
+// ─── CHAIRMAN ───────────────────────────────────────────────────
+async function runChairman() {
+  log('Convocando Chairman...', 'warn');
+  const order = ['contrarian','firstprinciples','expansionist','outsider','executor'];
+  const names = ['The Contrarian','The First Principles Thinker','The Expansionist','The Outsider','The Executor'];
+
+  const advisorSection = order.map((id,i) =>
+    `**${names[i]}:**\n${advisorResponses[id]||'(sem resposta)'}`
+  ).join('\n\n');
+
+  const peerSection = peerReviews.map((r,i) =>
+    `**Peer Review ${i+1}:**\n${r||'(sem resposta)'}`
+  ).join('\n\n');
+
+  const prompt = `Você é o Chairman de um LLM Council. Sua tarefa é sintetizar o trabalho de 5 conselheiros e suas peer reviews em um veredicto final.
+
+A questão trazida ao council:
+---
+${FRAMED_Q}
+---
+
+RESPOSTAS DOS CONSELHEIROS:
+${advisorSection}
+
+PEER REVIEWS:
+${peerSection}
+
+Produza o veredicto do council neste formato exato (use os cabeçalhos exatamente como abaixo):
+
+## ONDE O COUNCIL CONCORDA
+[Pontos em que múltiplos conselheiros convergiram independentemente. São sinais de alta confiança.]
+
+## ONDE O COUNCIL DIVERGE
+[Desacordos genuínos. Apresente os dois lados. Explique por que conselheiros razoáveis discordam.]
+
+## PONTOS CEGOS IDENTIFICADOS
+[Coisas que só emergiram no peer review. O que os conselheiros individuais perderam.]
+
+## A RECOMENDAÇÃO
+[Uma recomendação clara e direta. Não "depende". Não "considere ambos os lados". Uma resposta real.]
+
+## A ÚNICA COISA A FAZER PRIMEIRO
+[Um único próximo passo concreto. Não uma lista. Uma coisa.]
+
+Seja direto. Não hesite. Em português. O ponto do council é dar clareza que uma perspectiva única não consegue.`;
+
+  try {
+    const text = await callAPI(prompt, 1200);
+    renderVerdict(text);
+    log('Chairman — veredicto produzido ✓', 'ok');
+  } catch(e) {
+    document.getElementById('verdict-body').innerHTML =
+      `<div style="color:var(--red);padding:20px">Erro ao gerar veredicto: ${e.message}</div>`;
+    log(`Chairman — erro: ${e.message}`, 'err');
+  }
+}
+
+// ─── RENDER VERDICT ─────────────────────────────────────────────
+function renderVerdict(text) {
+  const sections = [
+    { key: 'ONDE O COUNCIL CONCORDA', labelClass: 'agree', icon: '✦' },
+    { key: 'ONDE O COUNCIL DIVERGE', labelClass: 'clash', icon: '⟺' },
+    { key: 'PONTOS CEGOS IDENTIFICADOS', labelClass: 'blind', icon: '◉' },
+    { key: 'A RECOMENDAÇÃO', labelClass: 'rec', icon: '→' },
+    { key: 'A ÚNICA COISA A FAZER PRIMEIRO', labelClass: 'agree', icon: '▶', full: true },
+  ];
+
+  const parsed = {};
+  sections.forEach(s => {
+    const re = new RegExp(`##\\s*${s.key}\\s*\\n([\\s\\S]*?)(?=##|$)`, 'i');
+    const m = text.match(re);
+    parsed[s.key] = m ? m[1].trim() : '';
+  });
+
+  let html = '';
+  sections.forEach(s => {
+    if (!parsed[s.key]) return;
+    const full = s.full ? 'style="grid-column:1/-1"' : '';
+    const cls = s.full ? 'verdict-one' : 'verdict-section';
+    html += `
+      <div class="${cls}" ${full}>
+        <div class="vs-label ${s.labelClass}">${s.icon} ${s.key}</div>
+        <div class="vs-content">${mdLight(parsed[s.key])}</div>
+      </div>`;
+  });
+
+  document.getElementById('verdict-body').innerHTML = html;
+  document.getElementById('section-verdict').style.display = 'block';
+  document.getElementById('section-verdict').scrollIntoView({behavior:'smooth'});
+}
+
+// ─── MAIN ────────────────────────────────────────────────────────
+async function runCouncil() {
+  if (running) return;
+  running = true;
+
+  const btn = document.getElementById('btn-launch');
+  btn.disabled = true;
+  document.getElementById('launch-section').style.display = 'none';
+
+  document.getElementById('phase-bar').style.display = 'flex';
+  document.getElementById('log').style.display = 'block';
+
+  log('Council convocado — Posicionamento Fase 3 Nicotina × SC/BAT', 'ok');
+
+  // PHASE 1: Framing
+  setPhase(0);
+  log('Framing da questão definido ✓', 'ok');
+  await new Promise(r=>setTimeout(r,500));
+
+  // PHASE 2: Advisors in parallel
+  setPhase(1);
+  document.getElementById('section-advisors').style.display = 'block';
+  document.getElementById('section-advisors').scrollIntoView({behavior:'smooth'});
+
+  ADVISORS.forEach(a => {
+    document.getElementById('spin-'+a.id).style.display = 'block';
+    document.getElementById('card-'+a.id).classList.add('loading');
+  });
+
+  await Promise.all(ADVISORS.map(a => runAdvisor(a)));
+
+  // PHASE 3: Peer review
+  setPhase(2);
+  document.getElementById('section-peers').style.display = 'block';
+  document.getElementById('section-peers').scrollIntoView({behavior:'smooth'});
+
+  const order = ['contrarian','firstprinciples','expansionist','outsider','executor'];
+  // Shuffle for anonymization
+  const shuffled = [...order].sort(() => Math.random()-0.5);
+  const anonymized = shuffled.map(id => advisorResponses[id]||'');
+
+  await Promise.all([0,1,2,3,4].map(i => runPeer(i, anonymized)));
+
+  // PHASE 4: Chairman
+  setPhase(3);
+  log('Reunindo Chairman para síntese final...', 'warn');
+  await runChairman();
+
+  // PHASE 5: Done
+  setPhase(4);
+  log('Council concluído ✓', 'ok');
+  running = false;
+}
+
+function reset() {
+  advisorResponses = {};
+  peerReviews = [];
+  running = false;
+  location.reload();
+}
+</script>
+</body>
+</html>
+EOHTML

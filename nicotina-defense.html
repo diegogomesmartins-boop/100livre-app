@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Case — Nicotina Sprout vs Campo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0F1E;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --green: #1A7A4A;
+    --green-light: #22c55e;
+    --amber: #D97706;
+    --amber-light: #f59e0b;
+    --blue: #3b82f6;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #0d1f13 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .header h1 { font-size: 22px; font-weight: 800; }
+  .header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .badge { background: var(--green); color: #fff; font-size: 11px; font-weight: 700;
+           padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
+
+  .main { padding: 24px 32px; display: grid; grid-template-columns: 320px 1fr; gap: 24px; max-width: 1400px; }
+
+  /* ── PAINEL CONTROLES ── */
+  .controls { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px;
+                text-transform: uppercase; margin-bottom: 16px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .field label span { color: var(--amber-light); font-weight: 700; }
+  input[type=range] {
+    width: 100%; -webkit-appearance: none; height: 4px;
+    background: var(--border); border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px;
+    background: var(--amber); border-radius: 50%; cursor: pointer;
+  }
+  .field-fixed { background: var(--surface2); border-radius: 8px; padding: 8px 12px;
+                 font-size: 13px; display: flex; justify-content: space-between; }
+  .field-fixed .val { font-weight: 700; color: var(--green-light); }
+
+  .toggle-group { display: flex; gap: 4px; }
+  .toggle-btn { flex: 1; padding: 7px 4px; border: 1px solid var(--border); border-radius: 8px;
+                background: transparent; color: var(--muted); font-size: 12px; font-weight: 600;
+                cursor: pointer; transition: all .2s; text-align: center; }
+  .toggle-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* ── PAINEL RESULTADOS ── */
+  .results { display: flex; flex-direction: column; gap: 16px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .kpi .label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .kpi .value { font-size: 28px; font-weight: 900; line-height: 1; }
+  .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .kpi.highlight { border-color: var(--amber); }
+  .kpi.highlight .value { color: var(--amber-light); }
+  .kpi.green .value { color: var(--green-light); }
+
+  /* ── TABELA COMPARATIVA ── */
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th { font-size: 11px; font-weight: 700; color: var(--muted);
+                      text-transform: uppercase; letter-spacing: .8px; padding: 10px 16px;
+                      text-align: left; border-bottom: 1px solid var(--border); }
+  .compare-table th.campo { color: #f59e0b66; }
+  .compare-table th.sprout { color: var(--green-light); }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid #ffffff08; font-size: 13px; }
+  .compare-table tr:hover td { background: var(--surface2); }
+  .compare-table .row-label { color: var(--muted); font-size: 12px; }
+  .compare-table .val-campo { color: var(--amber-light); font-weight: 600; }
+  .compare-table .val-sprout { color: var(--green-light); font-weight: 700; }
+  .compare-table .winner { font-size: 10px; padding: 2px 8px; border-radius: 10px;
+                           font-weight: 700; letter-spacing: .5px; }
+  .winner.sprout-win { background: #1A7A4A33; color: var(--green-light); }
+  .winner.campo-win { background: #D9770633; color: var(--amber-light); }
+
+  /* ── NICOTINA BAR ── */
+  .nico-bar-wrap { margin-top: 8px; }
+  .nico-bar-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .nico-bar-track { height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; }
+  .nico-bar-fill { height: 100%; border-radius: 6px; transition: width .4s; }
+  .bar-campo { background: var(--amber); }
+  .bar-sprout { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+
+  /* ── ARGUMENTOS ── */
+  .arg { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+         padding: 16px 20px; border-left: 3px solid var(--green); }
+  .arg-num { display: inline-block; background: var(--green); color: #fff; font-size: 10px;
+             font-weight: 800; width: 20px; height: 20px; border-radius: 50%; text-align: center;
+             line-height: 20px; margin-right: 8px; }
+  .arg-title { font-size: 13px; font-weight: 700; display: inline; }
+  .arg-body { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  .arg-body strong { color: var(--amber-light); }
+  .args-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .section-title { font-size: 12px; font-weight: 700; color: var(--muted);
+                   text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+  .note { font-size: 11px; color: var(--muted); padding: 10px 14px;
+          background: #ffffff06; border-radius: 8px; margin-top: 8px; }
+
+  @media (max-width: 1000px) {
+    .main { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .args-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🌿 Defesa de Negociação — Tabaco Indoor vs Campo</h1>
+    <p>Sprout Holdings × Souza Cruz / BAT · Base: 35 dias/ciclo · 10,4 ciclos/ano · Campo 2,5% nicotina</p>
+  </div>
+  <span class="badge">CONFIDENCIAL</span>
+</div>
+
+<div class="main">
+
+  <!-- CONTROLES -->
+  <div class="controls">
+
+    <div class="card">
+      <div class="card-title">📐 Base de Cálculo — Fixa</div>
+      <div class="field-fixed"><span>Dias por ciclo</span><span class="val">35 dias</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Ciclos por ano</span><span class="val">10,4</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Nicotina campo (Burley)</span><span class="val">2,5%</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Folha campo (kg/ha)</span><span class="val">2.356 kg/ha</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Custo campo/ha</span><span class="val">R$ 40.000</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Preço folha ao produtor</span><span class="val">R$ 14,60/kg</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Preço mercado nicotina 99%</span><span class="val">£200/litro</span></div>
+      <div class="field-fixed" style="margin-top:6px"><span>Massa seca/planta Sprout</span><span class="val">15,46 g</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Variáveis — Ajustar</div>
+
+      <div class="field">
+        <label>Torres Sprout <span id="lbl-torres">11</span></label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="setTorres(11,this)">11</button>
+          <button class="toggle-btn" onclick="setTorres(33,this)">33</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Vasos por andar <span id="lbl-vasos">18</span></label>
+        <div class="toggle-group">
+          <button class="toggle-btn" onclick="setVasos(12,this)">12</button>
+          <button class="toggle-btn active" onclick="setVasos(18,this)">18</button>
+          <button class="toggle-btn" onclick="setVasos(24,this)">24</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Nicotina Sprout (%) <span id="lbl-nico">6,86%</span></label>
+        <input type="range" id="sl-nico" min="4" max="10" step="0.1" value="6.86" oninput="calc()">
+      </div>
+
+      <div class="field">
+        <label>OPEX/ciclo (R$) <span id="lbl-opex">R$ 15.000</span></label>
+        <input type="range" id="sl-opex" min="5000" max="60000" step="1000" value="15000" oninput="calc()">
+      </div>
+
+      <div class="field">
+        <label>Câmbio £ → R$ <span id="lbl-cambio">R$ 6,40</span></label>
+        <input type="range" id="sl-cambio" min="5" max="8" step="0.1" value="6.4" oninput="calc()">
+      </div>
+
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 Notas de Negociação</div>
+      <textarea id="notas" style="width:100%;background:var(--surface2);border:1px solid var(--border);
+        color:var(--text);border-radius:8px;padding:10px;font-size:12px;font-family:Inter,sans-serif;
+        resize:vertical;min-height:120px;outline:none;line-height:1.5"
+        placeholder="Anote argumentos, objeções e respostas durante a reunião..."></textarea>
+    </div>
+
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="results">
+
+    <!-- KPIs top -->
+    <div class="kpi-grid">
+      <div class="kpi green">
+        <div class="label">Nicotina Sprout/ano</div>
+        <div class="value" id="kpi-nico-sprout">—</div>
+        <div class="sub" id="kpi-nico-sub">torres · cenário</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Nicotina Campo/ano</div>
+        <div class="value" style="color:var(--amber-light)">58,9 kg</div>
+        <div class="sub">por hectare · 1 ciclo</div>
+      </div>
+      <div class="kpi highlight">
+        <div class="label">Custo/kg nic. Sprout (OPEX)</div>
+        <div class="value" id="kpi-custo-sprout">—</div>
+        <div class="sub" id="kpi-custo-sub">vs R$ 679/kg campo</div>
+      </div>
+      <div class="kpi green">
+        <div class="label">Eficiência de área</div>
+        <div class="value" id="kpi-area">—</div>
+        <div class="sub" id="kpi-area-sub">vs 1 ha campo</div>
+      </div>
+    </div>
+
+    <!-- Tabela comparativa -->
+    <div class="card">
+      <div class="section-title">Comparativo direto</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width:35%">Métrica</th>
+            <th class="campo">Campo (Burley · SC)</th>
+            <th class="sprout">Sprout Indoor</th>
+            <th style="width:120px">Vantagem</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Nicotina % na folha</td>
+            <td class="val-campo">2,5%</td>
+            <td class="val-sprout" id="cmp-nico">6,86%</td>
+            <td><span class="winner sprout-win" id="cmp-nico-win">SPROUT 2,7×</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Ciclos/ano</td>
+            <td class="val-campo">1 ciclo</td>
+            <td class="val-sprout">10,4 ciclos</td>
+            <td><span class="winner sprout-win">SPROUT 10,4×</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Área de chão necessária</td>
+            <td class="val-campo">10.000 m² (1 ha)</td>
+            <td class="val-sprout" id="cmp-area">132 m²</td>
+            <td><span class="winner sprout-win" id="cmp-area-win">SPROUT 76×</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Nicotina/ano (base comparação)</td>
+            <td class="val-campo">58,9 kg/ha</td>
+            <td class="val-sprout" id="cmp-prod">—</td>
+            <td><span class="winner" id="cmp-prod-win">—</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Custo/kg nicotina bruta (OPEX)</td>
+            <td class="val-campo">R$ 679/kg</td>
+            <td class="val-sprout" id="cmp-custo">—</td>
+            <td><span class="winner" id="cmp-custo-win">—</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Folha necessária p/ 1 kg nic. pura</td>
+            <td class="val-campo">40 kg folha</td>
+            <td class="val-sprout" id="cmp-folha">14,6 kg</td>
+            <td><span class="winner sprout-win" id="cmp-folha-win">SPROUT 2,7×</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Risco climático</td>
+            <td class="val-campo">Alto (safra)</td>
+            <td class="val-sprout">Zero</td>
+            <td><span class="winner sprout-win">SPROUT</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Rastreabilidade</td>
+            <td class="val-campo">Lote/safra</td>
+            <td class="val-sprout">Vaso a vaso</td>
+            <td><span class="winner sprout-win">SPROUT</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Pesticidas</td>
+            <td class="val-campo">Sim</td>
+            <td class="val-sprout">Zero</td>
+            <td><span class="winner sprout-win">SPROUT</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Preço mercado nic. 99% (£200)</td>
+            <td class="val-campo" id="cmp-price-campo">R$ 1.280/kg</td>
+            <td class="val-sprout" id="cmp-price-sprout">R$ 1.280/kg</td>
+            <td><span class="winner sprout-win" id="cmp-price-win">MARGEM ↑</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">* OPEX/ciclo configurável no painel. Não inclui CAPEX de infraestrutura (amortizado separadamente). Campo = custo por hectare ÷ kg de nicotina produzida.</div>
+    </div>
+
+    <!-- Barra visual de nicotina -->
+    <div class="card">
+      <div class="section-title">Concentração de nicotina — visualização proporcional</div>
+      <div class="nico-bar-wrap">
+        <div class="nico-bar-label">Campo Burley — 2,5%</div>
+        <div class="nico-bar-track">
+          <div class="nico-bar-fill bar-campo" style="width:25%"></div>
+        </div>
+      </div>
+      <div class="nico-bar-wrap" style="margin-top:12px">
+        <div class="nico-bar-label" id="bar-sprout-label">Sprout Indoor — 6,86% (Exp. 2 confirmado)</div>
+        <div class="nico-bar-track">
+          <div class="nico-bar-fill bar-sprout" id="bar-sprout-fill" style="width:68.6%"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">
+        Para extrair <strong style="color:#fff">1 kg de nicotina pura</strong>:
+        campo = <strong style="color:var(--amber-light)">40 kg de folha</strong> ·
+        Sprout = <strong style="color:var(--green-light)" id="folha-sprout-text">14,6 kg de folha</strong>
+      </div>
+    </div>
+
+    <!-- Cenário £200 -->
+    <div class="card">
+      <div class="section-title">Análise de margem — Nicotina 99% a £200/litro</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Campo → extração → 99% puro</div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px">
+            <div style="font-size:11px;color:var(--muted)">Custo folha para 1 kg nicotina bruta</div>
+            <div style="font-size:20px;font-weight:800;color:var(--amber-light)" id="campo-folha-custo">R$ 584/kg</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px">+ extração industrial estimada</div>
+            <div style="font-size:20px;font-weight:800;color:var(--amber-light)">R$ 400/kg</div>
+            <div style="height:1px;background:var(--border);margin:10px 0"></div>
+            <div style="font-size:11px;color:var(--muted)">Custo total campo → 99%</div>
+            <div style="font-size:22px;font-weight:900;color:var(--amber-light)" id="campo-total-custo">R$ 984/kg</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px">Margem sobre £200</div>
+            <div style="font-size:22px;font-weight:900;" id="campo-margem">—</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Sprout → extração reduzida → 99%</div>
+          <div style="background:var(--surface2);border-radius:8px;padding:14px">
+            <div style="font-size:11px;color:var(--muted)">Folha necessária p/ 1 kg nicotina</div>
+            <div style="font-size:20px;font-weight:800;color:var(--green-light)" id="sprout-folha-kg">14,6 kg folha</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px">+ extração (proporcional, menor)</div>
+            <div style="font-size:20px;font-weight:800;color:var(--green-light)" id="sprout-extr-custo">~R$ 154/kg</div>
+            <div style="height:1px;background:var(--border);margin:10px 0"></div>
+            <div style="font-size:11px;color:var(--muted)">OPEX/kg nicotina + extração</div>
+            <div style="font-size:22px;font-weight:900;color:var(--green-light)" id="sprout-total-custo">—</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px">Margem sobre £200</div>
+            <div style="font-size:22px;font-weight:900;" id="sprout-margem">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:12px" id="nota-producao-campo">
+        * Produtor de campo recebe R$14,60/kg e produz 2.356 kg/ha → receita R$34.398/ha vs custo R$40.000/ha = <strong style="color:var(--red)">−R$5.602/ha</strong>. O produtor opera no negativo sem a integração da SC.
+      </div>
+    </div>
+
+    <!-- Argumentos -->
+    <div>
+      <div class="section-title">Pontos de Defesa — Reunião BAT/SC</div>
+      <div class="args-grid">
+        <div class="arg">
+          <span class="arg-num">1</span><span class="arg-title">Produto diferente</span>
+          <div class="arg-body" id="arg1">Sprout produz nicotina para NRT/pouches/farmacêutico. Campo produz commodity para cigarro convencional. O comprador correto na BAT é o departamento de RRP, não tabaco tradicional.</div>
+        </div>
+        <div class="arg">
+          <span class="arg-num">2</span><span class="arg-title">Curva de aprendizado acelerada</span>
+          <div class="arg-body">Exp.1 → <strong>4,8%</strong>. Exp.2 → <strong>6,86% (+42,9%)</strong>. Exp.3 → <strong>7%+</strong>. Nenhum campo melhora 42,9% em um ciclo. Estamos no início da curva.</div>
+        </div>
+        <div class="arg">
+          <span class="arg-num">3</span><span class="arg-title">Extração 2,7× mais eficiente</span>
+          <div class="arg-body">Para 1 kg de nicotina pura: campo processa <strong>40 kg de folha</strong>, Sprout processa <strong id="arg3-folha">14,6 kg</strong>. Reduz custo de extração proporcionalmente — processo industrial menor e mais barato.</div>
+        </div>
+        <div class="arg">
+          <span class="arg-num">4</span><span class="arg-title">Produtor de campo opera no negativo</span>
+          <div class="arg-body">Receita produtor: <strong>R$34.398/ha</strong> vs custo <strong>R$40.000/ha = −R$5.602/ha</strong>. Dependem de integração/subsídio SC. Sprout não precisa desse sistema para ser sustentável.</div>
+        </div>
+        <div class="arg">
+          <span class="arg-num">5</span><span class="arg-title">CAPEX vs OPEX — comparação justa</span>
+          <div class="arg-body">O R$179.020 da Fase 3 inclui ~R$120k de infraestrutura (amortização 5 anos). Custo de campo não inclui amortização do trator, secadora e irrigação — mas existe.</div>
+        </div>
+        <div class="arg">
+          <span class="arg-num">6</span><span class="arg-title id="arg6-title">77× mais eficiente em área</span>
+          <div class="arg-body"><span id="arg6-text">33 torres = 396 m² → 91,7 kg nicotina/ano.</span> Equivalente a mais de 1 ha de campo convencional em <strong>0,04 ha</strong>. Supply chain em SP, indoor, sem dependência de safra ou região Sul.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let torres = 11, vasos = 18;
+
+  const CAMPO_FOLHA_KG = 2356;
+  const CAMPO_NIC_PCT = 0.025;
+  const CAMPO_CUSTO_HA = 40000;
+  const CAMPO_CICLOS = 1;
+  const PLANTA_MASSA_G = 15.46;
+  const ANDARES = 14;
+  const CICLOS_ANO = 10.4;
+  const CAMPO_PRECO_FOLHA = 14.60;
+  const EXTR_CAMPO = 400; // R$/kg extração industrial
+
+  function fmtR(v, dec=0) {
+    return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:dec,maximumFractionDigits:dec});
+  }
+  function fmtKg(v, dec=1) { return v.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+' kg'; }
+
+  function setTorres(v, btn) {
+    torres = v;
+    document.querySelectorAll('[onclick^="setTorres"]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('lbl-torres').textContent = v;
+    calc();
+  }
+  function setVasos(v, btn) {
+    vasos = v;
+    document.querySelectorAll('[onclick^="setVasos"]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('lbl-vasos').textContent = v;
+    calc();
+  }
+
+  function calc() {
+    const nicoPct = parseFloat(document.getElementById('sl-nico').value);
+    const opexCiclo = parseFloat(document.getElementById('sl-opex').value);
+    const cambio = parseFloat(document.getElementById('sl-cambio').value);
+
+    document.getElementById('lbl-nico').textContent = nicoPct.toFixed(2).replace('.',',')+'%';
+    document.getElementById('lbl-opex').textContent = fmtR(opexCiclo);
+    document.getElementById('lbl-cambio').textContent = 'R$ '+cambio.toFixed(2).replace('.',',');
+
+    // Sprout produção
+    const plantas = vasos * ANDARES * torres;
+    const massaTotalG = plantas * PLANTA_MASSA_G;
+    const nicGCiclo = massaTotalG * (nicoPct/100);
+    const nicKgCiclo = nicGCiclo / 1000;
+    const nicKgAno = nicKgCiclo * CICLOS_ANO;
+
+    // Campo
+    const campoNicAno = CAMPO_FOLHA_KG * CAMPO_NIC_PCT * CAMPO_CICLOS;
+    const campoCustoKgNic = CAMPO_CUSTO_HA / campoNicAno;
+    const campoFolhaPorKgNic = 1 / CAMPO_NIC_PCT; // kg folha p/ 1 kg nicotina
+    const campoFolhaCustoKgNic = campoFolhaPorKgNic * CAMPO_PRECO_FOLHA;
+
+    // Sprout custo/kg nic
+    const opexAno = opexCiclo * CICLOS_ANO;
+    const custoKgNicSprout = opexAno / nicKgAno;
+
+    // Área
+    const areaSproutM2 = torres * 4;
+    const areaFator = 10000 / areaSproutM2;
+
+    // £200
+    const precoPuro = 200 * cambio;
+    const campoTotalKgNic = campoFolhaCustoKgNic + EXTR_CAMPO;
+    const campoMargem = precoPuro - campoTotalKgNic;
+
+    // Sprout: folha p/ 1 kg nicotina
+    const sproutFolhaPorKgNic = 1 / (nicoPct/100);
+    const sproutExtrKgNic = (sproutFolhaPorKgNic / campoFolhaPorKgNic) * EXTR_CAMPO;
+    const sproutTotalKgNic = custoKgNicSprout + sproutExtrKgNic;
+    const sproutMargem = precoPuro - sproutTotalKgNic;
+
+    // Fator nicotina
+    const nicopFator = (nicoPct / 2.5).toFixed(1);
+
+    // ── Update KPIs
+    document.getElementById('kpi-nico-sprout').textContent = fmtKg(nicKgAno);
+    document.getElementById('kpi-nico-sub').textContent = torres+' torres · '+vasos+'v/andar · 10,4 ciclos';
+    document.getElementById('kpi-custo-sprout').textContent = fmtR(custoKgNicSprout);
+    document.getElementById('kpi-custo-sub').textContent = 'vs R$ '+Math.round(campoCustoKgNic)+'/kg campo';
+    document.getElementById('kpi-area').textContent = Math.round(areaFator)+'×';
+    document.getElementById('kpi-area-sub').textContent = areaSproutM2+' m² vs 10.000 m² campo';
+
+    // ── Tabela comparativa
+    document.getElementById('cmp-nico').textContent = nicoPct.toFixed(2).replace('.',',')+'%';
+    document.getElementById('cmp-nico-win').textContent = 'SPROUT '+nicopFator+'×';
+    document.getElementById('cmp-area').textContent = areaSproutM2+' m²';
+    document.getElementById('cmp-area-win').textContent = 'SPROUT '+Math.round(areaFator)+'×';
+    document.getElementById('cmp-prod').textContent = fmtKg(nicKgAno);
+
+    const prodFator = nicKgAno / campoNicAno;
+    const prodWin = document.getElementById('cmp-prod-win');
+    if (prodFator >= 1) {
+      prodWin.textContent = 'SPROUT '+prodFator.toFixed(1)+'×';
+      prodWin.className = 'winner sprout-win';
+    } else {
+      prodWin.textContent = 'CAMPO '+( campoNicAno/nicKgAno).toFixed(1)+'×';
+      prodWin.className = 'winner campo-win';
+    }
+
+    document.getElementById('cmp-custo').textContent = fmtR(custoKgNicSprout);
+    const custoWin = document.getElementById('cmp-custo-win');
+    if (custoKgNicSprout < campoCustoKgNic) {
+      custoWin.textContent = 'SPROUT '+((campoCustoKgNic/custoKgNicSprout)).toFixed(1)+'× menor';
+      custoWin.className = 'winner sprout-win';
+    } else {
+      custoWin.textContent = 'CAMPO '+(custoKgNicSprout/campoCustoKgNic).toFixed(1)+'× menor';
+      custoWin.className = 'winner campo-win';
+    }
+
+    document.getElementById('cmp-folha').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg';
+    document.getElementById('cmp-folha-win').textContent = 'SPROUT '+(campoFolhaPorKgNic/sproutFolhaPorKgNic).toFixed(1)+'×';
+
+    // ── Barra nicotina
+    document.getElementById('bar-sprout-fill').style.width = (nicoPct*10)+'%';
+    document.getElementById('bar-sprout-label').textContent = 'Sprout Indoor — '+nicoPct.toFixed(2).replace('.',',')+'%';
+    document.getElementById('folha-sprout-text').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg de folha';
+
+    // ── £200 análise
+    document.getElementById('cmp-price-campo').textContent = fmtR(precoPuro)+'/kg';
+    document.getElementById('cmp-price-sprout').textContent = fmtR(precoPuro)+'/kg';
+
+    document.getElementById('campo-folha-custo').textContent = fmtR(campoFolhaCustoKgNic);
+    document.getElementById('campo-total-custo').textContent = fmtR(campoTotalKgNic);
+    document.getElementById('campo-margem').textContent = fmtR(campoMargem);
+    document.getElementById('campo-margem').style.color = campoMargem > 0 ? 'var(--green-light)' : 'var(--red)';
+
+    document.getElementById('sprout-folha-kg').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg folha';
+    document.getElementById('sprout-extr-custo').textContent = '~'+fmtR(sproutExtrKgNic);
+    document.getElementById('sprout-total-custo').textContent = fmtR(sproutTotalKgNic);
+    document.getElementById('sprout-margem').textContent = fmtR(sproutMargem);
+    document.getElementById('sprout-margem').style.color = sproutMargem > 0 ? 'var(--green-light)' : 'var(--red)';
+
+    // ── Args
+    document.getElementById('arg3-folha').textContent = sproutFolhaPorKgNic.toFixed(1)+' kg';
+    document.getElementById('arg6-text').textContent =
+      torres+' torres = '+areaSproutM2+' m² → '+nicKgAno.toFixed(1)+' kg nicotina/ano.';
+  }
+
+  calc();
+</script>
+</body>
+</html>
