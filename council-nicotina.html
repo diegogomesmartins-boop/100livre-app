@@ -414,7 +414,10 @@ async function callAPI(prompt, maxTokens=800) {
     throw new Error(`Proxy ${res.status}: ${err.error || err.detail || 'erro'}`);
   }
   const data = await res.json();
-  return data.text || '';
+  if (typeof data.text === 'string') return data.text;
+  if (Array.isArray(data.content)) return data.content.map(function(b){return b.text||'';}).join('');
+  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+  return '';
 }
 
 // ─── RENDER MARKDOWN LITE ───────────────────────────────────────
