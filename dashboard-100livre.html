@@ -2514,7 +2514,7 @@ function setView(v) {
   document.getElementById('view-custos').style.display         = v==='custos'         ? '' : 'none';
   document.getElementById('view-experimentos').style.display    = v==='experimentos'    ? '' : 'none';
   document.getElementById('view-nicotina').style.display       = v==='nicotina'       ? '' : 'none';
-  if (v === 'nicotina') { const f = document.getElementById('nicotina-iframe'); if (!f.src || f.src === window.location.href) f.src = './nicotina.html'; }
+  if (v === 'nicotina') { const f = document.getElementById('nicotina-iframe'); if (!f.src || f.src === window.location.href) f.src = './nicotina.html?v=20260706'; }
   document.getElementById('mbar').style.display = (v==='comercial'||v==='logistica'||v==='rentabilidade'||v==='producao'||v==='custos'||v==='experimentos'||v==='nicotina') ? 'none' : '';
   document.querySelectorAll('.nav-item').forEach(b => {
     if (b.onclick && b.onclick.toString().includes('setView'))
