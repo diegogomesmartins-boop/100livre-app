@@ -127,7 +127,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
 <div class="nav">
   <span class="nav-logo">🍓 SPROUT — MORANGO</span>
-  <button class="nav-tab active" onclick="showTab('exp',this)">📊 Experimento 13 Colheitas</button>
+  <button class="nav-tab active" onclick="showTab('exp',this)">📊 Experimento 15 Colheitas</button>
   <button class="nav-tab" onclick="showTab('ipiranga',this)">🏭 Projeção Ipiranga</button>
   <button class="nav-tab" onclick="showTab('mkt',this)">💰 Mercado & Breakeven</button>
   <span class="nav-badge">CONFIDENCIAL</span>
@@ -140,8 +140,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
   <div class="obs">
     <strong>Resumo executivo — Experimento Osasco (Jan-Jun/2026):</strong>
-    158 plantas, 4 substratos, 13 colheitas.
-    Brix evoluiu de <span class="highlight">5,0° → 12,0°</span> em 13 colheitas.
+    158 plantas, 4 substratos, 15 colheitas.
+    Brix evoluiu de <span class="highlight">5,0° → 12,0°</span> em 15 colheitas.
     Ajuste EC 2,50 em 11/Jun + stress hídrico <strong>acelerou a doçura</strong>. 
     Planta 131 (Sala B, Fibra de Coco) atingiu <span class="highlight">12° na 13ª colheita</span> — nível de morango japonês premium.
   </div>
@@ -173,7 +173,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="two-col">
     <!-- GRÁFICO BRIX -->
     <div class="card">
-      <div class="section-lbl">Curva Brix — 13 Colheitas</div>
+      <div class="section-lbl">Curva Brix — 15 Colheitas</div>
       <div class="chart-wrap-lg">
         <canvas id="chartBrix"></canvas>
       </div>
@@ -578,7 +578,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <!-- PESO POR SUBSTRATO -->
   <div class="two-col">
     <div class="card">
-      <div class="section-lbl">Peso Médio por Substrato — 13 Colheitas</div>
+      <div class="section-lbl">Peso Médio por Substrato — 15 Colheitas</div>
       <div class="chart-wrap-lg"><canvas id="chartPesoSub"></canvas></div>
       <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;color:var(--muted2);">
         <span style="color:rgba(34,197,94,0.9);">━ Fibra de Coco</span>
@@ -616,14 +616,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:0">
     <div class="card">
       <div class="section-lbl">🏆 Mais Frutos por Planta</div>
-      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Total em 13 colheitas</div>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Total em 15 colheitas</div>
       <div style="display:grid;grid-template-columns:22px 1fr 44px 44px;font-size:10px;color:var(--muted2);padding:4px 2px;border-bottom:1px solid #1d2d42;text-transform:uppercase;letter-spacing:.5px">
         <span>#</span><span>Planta</span><span style="text-align:right">Frutos</span><span style="text-align:right">Média</span>
       </div>
       <div id="rank-frutos-list"></div>
     </div>
     <div class="card">
-      <div class="section-lbl">⚖️ Maior Peso por Fruto</div>
+      <div class="section-lbl">⚖️ Maior Fruto Individual</div>
       <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Mín. 5 frutos colhidos</div>
       <div style="display:grid;grid-template-columns:22px 1fr 44px 44px;font-size:10px;color:var(--muted2);padding:4px 2px;border-bottom:1px solid #1d2d42;text-transform:uppercase;letter-spacing:.5px">
         <span>#</span><span>Planta</span><span style="text-align:right">g/fruto</span><span style="text-align:right">Frutos</span>
@@ -650,7 +650,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <div>🍓 Brix médio: <strong style="color:var(--text)">6,6°</strong> (meta 12°)</div>
           <div>🍓 Brix máximo: <strong style="color:var(--green)">12,0°</strong> (colheita 13)</div>
           <div>⚖️ Peso médio: <strong style="color:var(--text)">14,7g</strong></div>
-          <div>⚖️ Peso máximo planta: <strong style="color:var(--green)">40,3g</strong> (P32, Fibra Coco)</div>
+          <div>⚖️ Maior fruto: <strong style="color:var(--green)">41,0g</strong> (P15, Casca Arroz)</div>
           <div>🌱 Frutos/planta/colheita: <strong style="color:var(--text)">~0,31</strong></div>
           <div>🏆 Melhor planta: <strong style="color:var(--green)">P91</strong> (15 frutos, 13 col)</div>
           <div>💊 Aplicações: <strong style="color:var(--amber)">3 H₂O₂ em 15d</strong></div>
@@ -1190,40 +1190,42 @@ if(ctxPS){new Chart(ctxPS,{type:'line',data:{labels:PESO_SUBSTRATO.labels,datase
 
 // ── Dados ranking plantas ──────────────────────
 const RANK_TOTAL = [
-  {p:'A-P91', pt:210.9, f:15, pm:14.1, s:'Casca Arroz', ini:'29/Abr', fim:'19/Jun', dias:51},
-  {p:'A-P29', pt:180.9, f:10, pm:18.1, s:'Fibra Coco',  ini:'28/Abr', fim:'18/Jun', dias:51},
-  {p:'A-P15', pt:175.9, f:8,  pm:22.0, s:'Casca Arroz', ini:'29/Abr', fim:'25/Jun', dias:57},
-  {p:'A-P72', pt:173.1, f:10, pm:17.3, s:'Casca Arroz', ini:'08/Jun', fim:'19/Jun', dias:11},
-  {p:'A-P17', pt:163.1, f:9,  pm:18.1, s:'Casca Arroz', ini:'27/Abr', fim:'18/Jun', dias:52},
-  {p:'A-P32', pt:161.1, f:4,  pm:40.3, s:'Fibra Coco',  ini:'05/Jun', fim:'18/Jun', dias:13},
-  {p:'A-P24', pt:156.7, f:9,  pm:17.4, s:'Casca Arroz', ini:'05/Mai', fim:'18/Jun', dias:44},
-  {p:'A-P68', pt:152.0, f:9,  pm:16.9, s:'Misto 50/50', ini:'19/Mai', fim:'25/Jun', dias:37},
-  {p:'A-P35', pt:145.1, f:9,  pm:16.1, s:'Fibra Coco',  ini:'19/Mai', fim:'25/Jun', dias:37},
-  {p:'A-P66', pt:144.0, f:11, pm:13.1, s:'Casca Arroz', ini:'12/Mai', fim:'19/Jun', dias:38},
+  {p:'A-P91',pt:210.9,f:15,s:'Casca Arroz'},
+  {p:'A-P72',pt:207.1,f:13,s:'Misto 50/50'},
+  {p:'A-P29',pt:196.9,f:11,s:'Fibra Coco'},
+  {p:'A-P15',pt:191.9,f:9,s:'Casca Arroz'},
+  {p:'A-P118',pt:191.2,f:10,s:'Fibra Coco'},
+  {p:'A-P122',pt:191.1,f:11,s:'Fibra Coco'},
+  {p:'A-P35',pt:190.5,f:13,s:'Fibra Coco'},
+  {p:'A-P33',pt:182.5,f:16,s:'Fibra Coco'},
+  {p:'A-P126',pt:174.9,f:9,s:'Fibra Coco'},
+  {p:'A-P110',pt:171.6,f:9,s:'Casca Arroz'},
+  {p:'A-P111',pt:169.0,f:8,s:'Casca Arroz'},
+  {p:'A-P68',pt:162.0,f:10,s:'Misto 50/50'}
 ];
 const RANK_FRUTOS = [
+  {p:'A-P33',f:16,pm:11.4,s:'Fibra Coco'},
   {p:'A-P91',f:15,pm:14.1,s:'Casca Arroz'},
-  {p:'A-P97',f:12,pm:11.9,s:'Casca Arroz'},
-  {p:'A-P33',f:12,pm:11.7,s:'Fibra Coco'},
-  {p:'A-P155',f:12,pm:5.7,s:'Misto 50/50'},
-  {p:'A-P77',f:11,pm:9.9,s:'Casca Arroz'},
-  {p:'A-P66',f:11,pm:13.1,s:'Misto 50/50'},
-  {p:'A-P29',f:10,pm:18.1,s:'Fibra Coco'},
-  {p:'A-P95',f:10,pm:12.6,s:'Casca Arroz'},
-  {p:'A-P103',f:10,pm:13.0,s:'Casca Arroz'},
-  {p:'A-P72',f:10,pm:17.3,s:'Misto 50/50'},
+  {p:'A-P155',f:15,pm:6.5,s:'Casca Arroz'},
+  {p:'A-P97',f:14,pm:11.3,s:'Casca Arroz'},
+  {p:'A-P35',f:13,pm:14.7,s:'Fibra Coco'},
+  {p:'A-P72',f:13,pm:15.9,s:'Misto 50/50'},
+  {p:'A-P77',f:12,pm:9.7,s:'Casca Arroz'},
+  {p:'A-P148',f:12,pm:12.3,s:'Casca Arroz'},
+  {p:'A-P29',f:11,pm:17.9,s:'Fibra Coco'},
+  {p:'A-P95',f:11,pm:12.9,s:'Casca Arroz'}
 ];
 const RANK_PESO = [
-  {p:'A-P64',f:6,pm:22.5,s:'Misto 50/50'},
-  {p:'A-P15',f:8,pm:22.0,s:'Casca Arroz'},
-  {p:'A-P55',f:6,pm:19.1,s:'Misto 50/50'},
-  {p:'A-P122',f:5,pm:19.0,s:'Fibra Coco'},
-  {p:'A-P102',f:6,pm:18.8,s:'Casca Arroz'},
-  {p:'A-P83',f:5,pm:18.6,s:'Casca Arroz'},
-  {p:'A-P22',f:7,pm:18.3,s:'Casca Arroz'},
-  {p:'A-P67',f:6,pm:18.2,s:'Misto 50/50'},
-  {p:'A-P17',f:9,pm:18.1,s:'Casca Arroz'},
-  {p:'A-P29',f:10,pm:18.1,s:'Fibra Coco'},
+  {p:'A-P15',pm:41.0,f:9,s:'Casca Arroz'},
+  {p:'A-P111',pm:40.6,f:8,s:'Casca Arroz'},
+  {p:'A-P112',pm:40.1,f:11,s:'Casca Arroz'},
+  {p:'A-P118',pm:40.0,f:10,s:'Fibra Coco'},
+  {p:'A-P122',pm:40.0,f:11,s:'Fibra Coco'},
+  {p:'A-P64',pm:37.8,f:7,s:'Misto 50/50'},
+  {p:'A-P115',pm:35.5,f:7,s:'Fibra Coco'},
+  {p:'A-P113',pm:35.4,f:6,s:'Casca Arroz'},
+  {p:'A-P148',pm:35.2,f:12,s:'Casca Arroz'},
+  {p:'A-P120',pm:35.0,f:10,s:'Fibra Coco'}
 ];
 function renderRankings() {
   const SUB_COR = {'Fibra Coco':'#22c55e','Casca Arroz':'#f59e0b','Misto 50/50':'#3b82f6'};
