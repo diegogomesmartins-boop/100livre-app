@@ -143,25 +143,25 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     158 plantas, 4 substratos, 15 colheitas.
     Brix evoluiu de <span class="highlight">5,0° → 12,0°</span> em 15 colheitas.
     Ajuste EC 2,50 em 11/Jun + stress hídrico <strong>acelerou a doçura</strong>. 
-    Planta 131 (Sala B, Fibra de Coco) atingiu <span class="highlight">12° na 13ª colheita</span> — nível de morango japonês premium.
+    Planta 131 (Sala B, Fibra de Coco) atingiu <span class="highlight">12° na 14ª colheita</span> — nível de morango japonês premium.
   </div>
 
   <!-- KPIs topo -->
   <div class="kpi-grid kpi-grid-4" style="margin-bottom:14px;">
     <div class="kpi highlight">
-      <div class="kpi-label">Melhor Brix — 13ª Colheita</div>
+      <div class="kpi-label">Melhor Brix — 14ª Colheita</div>
       <div class="kpi-value green">12,0°</div>
       <div class="kpi-sub">Planta 131 · Sala B · Fibra Coco</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">Brix Médio — 13ª Colheita</div>
-      <div class="kpi-value amber">9,5°</div>
-      <div class="kpi-sub">vs 5,0° na 1ª colheita · +90%</div>
+      <div class="kpi-label">Brix Médio — 14ª Colheita</div>
+      <div class="kpi-value amber">9,9°</div>
+      <div class="kpi-sub">vs 5,0° na 1ª colheita · +98%</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Colheitas Realizadas</div>
-      <div class="kpi-value blue">13</div>
-      <div class="kpi-sub">Jan → Jun/2026 · 14ª a caminho</div>
+      <div class="kpi-value blue">15</div>
+      <div class="kpi-sub">Jan → Jun/2026 · 15 realizadas</div>
     </div>
     <div class="kpi warn">
       <div class="kpi-label">Mortalidade Total</div>
@@ -787,19 +787,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <script>
 // D = dias desde 26/Jan/2026 (Day 0 do ciclo)
 const COLHEITAS = [
-  {n:'1ª',d:'27/Abr',D:91, bm:5.0,bx:5.5,pm:13,qa:90,qd:10},
-  {n:'2ª',d:'05/Mai',D:99, bm:5.0,bx:5.5,pm:14,qa:70,qd:30},
-  {n:'3ª',d:'07/Mai',D:101,bm:5.5,bx:6.0,pm:10,qa:80,qd:20},
-  {n:'4ª',d:'12/Mai',D:106,bm:6.0,bx:7.7,pm:11,qa:65,qd:35},
-  {n:'5ª',d:'18/Mai',D:112,bm:6.0,bx:6.0,pm:20,qa:80,qd:20},
-  {n:'6ª',d:'25/Mai',D:119,bm:null,bx:null,pm:20,qa:60,qd:40},
-  {n:'7ª',d:'27/Mai',D:121,bm:6.5,bx:8.0,pm:20,qa:75,qd:25},
-  {n:'8ª',d:'02/Jun',D:127,bm:7.5,bx:10.0,pm:18,qa:50,qd:50},
-  {n:'9ª',d:'05/Jun',D:130,bm:7.5,bx:9.0,pm:18,qa:70,qd:30},
-  {n:'10ª',d:'08/Jun',D:133,bm:7.5,bx:9.0,pm:16,qa:65,qd:35},
-  {n:'11ª',d:'11/Jun',D:136,bm:8.0,bx:11.0,pm:16,qa:60,qd:40},
-  {n:'12ª',d:'17/Jun',D:142,bm:8.5,bx:9.0,pm:14,qa:55,qd:45},
-  {n:'13ª',d:'25/Jun',D:150,bm:9.5,bx:12.0,pm:14,qa:85,qd:15},
+  {n:1,data:'28/Abr',pm:12.2,bm:5.3,bx:5.5,desc:0},
+  {n:2,data:'05/Mai',pm:12.9,bm:5.4,bx:8.0,desc:0},
+  {n:3,data:'07/Mai',pm:10.7,bm:5.3,bx:6.0,desc:0},
+  {n:4,data:'12/Mai',pm:11.2,bm:6.4,bx:7.7,desc:10},
+  {n:5,data:'19/Mai',pm:18.9,bm:6.0,bx:6.0,desc:6},
+  {n:6,data:'22/Mai',pm:20.2,bm:6.2,bx:7.0,desc:15},
+  {n:7,data:'27/Mai',pm:19.1,bm:6.3,bx:8.0,desc:0},
+  {n:8,data:'02/Jun',pm:13.6,bm:8.0,bx:10.0,desc:21},
+  {n:9,data:'05/Jun',pm:16.0,bm:7.7,bx:9.0,desc:11},
+  {n:10,data:'08/Jun',pm:15.1,bm:7.6,bx:9.0,desc:6},
+  {n:11,data:'11/Jun',pm:15.0,bm:7.4,bx:10.0,desc:16},
+  {n:12,data:'18/Jun',pm:14.7,bm:7.3,bx:11.0,desc:24},
+  {n:13,data:'22/Jun',pm:11.1,bm:8.8,bx:9.0,desc:15},
+  {n:14,data:'25/Jun',pm:14.1,bm:9.9,bx:12.0,desc:3},
+  {n:15,data:'30/Jun',pm:12.4,bm:7.6,bx:11.0,desc:14},
 ];
 
 const EVENTOS = [
