@@ -8602,7 +8602,7 @@ try {
     if(!document.querySelector('[data-morango-nav]')){
       var m=document.createElement('button');m.className='nav-item';
       m.setAttribute('data-morango-nav','1');
-      m.setAttribute('onclick',"window.open('./morango.html','_blank');");
+      m.setAttribute('onclick',"window.open('./morango.html?v=' + Date.now(), '_blank');");
       m.innerHTML='<span class="nav-dot"></span>Morango 🍓';
       var botic=document.querySelector('[onclick="sproutShowBoticario()"]');
       if(botic)b2s.insertBefore(m,botic); else b2s.appendChild(m);
