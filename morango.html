@@ -338,7 +338,32 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             <button onclick="window._setMix('sams')"    id="mix-sams"    style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid #1d2d42;background:transparent;color:#64748b">Sam&#39;s Club</button>
             <button onclick="window._setMix('custom')"  id="mix-custom"  style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid #1A7A4A;background:#0a1e10;color:#22c55e">Custom &#9998;</button>
           </div>
-          <div id="mix-label" style="font-size:10px;color:#475569;margin-top:4px">Mix atual: custom (20% / 60% / 20%)</div>
+          <div style="margin-top:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div style="text-align:center">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">% 150g</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                  <input type="number" id="mix-150" min="0" max="100" step="5" value="20" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1d2d42;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
+                  <span style="font-size:11px;color:#64748b">%</span>
+                </div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:9px;color:#1A7A4A;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:700">% 200g ★</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                  <input type="number" id="mix-200" min="0" max="100" step="5" value="60" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1A7A4A;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
+                  <span style="font-size:11px;color:#64748b">%</span>
+                </div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">% 250g</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                  <input type="number" id="mix-250" min="0" max="100" step="5" value="20" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1d2d42;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
+                  <span style="font-size:11px;color:#64748b">%</span>
+                </div>
+              </div>
+            </div>
+            <div id="mix-label" style="font-size:10px;color:#475569;margin-top:6px;text-align:center">Soma: 100% ✓</div>
+          </div>
         </div>
         <div class="slider-field">
           <div class="slider-label">Preços por embalagem</div>
@@ -1070,7 +1095,32 @@ function calc() {
     Preço médio R$${preco_kg_medio.toFixed(0)}/kg = <strong>R$${(preco_kg_medio*1000).toFixed(0)}/ton</strong>`;
 }
 
-window._setMix = function(perfil) {
+window._mixManual = function() {
+    var m150 = parseFloat(document.getElementById('mix-150').value) || 0;
+    var m200 = parseFloat(document.getElementById('mix-200').value) || 0;
+    var m250 = parseFloat(document.getElementById('mix-250').value) || 0;
+    var soma = m150 + m200 + m250;
+    var lbl = document.getElementById('mix-label');
+    if (Math.abs(soma - 100) < 0.5) {
+      lbl.textContent = 'Soma: ' + soma.toFixed(0) + '% ✓';
+      lbl.style.color = '#22c55e';
+    } else {
+      lbl.textContent = 'Soma: ' + soma.toFixed(0) + '% — ajuste para 100%';
+      lbl.style.color = '#EF9F27';
+    }
+    if (soma > 0) window._mixOverride = {m150: m150/soma, m200: m200/soma, m250: m250/soma};
+    ['gpa','premium','sams','custom'].forEach(function(id){
+      var b = document.getElementById('mix-'+id);
+      if (!b) return;
+      var active = id === 'custom';
+      b.style.background = active ? '#0a1e10' : 'transparent';
+      b.style.color = active ? '#22c55e' : '#64748b';
+      b.style.borderColor = active ? '#1A7A4A' : '#1d2d42';
+    });
+    calc();
+  };
+
+  window._setMix = function(perfil) {
   var perfis = {
     'gpa':     {p150:16,  p200:24,  p250:30,  m150:0.15, m200:0.70, m250:0.15, label:'GPA/Carrefour (15% / 70% / 15%)'},
     'premium': {p150:20,  p200:28,  p250:36,  m150:0.15, m200:0.45, m250:0.40, label:'Premium — Zona Sul/Hirota (15% / 45% / 40%)'},
@@ -1098,6 +1148,10 @@ window._setMix = function(perfil) {
     if(sl)  sl.value=val;
   });
   window._mixOverride = {m150:p.m150, m200:p.m200, m250:p.m250};
+    if (document.getElementById('mix-150')) document.getElementById('mix-150').value = Math.round(p.m150*100);
+    if (document.getElementById('mix-200')) document.getElementById('mix-200').value = Math.round(p.m200*100);
+    if (document.getElementById('mix-250')) document.getElementById('mix-250').value = Math.round(p.m250*100);
+    var lbl2=document.getElementById('mix-label'); if(lbl2){lbl2.textContent='Soma: 100% ✓';lbl2.style.color='#22c55e';}
   document.getElementById('mix-label').textContent = 'Mix atual: '+p.label;
   calc();
 };
