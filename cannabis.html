@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cannabis — Experimentos & P&D · 100% Livre</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; background: #0f1117; color: #e8e8e2; min-height: 100vh; }
+.header { padding: 20px 24px 0; border-bottom: 0.5px solid #2a2a2a; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.header-title { font-size: 18px; font-weight: 500; }
+.header-sub { font-size: 11px; color: #666; margin-top: 3px; }
+.status-pill { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 500; background: #1a2a1a; color: #5a9a3a; border: 0.5px solid #3a6a2a; }
+.nav { display: flex; gap: 4px; padding: 0; }
+.nav-btn { padding: 8px 16px; border-radius: 0; border: none; background: transparent; font-size: 12px; cursor: pointer; color: #666; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.nav-btn:hover { color: #ccc; }
+.nav-btn.active { color: #e8e8e2; border-bottom-color: #5a9a3a; }
+.page { display: none; padding: 24px; }
+.page.active { display: block; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 24px; }
+.mc { background: #1a1a1f; border: 0.5px solid #2a2a2a; border-radius: 8px; padding: 12px 14px; }
+.mc-label { font-size: 10px; color: #666; margin-bottom: 4px; }
+.mc-value { font-size: 18px; font-weight: 500; color: #e8e8e2; }
+.mc-sub { font-size: 10px; color: #555; margin-top: 2px; }
+.mc-good { color: #5a9a3a; }
+.mc-warn { color: #c49a2a; }
+.mc-bad { color: #a33a3a; }
+.divider { border: none; border-top: 0.5px solid #2a2a2a; margin: 20px 0; }
+.section-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #ccc; }
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 500px; }
+th { text-align: left; font-size: 10px; color: #555; padding: 7px 8px; border-bottom: 0.5px solid #2a2a2a; font-weight: 500; white-space: nowrap; }
+td { padding: 7px 8px; border-bottom: 0.5px solid #1f1f1f; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+.group-row td { background: #16161b; font-weight: 500; font-size: 11px; color: #666; padding: 5px 8px; }
+.total-row td { background: #1a2a1a; font-weight: 500; border-top: 0.5px solid #3a6a2a; }
+.warn-row td { background: #1f1a10; }
+.dead-row { opacity: 0.4; }
+.ct { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 8px; font-weight: 500; }
+.ct-p { background: #1a2a10; color: #7ac040; border: 0.5px solid #3a6020; }
+.ct-r { background: #101a2a; color: #4a8ac0; border: 0.5px solid #20406a; }
+.ct-b1 { background: #1a2a10; color: #5aaa40; }
+.ct-b2 { background: #152510; color: #4a9030; }
+.ct-bio { background: #1a1030; color: #7a60d0; }
+.ct-rec { background: #15102a; color: #6050b0; }
+.ct-u { background: #2a1a00; color: #c08020; }
+.il { font-size: 10px; padding: 1px 7px; border-radius: 8px; }
+.il-b { background: #1f1f1f; color: #888; border: 0.5px solid #333; }
+.il-r6 { background: #2a1020; color: #c06080; }
+.il-r4 { background: #2a1a00; color: #c08030; }
+.sb { font-size: 10px; padding: 1px 7px; border-radius: 8px; }
+.sb-fc { background: #102020; color: #40a080; }
+.sb-50 { background: #10202a; color: #4080a0; }
+.sb-ca { background: #2a1a00; color: #a07030; }
+.st { font-size: 10px; padding: 1px 7px; border-radius: 8px; font-weight: 500; }
+.st-ok { background: #1a2a10; color: #5aaa40; }
+.st-dead { background: #1f1f1f; color: #555; }
+.st-warn { background: #2a1a00; color: #c08030; }
+.peso-u { color: #4a8ac0; font-weight: 500; }
+.peso-s { color: #5aaa40; font-weight: 500; }
+.peso-na { color: #444; }
+.eff-h { color: #5aaa40; font-weight: 500; }
+.eff-m { color: #c08030; font-weight: 500; }
+.eff-l { color: #a33a3a; font-weight: 500; }
+.insight { border-left: 3px solid; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 8px; font-size: 12px; }
+.ins-g { border-color: #5a9a3a; background: #111a0f; }
+.ins-o { border-color: #c49a2a; background: #1a1500; }
+.ins-b { border-color: #3a7ab0; background: #0f1520; }
+.ins-r { border-color: #a33a3a; background: #1a0f0f; }
+.ins-title { font-weight: 500; margin-bottom: 3px; color: #e8e8e2; }
+.ins-desc { color: #888; line-height: 1.5; font-size: 11px; }
+.bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-label { font-size: 11px; color: #888; min-width: 120px; }
+.bar-bg { flex: 1; height: 20px; background: #1f1f1f; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 10px; font-weight: 500; color: white; }
+.bar-val { font-size: 11px; font-weight: 500; min-width: 90px; text-align: right; }
+.benchmark-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.bm-card { background: #1a1a1f; border: 0.5px solid #2a2a2a; border-radius: 8px; padding: 12px 14px; }
+.bm-title { font-size: 10px; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+.bm-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.bm-label { font-size: 11px; color: #888; }
+.bm-ref { font-size: 11px; color: #555; }
+.bm-real { font-size: 11px; font-weight: 500; }
+.bm-delta { font-size: 10px; padding: 1px 6px; border-radius: 6px; }
+.delta-g { background: #1a2a10; color: #5aaa40; }
+.delta-o { background: #2a1a00; color: #c08030; }
+.delta-r { background: #1a0f0f; color: #a33a3a; }
+.tl-item { display: flex; gap: 12px; margin-bottom: 4px; }
+.tl-left { display: flex; flex-direction: column; align-items: center; width: 24px; flex-shrink: 0; }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.tl-line-v { width: 1px; flex: 1; min-height: 12px; background: #2a2a2a; }
+.tl-content { flex: 1; padding-bottom: 12px; }
+.tl-date { font-size: 10px; color: #555; margin-bottom: 1px; }
+.tl-title { font-size: 12px; font-weight: 500; color: #e8e8e2; }
+.tl-desc { font-size: 11px; color: #666; margin-top: 2px; line-height: 1.4; }
+.event-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.ev { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+.ev-poda { background: #1a1030; color: #7a60d0; }
+.ev-luz { background: #2a1a00; color: #c08030; }
+.ev-neg { background: #0f1520; color: #4a8ac0; }
+.vaso-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 6px; }
+.vaso { border-radius: 6px; padding: 6px 4px; text-align: center; border: 0.5px solid #2a2a2a; background: #1a1a1f; }
+.vaso-num { font-size: 9px; color: #444; }
+.vaso-cult { font-size: 10px; font-weight: 500; margin-top: 2px; }
+.vaso-info { font-size: 9px; color: #444; margin-top: 2px; line-height: 1.3; }
+.vaso-st { font-size: 9px; margin-top: 3px; padding: 1px 4px; border-radius: 5px; display: inline-block; }
+.v-b1 { border-color: #3a6a20; } .v-b1 .vaso-cult { color: #5aaa40; }
+.v-b2 { border-color: #2a5a18; } .v-b2 .vaso-cult { color: #4a9030; }
+.v-r { border-color: #20406a; } .v-r .vaso-cult { color: #4a8ac0; }
+.v-p { border-color: #3a6a20; } .v-p .vaso-cult { color: #7ac040; }
+.v-dead { opacity: 0.3; }
+.v-dead .vaso-cult { text-decoration: line-through; color: #444; }
+.v-vazio { opacity: 0.2; }
+.v-warn { outline: 1px solid #c08030; }
+.line-hdr { display: flex; align-items: center; gap: 8px; margin: 12px 0 5px; font-size: 11px; color: #666; font-weight: 500; }
+.comp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.comp-table th { text-align: left; font-size: 10px; color: #555; padding: 6px 8px; border-bottom: 0.5px solid #2a2a2a; font-weight: 500; }
+.comp-table td { padding: 8px 8px; border-bottom: 0.5px solid #1f1f1f; }
+.comp-table tr:last-child td { border-bottom: none; }
+.ref-val { color: #555; font-size: 11px; }
+.our-val { font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">Cannabis Medicinal — Experimentos & P&D</div>
+      <div class="header-sub">100% Livre · Sprout Holdings · Sala 4 · Ciclo 1 completo · Ciclo 2 em andamento</div>
+    </div>
+    <span class="status-pill">EM NEGOCIAÇÃO · Souza Cruz LTDA</span>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPage('overview')">Visão Geral</button>
+    <button class="nav-btn" onclick="showPage('ciclo1')">Ciclo 1 — Histórico</button>
+    <button class="nav-btn" onclick="showPage('ciclo2')">Ciclo 2 — Atual</button>
+    <button class="nav-btn" onclick="showPage('benchmark')">Benchmark</button>
+    <button class="nav-btn" onclick="showPage('proximo')">Próximo Ciclo</button>
+  </div>
+</div>
+
+<!-- ===== VISÃO GERAL ===== -->
+<div id="overview" class="page active">
+  <div class="metric-grid">
+    <div class="mc"><div class="mc-label">Ciclo atual</div><div class="mc-value">2</div><div class="mc-sub">Maternidade em andamento</div></div>
+    <div class="mc"><div class="mc-label">Total colhido (C1)</div><div class="mc-value mc-good">4.366 g</div><div class="mc-sub">úmido · 10 vasos</div></div>
+    <div class="mc"><div class="mc-label">Massa seca (C1)</div><div class="mc-value">190 g</div><div class="mc-sub">6 vasos pesados secos</div></div>
+    <div class="mc"><div class="mc-label">Melhor eficiência</div><div class="mc-value mc-good">2,71</div><div class="mc-sub">g/µmol · Papaya Rosa 4L</div></div>
+    <div class="mc"><div class="mc-label">Cultivares ativas (C2)</div><div class="mc-value">4</div><div class="mc-sub">B1 · B2 · RPK · Papaya</div></div>
+    <div class="mc"><div class="mc-label">Status regulatório</div><div class="mc-value mc-warn">Pendente</div><div class="mc-sub">ANVISA · licença necessária</div></div>
+  </div>
+
+  <div class="event-strip">
+    <span class="ev ev-neg">🤝 Negociação Souza Cruz LTDA em andamento</span>
+    <span class="ev ev-neg">🌿 ASPAEC — Bahia 1 e 2 em cultivo</span>
+    <span class="ev ev-luz">💡 Fotoperíodo 18h — desde 09/07</span>
+    <span class="ev ev-poda">✂️ Poda realizada — 09/07/2025</span>
+  </div>
+
+  <div class="divider"></div>
+  <p class="section-title">Linha do tempo consolidada</p>
+  <div class="timeline">
+    <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#4a8ac0"></div><div class="tl-line-v"></div></div><div class="tl-content"><div class="tl-date">06/02/2025</div><div class="tl-title">Semeadura Ciclo 1 — Sala 3</div><div class="tl-desc">9 Papaya + 9 RPK · início dos testes de iluminação e substrato</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#5a9a3a"></div><div class="tl-line-v"></div></div><div class="tl-content"><div class="tl-date">18/02/2025</div><div class="tl-title">Transplante Sala 4</div><div class="tl-desc">18 vasos · 3 linhas · Branca / Rosa 6L / Rosa 4L · solução ABC</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#5a9a3a"></div><div class="tl-line-v"></div></div><div class="tl-content"><div class="tl-date">18/05 – 09/06/2025</div><div class="tl-title">Colheitas Ciclo 1</div><div class="tl-desc">4.366g úmido · melhor vaso 650g · Papaya Rosa 4L e Rosa 6L dominaram</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#c49a2a"></div><div class="tl-line-v"></div></div><div class="tl-content"><div class="tl-date">30/06/2025</div><div class="tl-title">Pesagem massa seca</div><div class="tl-desc">190g em 6 vasos · taxa de perda 90–95% (acima do esperado)</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#5a9a3a"></div><div class="tl-line-v"></div></div><div class="tl-content"><div class="tl-date">25/05 – 17/06/2025</div><div class="tl-title">Início Ciclo 2 — Maternidade</div><div class="tl-desc">Bahia 1 · Bahia 2 · BioRelief CBD · Recovery CBD · RPK · Papaya</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#7a60d0"></div></div><div class="tl-content"><div class="tl-date">09/07/2025</div><div class="tl-title">Poda + Fotoperíodo 18h</div><div class="tl-desc">Todas as plantas ativas podadas · vegetativo ativo · 5 perdas CBD/Recovery por semeadura direta</div></div></div>
+  </div>
+
+  <div class="divider"></div>
+  <p class="section-title">Próximas ações</p>
+  <div class="insight ins-b"><div class="ins-title">1. Mapear requisitos licenciamento ANVISA para cultivo medicinal</div><div class="ins-desc">Pré-requisito para escala com Souza Cruz. RDC 1.013/2026 e RDC 1.015/2026 definem o framework atual.</div></div>
+  <div class="insight ins-b"><div class="ins-title">2. Definir escopo com Souza Cruz LTDA</div><div class="ins-desc">Volume, cultivares, especificações de canabinoides para nicotina e cannabis. Prazo de entrega e modelo comercial.</div></div>
+  <div class="insight ins-b"><div class="ins-title">3. Confirmar cultivar L3·V4 (anomalia Ciclo 1)</div><div class="ins-desc">480g colhidos de vaso mapeado como RPK morta. Cultivar não identificada — registrar para integridade dos dados.</div></div>
+  <div class="insight ins-b"><div class="ins-title">4. Germinar CBD em Sala 3 no próximo lote</div><div class="ins-desc">BioRelief e Recovery CBD não germinaram por semeadura direta. Protocolo: germinar em ambiente controlado antes de transplantar.</div></div>
+</div>
+
+<!-- ===== CICLO 1 ===== -->
+<div id="ciclo1" class="page">
+  <p class="section-title">Ciclo 1 — Vaso a vaso · Sala 4</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Local</th><th>Cultivar</th><th>Iluminação</th><th>PPFD base</th><th>Substrato</th><th>Colheita</th><th>Peso úmido</th><th>Peso seco</th><th>g/µmol</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr class="group-row"><td colspan="10">Linha 1 — Branca · ~250 µmol/m² · Fibra de coco pura</td></tr>
+      <tr><td>L1·V1</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-b">Branca</span></td><td>~250</td><td><span class="sb sb-fc">fibra coco</span></td><td>09/06</td><td class="peso-u">430 g</td><td class="peso-s">40 g</td><td class="eff-m">1,72</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr><td>L1·V2</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-b">Branca</span></td><td>~250</td><td><span class="sb sb-fc">fibra coco</span></td><td>09/06</td><td class="peso-u">500 g</td><td class="peso-s">35 g</td><td class="eff-h">2,00</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr><td>L1·V3</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-b">Branca</span></td><td>~250</td><td><span class="sb sb-fc">fibra coco</span></td><td>09/06</td><td class="peso-u">306 g</td><td class="peso-s">35 g</td><td class="eff-l">1,22</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr class="dead-row"><td>L1·V4</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-b">Branca</span></td><td>~250</td><td><span class="sb sb-fc">fibra coco</span></td><td>—</td><td class="peso-na">—</td><td class="peso-na">—</td><td class="peso-na">—</td><td><span class="st st-dead">morreu</span></td></tr>
+      <tr><td>L1·V5</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-b">Branca</span></td><td>~250</td><td><span class="sb sb-fc">fibra coco</span></td><td>30/06</td><td class="peso-na">—</td><td class="peso-s">20 g</td><td class="peso-na">—</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr><td>L1·V6</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-b">Branca</span></td><td>~250</td><td><span class="sb sb-fc">fibra coco</span></td><td>09/06</td><td class="peso-u">350 g</td><td class="peso-na">—</td><td class="eff-m">1,40</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr class="group-row"><td colspan="10">Linha 2 — Rosa 6L · 300 µmol/m² · 50% fibra + 50% casca de arroz carbonizado</td></tr>
+      <tr><td>L2·V1</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-r6">Rosa 6L</span></td><td>300</td><td><span class="sb sb-50">50/50</span></td><td>09/06</td><td class="peso-u">650 g</td><td class="peso-s">60 g</td><td class="eff-h">2,17</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr class="dead-row"><td>L2·V2</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-r6">Rosa 6L</span></td><td>300</td><td><span class="sb sb-50">50/50</span></td><td>—</td><td class="peso-na">—</td><td class="peso-na">—</td><td class="peso-na">—</td><td><span class="st st-dead">morreu</span></td></tr>
+      <tr><td>L2·V3</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-r6">Rosa 6L</span></td><td>300</td><td><span class="sb sb-50">50/50</span></td><td>18/05</td><td class="peso-na">—</td><td class="peso-na">—</td><td class="peso-na">—</td><td><span class="st st-warn">s/ pesagem</span></td></tr>
+      <tr><td>L2·V4</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-r6">Rosa 6L</span></td><td>300</td><td><span class="sb sb-50">50/50</span></td><td>—</td><td class="peso-na">—</td><td class="peso-na">—</td><td class="peso-na">—</td><td><span class="st st-warn">pendente</span></td></tr>
+      <tr><td>L2·V5</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-r6">Rosa 6L</span></td><td>300</td><td><span class="sb sb-50">50/50</span></td><td>22/05</td><td class="peso-u">580 g</td><td class="peso-na">—</td><td class="eff-h">1,93</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr><td>L2·V6</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-r6">Rosa 6L</span></td><td>300</td><td><span class="sb sb-50">50/50</span></td><td>—</td><td class="peso-na">—</td><td class="peso-na">—</td><td class="peso-na">—</td><td><span class="st st-warn">pendente</span></td></tr>
+      <tr class="group-row"><td colspan="10">Linha 3 — Rosa 4L · 240 µmol/m² · Casca de arroz carbonizado puro</td></tr>
+      <tr><td>L3·V1</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-r4">Rosa 4L</span></td><td>240</td><td><span class="sb sb-ca">casca arroz</span></td><td>09/06</td><td class="peso-u">650 g</td><td class="peso-s">30 g</td><td class="eff-h">2,71</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr><td>L3·V2</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-r4">Rosa 4L</span></td><td>240</td><td><span class="sb sb-ca">casca arroz</span></td><td>—</td><td class="peso-na">—</td><td class="peso-na">—</td><td class="peso-na">—</td><td><span class="st st-warn">pendente</span></td></tr>
+      <tr><td>L3·V3</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-r4">Rosa 4L</span></td><td>240</td><td><span class="sb sb-ca">casca arroz</span></td><td>22/05</td><td class="peso-u">650 g</td><td class="peso-na">—</td><td class="eff-h">2,71</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr class="warn-row"><td>L3·V4</td><td><span class="ct ct-u">?</span></td><td><span class="il il-r4">Rosa 4L</span></td><td>240</td><td><span class="sb sb-ca">casca arroz</span></td><td>25/05</td><td class="peso-u">480 g</td><td class="peso-na">—</td><td class="eff-m">2,00</td><td><span class="st st-warn">cultivar?</span></td></tr>
+      <tr><td>L3·V5</td><td><span class="ct ct-p">Papaya</span></td><td><span class="il il-r4">Rosa 4L</span></td><td>240</td><td><span class="sb sb-ca">casca arroz</span></td><td>30/06</td><td class="peso-na">—</td><td class="peso-s">5 g</td><td class="peso-na">—</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr><td>L3·V6</td><td><span class="ct ct-r">RPK</span></td><td><span class="il il-r4">Rosa 4L</span></td><td>240</td><td><span class="sb sb-ca">casca arroz</span></td><td>22/05</td><td class="peso-u">200 g</td><td class="peso-na">—</td><td class="eff-l">0,83</td><td><span class="st st-ok">colhido</span></td></tr>
+      <tr class="total-row"><td colspan="6">Total</td><td class="peso-u">4.366 g</td><td class="peso-s">190 g</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="divider"></div>
+  <p class="section-title">Eficiência por iluminação</p>
+  <div class="bar-wrap"><span class="bar-label"><span class="il il-r4">Rosa 4L · 240µ</span></span><div class="bar-bg"><div class="bar-fill" style="width:100%;background:#6a4a00">2,07 g/µmol</div></div><span class="bar-val eff-h">2,07 ⭐</span></div>
+  <div class="bar-wrap"><span class="bar-label"><span class="il il-r6">Rosa 6L · 300µ</span></span><div class="bar-bg"><div class="bar-fill" style="width:87%;background:#7a3050">1,80 g/µmol</div></div><span class="bar-val eff-m">1,80</span></div>
+  <div class="bar-wrap"><span class="bar-label"><span class="il il-b">Branca · ~250µ</span></span><div class="bar-bg"><div class="bar-fill" style="width:76%;background:#404040">1,58 g/µmol</div></div><span class="bar-val" style="color:#666">1,58</span></div>
+</div>
+
+<!-- ===== CICLO 2 ===== -->
+<div id="ciclo2" class="page">
+  <div class="event-strip">
+    <span class="ev ev-poda">✂️ Poda — 09/07/2025 · todas as ativas</span>
+    <span class="ev ev-luz">💡 18h luz / 6h escuro — desde 09/07</span>
+  </div>
+  <div class="metric-grid">
+    <div class="mc"><div class="mc-label">Vasos ativos</div><div class="mc-value mc-good">11</div><div class="mc-sub">de 18 plantados</div></div>
+    <div class="mc"><div class="mc-label">Mortalidade C2</div><div class="mc-value mc-bad">5</div><div class="mc-sub">Recovery + BioRelief CBD</div></div>
+    <div class="mc"><div class="mc-label">Causa mortalidade</div><div class="mc-value mc-warn">Sem. direta</div><div class="mc-sub">CBD sensível ao método</div></div>
+    <div class="mc"><div class="mc-label">Atenção</div><div class="mc-value mc-warn">L3·V2</div><div class="mc-sub">Bahia 2 menor que esperado</div></div>
+  </div>
+
+  <p class="section-title">Mapa de vasos — Ciclo 2</p>
+  <div class="line-hdr">Linha 1 <span class="il il-b">Branca</span><span class="sb sb-fc" style="margin-left:4px">fibra de coco</span></div>
+  <div class="vaso-grid">
+    <div class="vaso v-b1"><div class="vaso-num">V1</div><div class="vaso-cult">Bahia 1</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-b1"><div class="vaso-num">V2</div><div class="vaso-cult">Bahia 1</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-r"><div class="vaso-num">V3</div><div class="vaso-cult">RPK</div><div class="vaso-info">28/05→23/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-vazio"><div class="vaso-num">V4</div><div class="vaso-cult">—</div></div>
+    <div class="vaso v-dead"><div class="vaso-num">V5</div><div class="vaso-cult">Recovery</div><div class="vaso-info">não cresceu</div><div class="vaso-st" style="background:#1a0f0f;color:#a33a3a">morreu</div></div>
+    <div class="vaso v-vazio"><div class="vaso-num">V6</div><div class="vaso-cult">—</div></div>
+  </div>
+  <div class="line-hdr" style="margin-top:10px">Linha 2 <span class="il il-r6">Rosa 6L</span><span class="sb sb-50" style="margin-left:4px">50/50</span></div>
+  <div class="vaso-grid">
+    <div class="vaso v-b1"><div class="vaso-num">V1</div><div class="vaso-cult">Bahia 1</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-b1"><div class="vaso-num">V2</div><div class="vaso-cult">Bahia 1</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-dead"><div class="vaso-num">V3</div><div class="vaso-cult">BioRelief</div><div class="vaso-info">sem. 17/06</div><div class="vaso-st" style="background:#1a0f0f;color:#a33a3a">não cresceu</div></div>
+    <div class="vaso v-dead"><div class="vaso-num">V4</div><div class="vaso-cult">BioRelief</div><div class="vaso-info">sem. 17/06</div><div class="vaso-st" style="background:#1a0f0f;color:#a33a3a">não cresceu</div></div>
+    <div class="vaso v-b2"><div class="vaso-num">V5</div><div class="vaso-cult">Bahia 2</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-p"><div class="vaso-num">V6</div><div class="vaso-cult">Papaya</div><div class="vaso-info">28/05→26/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+  </div>
+  <div class="line-hdr" style="margin-top:10px">Linha 3 <span class="il il-r4">Rosa 4L</span><span class="sb sb-ca" style="margin-left:4px">casca arroz</span></div>
+  <div class="vaso-grid">
+    <div class="vaso v-dead"><div class="vaso-num">V1</div><div class="vaso-cult">Recovery</div><div class="vaso-info">sem. 17/06</div><div class="vaso-st" style="background:#1a0f0f;color:#a33a3a">não cresceu</div></div>
+    <div class="vaso v-b2 v-warn"><div class="vaso-num">V2</div><div class="vaso-cult">Bahia 2</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#2a1a00;color:#c08030">⚠️ menor</div></div>
+    <div class="vaso v-b2"><div class="vaso-num">V3</div><div class="vaso-cult">Bahia 2</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-p"><div class="vaso-num">V4</div><div class="vaso-cult">Papaya</div><div class="vaso-info">28/05→26/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-b1"><div class="vaso-num">V5</div><div class="vaso-cult">Bahia 1</div><div class="vaso-info">25/05→10/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+    <div class="vaso v-r"><div class="vaso-num">V6</div><div class="vaso-cult">RPK</div><div class="vaso-info">28/05→23/06</div><div class="vaso-st" style="background:#1a1030;color:#7a60d0">podada</div></div>
+  </div>
+</div>
+
+<!-- ===== BENCHMARK ===== -->
+<div id="benchmark" class="page">
+  <p class="section-title">Benchmark — 100% Livre vs Referências de mercado</p>
+
+  <div class="benchmark-grid">
+    <div class="bm-card">
+      <div class="bm-title">Produção de massa úmida por planta</div>
+      <div class="bm-row"><span class="bm-label">Referência indoor top</span><span class="bm-ref">400–700 g/planta</span></div>
+      <div class="bm-row"><span class="bm-label">Nosso melhor (Papaya)</span><span class="bm-real eff-h">650 g</span><span class="bm-delta delta-g">✓ no range</span></div>
+      <div class="bm-row"><span class="bm-label">Nossa média (Papaya)</span><span class="bm-real eff-m">474 g</span><span class="bm-delta delta-g">✓ bom</span></div>
+      <div class="bm-row"><span class="bm-label">Nossa média (RPK)</span><span class="bm-real eff-l">350 g</span><span class="bm-delta delta-o">abaixo</span></div>
+    </div>
+    <div class="bm-card">
+      <div class="bm-title">Massa seca / Razão de cura</div>
+      <div class="bm-row"><span class="bm-label">Perda esperada (cura)</span><span class="bm-ref">70–80%</span></div>
+      <div class="bm-row"><span class="bm-label">Nossa perda registrada</span><span class="bm-real eff-l">90–95%</span><span class="bm-delta delta-r">acima</span></div>
+      <div class="bm-row"><span class="bm-label">Massa seca / úmido</span><span class="bm-real eff-l">~5–10%</span><span class="bm-delta delta-r">investigar</span></div>
+      <div class="bm-row"><span class="bm-label">Esperado</span><span class="bm-ref">20–30%</span></div>
+    </div>
+    <div class="bm-card">
+      <div class="bm-title">PPFD e eficiência luminosa</div>
+      <div class="bm-row"><span class="bm-label">PPFD ideal (dossel)</span><span class="bm-ref">600–900 µmol/m²</span></div>
+      <div class="bm-row"><span class="bm-label">Nosso PPFD (dossel est.)</span><span class="bm-real eff-m">500–700 µmol/m²</span><span class="bm-delta delta-o">estimado</span></div>
+      <div class="bm-row"><span class="bm-label">Melhor g/µmol nosso</span><span class="bm-real eff-h">2,71</span></div>
+      <div class="bm-row"><span class="bm-label">Ref. indoor eficiente</span><span class="bm-ref">1,5–3,0 g/µmol</span></div>
+    </div>
+    <div class="bm-card">
+      <div class="bm-title">THC (Papaya Gelato — referência)</div>
+      <div class="bm-row"><span class="bm-label">Range THC reportado</span><span class="bm-ref">19–27%</span></div>
+      <div class="bm-row"><span class="bm-label">Terpenos totais ref.</span><span class="bm-ref">1,5–2,5%</span></div>
+      <div class="bm-row"><span class="bm-label">Análise laboratorial</span><span class="bm-real" style="color:#555">não realizada</span></div>
+      <div class="bm-row"><span class="bm-label">Próximo passo</span><span class="bm-real eff-m">lab no C2</span></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <p class="section-title">Papaya Gelato — referência vs nosso cultivo</p>
+
+  <table class="comp-table">
+    <thead><tr><th>Parâmetro</th><th>Referência (JointCommerce)</th><th>Nosso resultado</th><th>Avaliação</th></tr></thead>
+    <tbody>
+      <tr><td>Produção por planta</td><td class="ref-val">400–700 g úmido indoor top</td><td class="our-val eff-h">até 650 g</td><td><span class="bm-delta delta-g">✓ atingido</span></td></tr>
+      <tr><td>Florescimento</td><td class="ref-val">8–9 semanas típico</td><td class="our-val">~8 semanas (C1)</td><td><span class="bm-delta delta-g">✓ alinhado</span></td></tr>
+      <tr><td>Morfologia</td><td class="ref-val">Média altura, forte ramificação lateral, indica-leaning</td><td class="our-val">Compatível c/ descrição</td><td><span class="bm-delta delta-g">✓</span></td></tr>
+      <tr><td>Resposta ao espectro rosa</td><td class="ref-val">Forte resposta a vermelho/azul (florescimento)</td><td class="our-val eff-h">+36–77% vs branca</td><td><span class="bm-delta delta-g">✓ confirmado</span></td></tr>
+      <tr><td>Consistência entre vasos</td><td class="ref-val">Variabilidade fenotípica esperada</td><td class="our-val">L3V1 e L3V3: 650g exatos</td><td><span class="bm-delta delta-g">✓ consistente</span></td></tr>
+      <tr><td>Taxa de cura (perda seco)</td><td class="ref-val">70–80% perda típica</td><td class="our-val eff-l">90–95% registrado</td><td><span class="bm-delta delta-r">⚠️ investigar</span></td></tr>
+      <tr><td>PPFD operado</td><td class="ref-val">600–900 µmol/m² dossel recomendado</td><td class="our-val eff-m">~500–700 est. dossel</td><td><span class="bm-delta delta-o">abaixo do ideal</span></td></tr>
+      <tr><td>Análise THC/terpenos</td><td class="ref-val">19–27% THC · 1,5–2,5% terpenos</td><td class="our-val" style="color:#555">não realizada</td><td><span class="bm-delta delta-o">pendente</span></td></tr>
+      <tr><td>Treinamento (SCROG/LST)</td><td class="ref-val">Recomendado — forte resposta</td><td class="our-val">Poda realizada 09/07 (C2)</td><td><span class="bm-delta delta-g">✓ iniciado</span></td></tr>
+      <tr><td>Ambiente controlado vs campo</td><td class="ref-val">Indoor: maior consistência e potência</td><td class="our-val eff-h">Indoor · sala controlada</td><td><span class="bm-delta delta-g">✓ vantagem</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+  <p class="section-title">Indoor controlado vs Campo aberto</p>
+  <div class="insight ins-g"><div class="ins-title">✅ Consistência — indoor vence</div><div class="ins-desc">L3·V1 e L3·V3 entregaram 650g exatos. No campo, variações climáticas, pragas e sazonalidade tornam essa consistência impossível. Indoor controlado é o diferencial competitivo central da 100% Livre nesse segmento.</div></div>
+  <div class="insight ins-g"><div class="ins-title">✅ Produção por m² — indoor vence em ciclos por ano</div><div class="ins-desc">Campo: 1–2 ciclos/ano dependendo do clima. Indoor controlado: 3–4 ciclos/ano com fotoperíodo gerenciado. Com 42 vasos na Sala 2 e ciclos de ~12 semanas, a produtividade anual supera o campo em volume/m² mesmo com menor planta individual.</div></div>
+  <div class="insight ins-o"><div class="ins-title">⚠️ Custo de energia — campo leva vantagem</div><div class="ins-desc">Iluminação artificial é o maior custo variável do indoor. A eficiência de 2,71 g/µmol da Rosa 4L é uma referência positiva, mas precisa ser cruzada com o custo kWh para calcular o custo/g real. Recomendado: incluir custo energético no modelo de rentabilidade do módulo Cannabis.</div></div>
+  <div class="insight ins-b"><div class="ins-title">📊 Taxa de cura — ponto crítico a investigar</div><div class="ins-desc">90–95% de perda na secagem vs 70–80% esperado para indoor de qualidade. Cada ponto percentual de perda adicional representa impacto direto no g/planta comercializável. Monitorar temperatura (idealmente 15–20°C) e UR (45–55%) na sala de secagem no próximo ciclo.</div></div>
+</div>
+
+<!-- ===== PRÓXIMO CICLO ===== -->
+<div id="proximo" class="page">
+  <p class="section-title">Recomendações para o próximo ciclo de produção</p>
+
+  <div class="insight ins-g"><div class="ins-title">1. Manter Papaya e Bahia sob espectro rosa — especialmente Rosa 4L</div><div class="ins-desc">Rosa 4L a 240 µmol base foi a configuração mais eficiente (2,07 g/µmol médio, 2,71 g/µmol na Papaya). Para Bahia 1 e Bahia 2 na Sala 2, priorizar linhas de espectro rosa. Medir PPFD no dossel desde o primeiro dia.</div></div>
+  <div class="insight ins-g"><div class="ins-title">2. RPK — alocar exclusivamente em espectro branco</div><div class="ins-desc">RPK branca: 2,00 g/µmol. RPK rosa 4L: 0,83 g/µmol. Diferença de 2,4x. Se RPK for produzida em ciclo futuro, reservar linha branca. Investigar também a sensibilidade à solução nutritiva antes de escalar.</div></div>
+  <div class="insight ins-g"><div class="ins-title">3. CBD — germinar sempre em Sala 3 antes de transplantar</div><div class="ins-desc">100% de mortalidade das CBD por semeadura direta (L1·V5 Recovery, L3·V1 Recovery, L2·V3 BioRelief, L2·V4 BioRelief). Protocolo obrigatório: germinação controlada em Sala 3 + transplante após 10–14 dias.</div></div>
+  <div class="insight ins-o"><div class="ins-title">4. Medir e controlar sala de secagem</div><div class="ins-desc">Instalar termômetro/higrômetro na sala de secagem. Meta: 15–20°C · UR 45–55% · secagem lenta 10–14 dias. Taxa de perda atual de 90–95% sugere secagem rápida demais — isso afeta diretamente o peso seco comercializável.</div></div>
+  <div class="insight ins-o"><div class="ins-title">5. Medir PPFD no dossel — não na base</div><div class="ins-desc">Todos os dados do Ciclo 1 foram coletados na base. No Ciclo 2, posicionar o medidor no topo do canopy. Meta: 600–800 µmol/m² no dossel para as cultivares de florescimento.</div></div>
+  <div class="insight ins-b"><div class="ins-title">6. Análise laboratorial de canabinoides e terpenos</div><div class="ins-desc">Ainda não temos dados de THC, CBD e terpenos do nosso cultivo. A referência da Papaya Gelato indica 19–27% THC e 1,5–2,5% terpenos totais. Um laudo laboratorial no próximo ciclo vai posicionar a 100% Livre nas negociações com Souza Cruz e ASPAEC com dados concretos.</div></div>
+  <div class="insight ins-b"><div class="ins-title">7. Incluir custo energético no modelo de rentabilidade</div><div class="ins-desc">Com 2,71 g/µmol de eficiência e PPFD medido, é possível calcular kWh/g e custo de energia por grama produzida. Esse dado é fundamental para o modelo de precificação nas negociações B2B.</div></div>
+  <div class="insight ins-r"><div class="ins-title">8. Resolver anomalia L3·V4 — cultivar não identificada</div><div class="ins-desc">480g colhidos de vaso mapeado como RPK morta em 25/05. Cultivar nunca confirmada. Dado está nos registros mas a eficiência calculada pode estar equivocada. Investigar e corrigir antes de usar em relatórios.</div></div>
+</div>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
