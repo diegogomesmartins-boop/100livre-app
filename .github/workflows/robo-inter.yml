@@ -9,7 +9,7 @@ on:
     inputs:
       dry_run:
         description: "1 = simula (não baixa) | 0 = baixa de verdade"
-        default: "1"
+        default: "0"
 
 permissions:
   contents: read
@@ -29,6 +29,6 @@ jobs:
           OMIE_APP_SECRET:         ${{ secrets.OMIE_APP_SECRET }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           INTER_CC: "1972977169"
-          # começa em modo simulação; troca p/ "0" quando validado (ou via workflow_dispatch)
-          DRY_RUN: ${{ github.event.inputs.dry_run || '1' }}
+          # BAIXAS ATIVAS (0). Use "1" no workflow_dispatch para simular.
+          DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
         run: python robo_inter.py
