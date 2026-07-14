@@ -5105,8 +5105,8 @@ function rentAbrirLojaMix(idx,dados){
 }
 
 // Botões período (inicializa uma vez no load)
-[['acum','Jan–Jun'],['2026-01','Jan'],['2026-02','Fev'],['2026-03','Mar'],['2026-04','Abr'],['2026-05','Mai'],['2026-06','Jun']].forEach(([p,l])=>{
-  const b=document.createElement('button'); b.className='mb'+(p==='acum'?' on':''); b.textContent=p==='acum'?'Jan–Jun':l+'/26';
+[['acum','Jan–'+MESES[MESES.length-1]],...PERIODOS.map((p,i)=>[p,MESES[i]])].forEach(([p,l])=>{
+  const b=document.createElement('button'); b.className='mb'+(p==='acum'?' on':''); b.textContent=p==='acum'?l:l+'/26';
   b.addEventListener('click',()=>{
     _rentPeriodo=p; _rentRedeIdx=null;
     document.querySelectorAll('#rent-period-btns .mb').forEach(x=>x.classList.remove('on')); b.classList.add('on');
