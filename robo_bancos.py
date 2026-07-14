@@ -193,11 +193,11 @@ def snapshot(banco, bol, feitas, fila):
 
 def firestore_db():
     import firebase_admin
-    from firebase_admin import credentials
+    from firebase_admin import credentials, firestore
     sa = json.loads(os.environ["FIREBASE_SERVICE_ACCOUNT"])
     if not firebase_admin._apps:
         firebase_admin.initialize_app(credentials.Certificate(sa))
-    return firebase_admin.firestore.client()
+    return firestore.client()
 
 def main():
     print(f"== Robô Bancos == {HOJE}  DRY_RUN={DRY_RUN}  janela={JANELA_DIAS}d")
