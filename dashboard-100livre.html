@@ -8901,9 +8901,9 @@ try {
     H.forEach(function(fn){
       var bs=[].slice.call(document.querySelectorAll("[onclick]")).filter(function(b){return (b.getAttribute("onclick")||"").indexOf(fn+"(")===0;});
       if(!bs.length)return;
-      var mb=bs.filter(function(b){return /\("[0-9]{4}-[0-9]{2}"\)/.test(b.getAttribute("onclick"));});
+      var mb=bs.filter(function(b){return /\([\x27"][0-9]{4}-[0-9]{2}[\x27"]\)/.test(b.getAttribute("onclick"));});
       if(mb.length){
-        var cs=mb.map(function(b){return (b.getAttribute("onclick").match(/"([0-9]{4}-[0-9]{2})"/)||[])[1];}).sort();
+        var cs=mb.map(function(b){return (b.getAttribute("onclick").match(/[\x27"]([0-9]{4}-[0-9]{2})[\x27"]/)||[])[1];}).sort();
         var last=mb[mb.length-1],an=last,c=cs[cs.length-1];
         while(c<L){c=nx(c);if(cs.indexOf(c)>=0)continue;var e=last.cloneNode(true);e.setAttribute("onclick",fn+"(\x27"+c+"\x27)");e.textContent=lb(c);if(e.id)e.id=nid(last.id,c);e.classList.remove("on","active");e.style.borderColor="var(--border)";e.style.background="var(--bg3)";e.style.color="var(--muted)";an.parentNode.insertBefore(e,an.nextSibling);an=e;cs.push(c);}
       }
