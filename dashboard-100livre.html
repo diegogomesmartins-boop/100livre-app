@@ -8932,5 +8932,97 @@ try {
   setInterval(function(){var n=new Date();if(SLOTS.indexOf(n.getHours())===-1)return;var key=n.toDateString()+"-"+n.getHours();if(key!==lastSlot){lastSlot=key;hardReload();}},60*1000);
 })();
 </script>
+<!-- ===== ABA BANCOS (robô Inter) — instalada por append ===== -->
+<script type="module">
+import { getApp } from './firebase/firebase-app.js';
+import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
+(function(){
+  const db = getFirestore(getApp());
+  const brl = n => 'R$ ' + (Number(n)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // 1) botão de navegação após Investidor
+  const inv = document.querySelector('button.nav-item[onclick*="investidor"]');
+  if (inv && !document.getElementById('nav-bancos')) {
+    const b = document.createElement('button');
+    b.className='nav-item'; b.id='nav-bancos'; b.setAttribute('onclick',"setView('bancos')");
+    b.innerHTML='<span class="nav-dot"></span>Bancos';
+    inv.insertAdjacentElement('afterend', b);
+  }
+  // 2) container da view após view-investidor
+  const invView = document.getElementById('view-investidor');
+  if (invView && !document.getElementById('view-bancos')) {
+    invView.insertAdjacentHTML('afterend', `
+<div id="view-bancos" style="display:none">
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="mb" style="border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)">Inter</button>
+    <button class="mb" style="opacity:.5" disabled>Itaú · em breve</button>
+    <button class="mb" style="opacity:.5" disabled>Santander · em breve</button>
+    <span id="bk-upd" style="margin-left:auto;color:var(--muted);font-size:11px;align-self:center"></span>
+  </div>
+  <div class="kg" id="bk-kpis" style="grid-template-columns:repeat(5,1fr)"></div>
+  <div class="cc" style="margin-top:12px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="mb" id="bk-t-atr" onclick="bkTab('atr')" style="border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)">Atrasados</button>
+      <button class="mb" id="bk-t-prox" onclick="bkTab('prox')">A vencer</button>
+      <span id="bk-tot" style="margin-left:auto;color:var(--muted);font-size:11px;align-self:center"></span>
+    </div>
+    <table class="it" id="bk-table"></table>
+  </div>
+  <div style="color:var(--muted);font-size:11px;margin-top:10px">Somente boletos emitidos no Inter. Atualizado 1×/dia pelo robô (OMIE). Botão Cobrar: cobrança por WhatsApp após sua confirmação (em breve).</div>
+</div>`);
+  }
+  // 3) render lendo Firestore bancos/inter
+  let _bk=null, _bkT='atr';
+  async function renderBancos(){
+    if(!_bk){
+      try{ const s=await getDoc(doc(db,'bancos','inter')); _bk=s.exists()?s.data():{kpi:{},atrasado:[],aVencer:[],updated:'sem dados ainda'}; }
+      catch(e){ _bk={kpi:{},atrasado:[],aVencer:[],updated:'erro: '+e.message}; }
+    }
+    const k=_bk.kpi||{};
+    const u=document.getElementById('bk-upd'); if(u) u.textContent='atualizado '+(_bk.updated||'—')+(_bk.dry_run?' · simulação':'');
+    const kp=document.getElementById('bk-kpis'); if(kp) kp.innerHTML=`
+      <div class="kpi"><div class="kl">Boletos em aberto</div><div class="kv">${brl(k.a_receber)}</div><div class="kd">${k.n_aberto||0} boletos</div></div>
+      <div class="kpi"><div class="kl">A vencer</div><div class="kv" style="color:var(--green)">${brl(k.a_vencer)}</div><div class="kd">${k.n_avencer||0} boletos</div></div>
+      <div class="kpi"><div class="kl">Atrasado · cobrar</div><div class="kv" style="color:var(--red)">${brl(k.vencido)}</div><div class="kd">${k.n_vencido||0} atrasados</div></div>
+      <div class="kpi"><div class="kl">Pagos (período)</div><div class="kv">${brl(k.pago_v)}</div><div class="kd">${k.pago_n||0} boletos</div></div>
+      <div class="kpi"><div class="kl">Baixas do robô</div><div class="kv" style="color:var(--blue)">${k.baixa_feita||0}</div><div class="kd">fila: ${k.baixa_fila||0}</div></div>`;
+    bkTab(_bkT);
+  }
+  function bkTab(t){
+    _bkT=t;
+    const a=document.getElementById('bk-t-atr'), p=document.getElementById('bk-t-prox');
+    if(a) a.style.cssText=t==='atr'?'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)':'';
+    if(p) p.style.cssText=t==='prox'?'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)':'';
+    const rows=(t==='atr'?(_bk.atrasado||[]):(_bk.aVencer||[]));
+    const prazo=r=>r.dias>0?`<span class="badge br">${r.dias}d atraso</span>`:r.dias===0?`<span class="badge ba">vence hoje</span>`:`<span class="badge bg">vence em ${-r.dias}d</span>`;
+    const tb=document.getElementById('bk-table');
+    if(tb) tb.innerHTML=`<thead><tr><th>Cliente</th><th>NF</th><th>Prazo</th><th style="text-align:right">Valor</th><th style="text-align:right">Ação</th></tr></thead><tbody>`+
+      rows.map(r=>`<tr><td>${r.cliente}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar('${(r.cliente||'').replace(/'/g,'')}',${r.valor},${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
+    const tt=document.getElementById('bk-tot'); if(tt) tt.textContent=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0));
+  }
+  function bkCobrar(cli,val,nf){ alert('Cobrança WhatsApp (em breve)\n\n'+cli+'\nNF '+nf+' · '+brl(val)+'\n\nEnvia a mensagem — somente após sua confirmação.'); }
+  window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar;
+  // 4) wrap setView p/ tratar 'bancos'
+  function install(){
+    if(typeof window.setView!=='function'){ return setTimeout(install,300); }
+    const _sv=window.setView;
+    window.setView=function(v){
+      _sv(v);
+      const vb=document.getElementById('view-bancos'); if(!vb) return;
+      if(v==='bancos'){
+        vb.style.display='';
+        const mb=document.getElementById('mbar'); if(mb) mb.style.display='none';
+        const t=document.getElementById('page-title'), s=document.getElementById('page-sub');
+        if(t) t.textContent='Bancos & Cobrança';
+        if(s) s.textContent='Boletos Inter · a vencer · vencidos · baixa automática (OMIE)';
+        document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+        const nb=document.getElementById('nav-bancos'); if(nb) nb.classList.add('active');
+        renderBancos();
+      } else { vb.style.display='none'; }
+    };
+  }
+  install();
+})();
+</script>
+
 </body>
 </html>
