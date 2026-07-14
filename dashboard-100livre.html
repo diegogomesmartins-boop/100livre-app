@@ -8981,7 +8981,7 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     <div style="color:var(--muted);font-size:11px;margin:12px 0 4px">Mensagem</div>
     <textarea id="bk-m-msg" rows="11" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:inherit;font-size:13px;line-height:1.5;resize:vertical"></textarea>
     <div style="display:flex;gap:8px;margin-top:14px;align-items:center">
-      <button class="mb" id="bk-m-go" onclick="bkEnviar()" style="border-color:rgba(29,158,117,.4);background:rgba(29,158,117,.15);color:var(--green);font-weight:600">Abrir WhatsApp</button>
+      <a class="mb" id="bk-m-go" href="#" target="_blank" rel="noopener" onclick="return bkEnviar()" style="border-color:rgba(29,158,117,.4);background:rgba(29,158,117,.15);color:var(--green);font-weight:600;text-decoration:none;display:inline-block;padding:6px 12px;border-radius:8px;border-width:1px;border-style:solid;cursor:pointer">Abrir WhatsApp</a>
       <span style="color:var(--muted);font-size:11px">abre a conversa com a mensagem pronta — você confere e aperta enviar</span>
     </div>
   </div>
@@ -9071,18 +9071,34 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
       ? 'Sem telefone no cadastro do OMIE — digite o número antes de enviar.'
       : 'O número do cadastro parece errado ('+f.aviso+'). Confira antes de enviar.'; }
     document.getElementById('bk-modal').style.display='flex';
+    bkLink();
+  }
+  // mantem o href do link sempre sincronizado com o campo e a mensagem
+  function bkLink(){
+    const a=document.getElementById('bk-m-go'); if(!a) return;
+    const f=bkFone((document.getElementById('bk-m-tel')||{}).value);
+    const msg=(document.getElementById('bk-m-msg')||{}).value||'';
+    const valido = f.e164 && f.e164.length>=12;
+    a.href = valido ? 'https://wa.me/'+f.e164+'?text='+encodeURIComponent(msg) : '#';
+    a.style.opacity = valido ? '1' : '.45';
+    a.title = valido ? 'Abre wa.me/'+f.e164 : 'Número incompleto — use DDD + 9 dígitos';
   }
   function bkFechar(){ const m=document.getElementById('bk-modal'); if(m) m.style.display='none'; }
+  // chamado no clique do <a>: se retornar false, o link nao navega
   function bkEnviar(){
-    const f=bkFone(document.getElementById('bk-m-tel').value);
-    if(!f.e164 || f.e164.length<12){ alert('Número inválido. Use DDD + 9 dígitos, ex.: 11 91234-5678'); return; }
-    if(!f.ok && !confirm('O número não parece um celular válido ('+f.aviso+').\n\nAbrir o WhatsApp mesmo assim?')) return;
-    const url='https://wa.me/'+f.e164+'?text='+encodeURIComponent(document.getElementById('bk-m-msg').value);
-    window.open(url,'_blank');
+    bkLink();
+    const f=bkFone((document.getElementById('bk-m-tel')||{}).value);
+    if(!f.e164 || f.e164.length<12){
+      const w=document.getElementById('bk-m-warn');
+      if(w){ w.style.display=''; w.textContent='Número incompleto. Use DDD + 9 dígitos, ex.: 11 91234-5678'; }
+      return false;                       // nao abre
+    }
     if(_bkAtual){ try{ localStorage.setItem('bk_cob_'+_bkB+'_'+_bkAtual.nf,new Date().toISOString().slice(0,10)); }catch(e){} }
-    bkFechar(); bkTab(_bkT);
+    setTimeout(function(){ bkFechar(); bkTab(_bkT); },100);
+    return true;                          // deixa o link abrir a aba
   }
-  window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco;
+  window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco; window.bkLink=bkLink;
+  document.addEventListener('input',function(e){ if(e.target && (e.target.id==='bk-m-tel'||e.target.id==='bk-m-msg')) bkLink(); });
   window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado;
   // 4) wrap setView p/ tratar 'bancos'
   function install(){
