@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>100% Livre — Dashboard</title>
 <meta name="build-stamp" content="2026-07-14T11:55:34Z">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -8878,6 +8881,20 @@ try {
       document.getElementById('dev-modal-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#E24B4A">Erro: '+e.message+'</td></tr>';
     });
   };
+})();
+</script>
+
+<!-- cache-busting_100livre : auto-atualizacao 06h/20h -->
+<script>
+(function(){
+  var REFRESH_MS=60*60*1000;
+  var SLOTS=[6,20];
+  var loadedAt=Date.now();
+  var lastSlot="";
+  function hardReload(){try{var u=new URL(window.location.href);u.searchParams.set("v",Date.now());window.location.replace(u.toString());}catch(e){window.location.reload();}}
+  setInterval(function(){if(Date.now()-loadedAt>=REFRESH_MS&&document.hidden)hardReload();},60*1000);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-loadedAt>REFRESH_MS)hardReload();});
+  setInterval(function(){var n=new Date();if(SLOTS.indexOf(n.getHours())===-1)return;var key=n.toDateString()+"-"+n.getHours();if(key!==lastSlot){lastSlot=key;hardReload();}},60*1000);
 })();
 </script>
 </body>
