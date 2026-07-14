@@ -8953,8 +8953,8 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     invView.insertAdjacentHTML('afterend', `
 <div id="view-bancos" style="display:none">
   <div style="display:flex;gap:8px;margin-bottom:14px">
-    <button class="mb" style="border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)">Inter</button>
-    <button class="mb" style="opacity:.5" disabled>Itaú · em breve</button>
+    <button class="mb" id="bk-b-inter" onclick="bkBanco('inter')" style="border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)">Inter</button>
+    <button class="mb" id="bk-b-itau" onclick="bkBanco('itau')">Itaú</button>
     <button class="mb" style="opacity:.5" disabled>Santander · em breve</button>
     <span id="bk-upd" style="margin-left:auto;color:var(--muted);font-size:11px;align-self:center"></span>
   </div>
@@ -8967,16 +8967,23 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     </div>
     <table class="it" id="bk-table"></table>
   </div>
-  <div style="color:var(--muted);font-size:11px;margin-top:10px">Somente boletos emitidos no Inter. Atualizado 1×/dia pelo robô (OMIE). Botão Cobrar: cobrança por WhatsApp após sua confirmação (em breve).</div>
+  <div style="color:var(--muted);font-size:11px;margin-top:10px">Somente boletos emitidos (por banco). Atualizado 1×/dia pelo robô (OMIE). Botão Cobrar: cobrança por WhatsApp após sua confirmação (em breve).</div>
 </div>`);
   }
   // 3) render lendo Firestore bancos/inter
-  let _bk=null, _bkT='atr';
+  let _bk=null, _bkT='atr', _bkB='inter', _bkC={};
+  function bkBanco(b){
+    _bkB=b; _bkT='atr';
+    ['inter','itau'].forEach(x=>{ const el=document.getElementById('bk-b-'+x);
+      if(el) el.style.cssText = (x===b) ? 'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)' : ''; });
+    renderBancos();
+  }
   async function renderBancos(){
-    if(!_bk){
-      try{ const s=await getDoc(doc(db,'bancos','inter')); _bk=s.exists()?s.data():{kpi:{},atrasado:[],aVencer:[],updated:'sem dados ainda'}; }
-      catch(e){ _bk={kpi:{},atrasado:[],aVencer:[],updated:'erro: '+e.message}; }
+    if(!_bkC[_bkB]){
+      try{ const s=await getDoc(doc(db,'bancos',_bkB)); _bkC[_bkB]=s.exists()?s.data():{kpi:{},atrasado:[],aVencer:[],updated:'sem dados ainda'}; }
+      catch(e){ _bkC[_bkB]={kpi:{},atrasado:[],aVencer:[],updated:'erro: '+e.message}; }
     }
+    _bk=_bkC[_bkB];
     const k=_bk.kpi||{};
     const u=document.getElementById('bk-upd'); if(u) u.textContent='atualizado '+(_bk.updated||'—')+(_bk.dry_run?' · simulação':'');
     const kp=document.getElementById('bk-kpis'); if(kp) kp.innerHTML=`
@@ -8996,11 +9003,11 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     const prazo=r=>r.dias>0?`<span class="badge br">${r.dias}d atraso</span>`:r.dias===0?`<span class="badge ba">vence hoje</span>`:`<span class="badge bg">vence em ${-r.dias}d</span>`;
     const tb=document.getElementById('bk-table');
     if(tb) tb.innerHTML=`<thead><tr><th>Cliente</th><th>NF</th><th>Prazo</th><th style="text-align:right">Valor</th><th style="text-align:right">Ação</th></tr></thead><tbody>`+
-      rows.map(r=>`<tr><td>${r.cliente}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar('${(r.cliente||'').replace(/'/g,'')}',${r.valor},${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
+      rows.map(r=>`<tr><td>${r.cliente}${r.tel?'':' <span class="badge ba" style="opacity:.7">sem telefone</span>'}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar('${(r.cliente||'').replace(/'/g,'')}',${r.valor},${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
     const tt=document.getElementById('bk-tot'); if(tt) tt.textContent=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0));
   }
   function bkCobrar(cli,val,nf){ alert('Cobrança WhatsApp (em breve)\n\n'+cli+'\nNF '+nf+' · '+brl(val)+'\n\nEnvia a mensagem — somente após sua confirmação.'); }
-  window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar;
+  window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco;
   // 4) wrap setView p/ tratar 'bancos'
   function install(){
     if(typeof window.setView!=='function'){ return setTimeout(install,300); }
@@ -9013,7 +9020,7 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
         const mb=document.getElementById('mbar'); if(mb) mb.style.display='none';
         const t=document.getElementById('page-title'), s=document.getElementById('page-sub');
         if(t) t.textContent='Bancos & Cobrança';
-        if(s) s.textContent='Boletos Inter · a vencer · vencidos · baixa automática (OMIE)';
+        if(s) s.textContent='Boletos por banco · a vencer · vencidos · baixa automática (OMIE)';
         document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
         const nb=document.getElementById('nav-bancos'); if(nb) nb.classList.add('active');
         renderBancos();

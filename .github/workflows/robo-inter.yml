@@ -10,6 +10,9 @@ on:
       dry_run:
         description: "1 = simula (não baixa) | 0 = baixa de verdade"
         default: "0"
+      itau_baixa:
+        description: "Itaú: 1 = também baixa | 0 = só painel"
+        default: "0"
 
 permissions:
   contents: read
@@ -29,6 +32,9 @@ jobs:
           OMIE_APP_SECRET:         ${{ secrets.OMIE_APP_SECRET }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           INTER_CC: "1972977169"
+          ITAU_CC:  "1973103311"
+          INTER_BAIXA: "1"
+          ITAU_BAIXA:  ${{ github.event.inputs.itau_baixa || '0' }}
           # BAIXAS ATIVAS (0). Use "1" no workflow_dispatch para simular.
           DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
-        run: python robo_inter.py
+        run: python robo_bancos.py
