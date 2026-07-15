@@ -45,6 +45,13 @@ Nada roda na sua máquina. Se o computador desligar, o robô continua.
 
 ---
 
+## Regras completas
+
+**[REGRAS_BAIXA_CONCILIACAO_OMIE.md](REGRAS_BAIXA_CONCILIACAO_OMIE.md)** é a fonte
+única: o que a API do OMIE faz e não faz (com as evidências), regras de match,
+juros/multa, o portão anti-cobrança-indevida, as armadilhas que custaram tempo e
+as pendências reais. Leia antes de mexer no robô.
+
 ## A regra de escopo (importante)
 
 O painel usa **apenas boletos emitidos** — no OMIE: `boleto.cGerado == "S"`,
