@@ -128,6 +128,31 @@ def todos_boletos():
 
 ABERTO = ("A VENCER", "ATRASADO", "VENCE HOJE")
 
+# ── 2a. 2ª via do boleto (link + linha digitável) ──────────────────
+def fmt_linha(c):
+    """cCodBarras vem com 47 dígitos = linha digitável. Formata para leitura."""
+    d = "".join(ch for ch in (c or "") if ch.isdigit())
+    if len(d) != 47: return d
+    return f"{d[0:5]}.{d[5:10]} {d[10:15]}.{d[15:21]} {d[21:26]}.{d[26:32]} {d[32]} {d[33:47]}"
+
+def enriquecer_boletos(rows, nome):
+    """Busca link/linha só dos ATRASADOS (são os que vão para cobrança).
+    Chamada por título — cuidado com o rate limit do OMIE."""
+    ok = 0
+    for r in rows:
+        try:
+            j = omie("financas/contareceberboleto", "ObterBoleto", {"nCodTitulo": r["cod"]})
+            link = (j.get("cLinkBoleto") or "").strip()
+            linha = fmt_linha(j.get("cCodBarras"))
+            if link:  r["link"]  = link
+            if linha: r["linha"] = linha
+            if link or linha: ok += 1
+        except Exception as e:
+            r["boleto_erro"] = str(e)[:60]
+        time.sleep(0.5)
+    print(f"   [{nome}] 2ª via obtida: {ok}/{len(rows)} atrasados")
+    return rows
+
 # ── 2b. fila de conciliação ────────────────────────────────────────
 def a_conciliar(cc, nome):
     """Movimentos de baixa de contas a receber (BAXR) sem data de conciliação.
@@ -218,7 +243,7 @@ def snapshot(banco, bol, feitas, fila, pg, conc):
             continue
         item = {"nf": b["nf"], "cliente": (nm.get(b["cli"]) or {}).get("nome") or f"Cliente {b['cli']}",
                 "tel": (nm.get(b["cli"]) or {}).get("tel") or "", "valor": round(b["valor"], 2),
-                "venc": b["venc"], "dias": dias(b["venc"]), "nosso": b["nosso"]}
+                "venc": b["venc"], "dias": dias(b["venc"]), "nosso": b["nosso"], "cod": b["cod"]}
         p = pg.get(b["nf"])
         if p:                      # crédito existe -> falso atrasado, NÃO cobrar
             bloqueados.append({**item, "pago_em": p.get("data"), "pago_valor": p.get("valor"),
@@ -229,6 +254,7 @@ def snapshot(banco, bol, feitas, fila, pg, conc):
         print(f"   PORTÃO: {len(bloqueados)} título(s) fora da cobrança (já têm crédito no extrato): "
               + ", ".join(f"NF {x['nf']}" for x in bloqueados[:8]))
     atrasado = sorted([a for a in abertos if a["dias"] > 0], key=lambda x: -x["dias"])
+    enriquecer_boletos(atrasado, banco["nome"])          # 2ª via só de quem vai ser cobrado
     avencer  = sorted([a for a in abertos if a["dias"] <= 0], key=lambda x: x["dias"])
     pagos    = [b for b in bol if b["status"] == "RECEBIDO"]
     s = lambda arr: round(sum(x["valor"] for x in arr), 2)

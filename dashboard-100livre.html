@@ -9421,9 +9421,9 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
             `O boleto da NF ${r.nf}, no valor de ${v}, ${prazo}.\n\n`+
             `Se você já pagou, me envia o comprovante? Assim eu dou baixa e não te incomodo mais.\n\n`;
     if(r.link || r.linha){
-      m += `Se ainda não, segue o boleto para pagamento:\n`;
+      m += `Se ainda não, segue a 2ª via do boleto:\n`;
       if(r.link)  m += `${r.link}\n`;
-      if(r.linha) m += `Linha digitável: ${r.linha}\n`;
+      if(r.linha) m += `\nOu copie a linha digitável:\n${r.linha}\n`;
       m += `\n`;
     } else {
       m += `Se ainda não, me avisa que te mando a 2ª via.\n\n`;
