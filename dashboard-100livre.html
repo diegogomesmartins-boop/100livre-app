@@ -2166,7 +2166,7 @@ function openEbitdaModal() {
       <span style="font-size:14px;font-weight:700">EBITDA Competência</span>
       <span style="font-family:'DM Mono',monospace;color:${ebitdaComp>=0?'#1D9E75':'#E24B4A'};font-size:16px;font-weight:700">${fmtF(ebitdaComp)}</span>
     </div>
-      ${    ${(()=>{
+      ${(()=>{
       const antec=d.dre.antecipacoes_extrato||0;
       const gapCx=ebitdaCaixa-ebitdaComp;
       const gapNF=d.fat-(d.dre.receita_liquida||0);
