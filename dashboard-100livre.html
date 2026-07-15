@@ -631,7 +631,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
     <!-- Sub-view: Por Produto -->
     <div id="rent-view-produto" style="display:none">
       <div class="cc">
-        <div class="ct">Por Família <span id="rent-prod-period-label" style="color:#378ADD"></span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div class="ct" style="margin-bottom:0">Por produto <span id="rent-prod-period-label" style="color:#378ADD"></span></div>
+          <div style="display:flex;gap:6px">
+            <button class="mb on" id="pg-familia" onclick="_setRentProdView('familia')" style="font-size:11px;padding:3px 9px">Família</button>
+            <button class="mb"    id="pg-sku"     onclick="_setRentProdView('sku')"    style="font-size:11px;padding:3px 9px">SKU</button>
+          </div>
+        </div>
         <div style="overflow-x:auto">
           <table class="it"><thead><tr>
             <th>Família</th><th style="text-align:right">Kg</th>
@@ -643,6 +649,19 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
           <tbody id="rent-prod-tbody"></tbody><tfoot id="rent-prod-tfoot"></tfoot></table>
         </div>
       </div>
+      <!-- Granel x Caixa comparison (SKU view only) -->
+      <div class="cc" id="rent-granelcx-card" style="display:none;margin-top:10px">
+        <div class="ct">Granel vs Caixa — R$/kg real por espécie</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Prêmio de embalagem: CX (caixa 6×200g) vs UN (granel). Receita real após devoluções e descontos.</div>
+        <table class="it" style="width:100%;font-size:12px"><thead><tr>
+          <th>Espécie</th>
+          <th style="text-align:right;color:#7F77DD">UN granel</th>
+          <th style="text-align:right;color:#378ADD">CX</th>
+          <th style="text-align:right">Prêmio/kg</th>
+          <th style="text-align:right">Prêmio %</th>
+        </tr></thead><tbody id="rent-granelcx-tbody"></tbody></table>
+      </div>
+
       <div class="cc" id="rent-familia-section" style="display:none;margin-top:10px">
         <div class="ct" style="display:flex;justify-content:space-between;align-items:center">
           <span id="rent-familia-title">Família</span><button id="rent-btn-fechar-familia" class="mb">✕</button>
@@ -4617,6 +4636,7 @@ const rentFmtR2 = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractio
 
 let _rentPeriodo='acum', _rentSort='receita', _rentFatC={}, _rentDevC={}, _rentPplC={}, _rentDados=[], _rentRedeIdx=null, _rentOutrosC=[];
 let _rentSubView='rede', _rentFamIdx=null, _rentLojaIdx=null;
+let _rentProdGranView='familia';
 let _rentLojaFiltroRede='Todas', _rentLojaFiltroVendedor='Todos';
 let _rentLojasDados=[], _rentFamDados=[];
 
@@ -4688,7 +4708,43 @@ function rentClassifyFamilia(prod) {
   const key = classificarFamilia(prod);
   return FAMILIAS_PRODUTO[key]?.label || 'Outros';
 }
-function rentEstimKg(prod,qtd,unid){const u=(unid||'').toUpperCase(),p=(prod||'').toUpperCase();if(u==='KG')return qtd;const mult=u==='CX'?6:1;const kg=p.includes('500G')?0.5:p.includes('1KG')||p.includes('1 KG')?1.0:p.includes('MORANGO')?0.3:0.2;return qtd*mult*kg;}
+function rentEstimKg(prod,qtd,unid){
+  const u=(unid||'').toUpperCase(),p=(prod||'').toUpperCase();
+  if(u==='KG')return qtd;
+  const mult=u==='CX'?6:1;
+  let kg=0.2;
+  if(p.includes('500G'))kg=0.5;
+  else if(p.includes('1KG')||p.includes('1 KG'))kg=1.0;
+  else if(p.includes('300G'))kg=0.3;
+  else if(p.includes('MORANGO')||p.includes('STRAWBERRY'))kg=0.3;
+  return qtd*mult*kg;
+}
+function rentNormalizeSKU(prod,unid){
+  const p=(prod||'').toUpperCase(),u=(unid||'').toUpperCase();
+  let esp='Outros';
+  if(p.includes('PARIS'))esp='Paris';
+  else if(p.includes('PORTOBELLO'))esp='Portobello';
+  else if(p.includes('SALMAO')||p.includes('SALMON'))esp='Shimeji Salmao';
+  else if(p.includes('PRETO'))esp='Shimeji Preto';
+  else if(p.includes('SHIMEJI')||p.includes('SHIMEJ'))esp='Shimeji Branco';
+  else if(p.includes('SHIITAKE')||p.includes('SHITAKE')||p.includes('SHIIT'))esp='Shiitake';
+  else if(p.includes('MORANGO')||p.includes('STRAWBERRY'))esp='Morango';
+  else if(p.includes('TABACO')||p.includes('TOBACCO'))esp='Tabaco';
+  let canal='';
+  if(p.includes('QUALITA')||p.includes('QUALITA'))canal='Qualita';
+  else if(p.includes('MEMBERS MARK')||p.includes('MEMBER'))canal='Members Mark';
+  else if(p.includes('ORGANICO')||p.includes('ORGANIC'))canal='Organico';
+  else if(p.includes(' BIO ')||p.startsWith('BIO '))canal='Bio';
+  else if(p.includes('FATIADO'))canal='Fatiado';
+  let emb='UN',pesoUnit=0.2;
+  if(u==='CX'){emb='CX';pesoUnit=0.2;}
+  else if(u==='KG'){emb='KG';pesoUnit=1;}
+  else if(p.includes('500G')){pesoUnit=0.5;}
+  else if(p.includes('1KG')||p.includes('1 KG')){pesoUnit=1.0;}
+  else if(p.includes('300G')){pesoUnit=0.3;}
+  const parts=[esp,canal||null,emb!=='UN'?emb:null].filter(Boolean);
+  return{label:parts.join(' '),especie:esp,canal,emb,pesoUnit};
+}
 function rentGetVendedor(rede){if(['GPA',"SAM'S",'SONDA'].includes(rede))return'Anderson';if(['CARREFOUR','MAMBO','HIROTA'].includes(rede))return'Lucas';if(['ZONA SUL','DIA','RESTAURANTES'].includes(rede))return'Julia';return'—';}
 
 async function rentLoadFat(ps){for(const p of ps.filter(x=>!_rentFatC[x])){try{const d=await getDoc(doc(db,'faturamento_mensal',p));_rentFatC[p]=d.exists()?d.data():null;rentLog('fat '+p+': '+(d.exists()?Object.keys((d.data().por_cliente||{})).length+' clientes':'vazio'));}catch(e){rentLog('ERR fat '+p);_rentFatC[p]=null;}}}
@@ -4909,9 +4965,20 @@ async function renderRentabilidade(){
     const eNote=document.getElementById('rent-einstein-note');
     if(eNote) eNote.style.display=_rentDados.some(r=>r.rede==='EINSTEIN')&&_rentDados.find(r=>r.rede==='EINSTEIN')?.fat_bruto>0?'':'none';
   } else if(_rentSubView==='produto'){
-    renderRentPorProduto(lbl);
+    if(_rentProdGranView==='sku') renderRentPorSKU(lbl); else renderRentPorProduto(lbl);
   } else if(_rentSubView==='loja'){
     renderRentPorLoja(lbl);
+  }
+}
+
+function _setRentProdView(v){
+  _rentProdGranView=v;
+  ['familia','sku'].forEach(k=>{const b=document.getElementById('pg-'+k);if(b)b.classList.toggle('on',k===v);});
+  const gxc=document.getElementById('rent-granelcx-card');
+  if(gxc)gxc.style.display=(v==='sku'?'':'none');
+  if(_rentSubView==='produto'){
+    const lbl=(document.getElementById('rent-prod-period-label').textContent||'').replace(/^[—\s]+/,'');
+    if(v==='sku') renderRentPorSKU(lbl); else renderRentPorProduto(lbl);
   }
 }
 
@@ -4957,6 +5024,102 @@ function rentAbrirOutros(){
     <td style="text-align:right">${rentFmtR(c.fat_bruto)}</td><td style="text-align:right;color:var(--muted)">${c.nfs}</td>
   </tr>`).join('');
   document.getElementById('rent-outros-section').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function rentAgregarPorSKU(periods){
+  const skus={};
+  const gs=key=>{if(!skus[key])skus[key]={label:key,especie:'',canal:'',emb:'',fat_bruto:0,valor_dev:0,kg:0,qtd_un:0,por_rede:{}};return skus[key];};
+  for(const p of periods){
+    for(const row of(_rentPplC[p]||[])){
+      const cn14=rentNormCNPJ(row.cliente_cnpj);
+      if(rentDeveExcluir(cn14,row.cliente_nome))continue;
+      const rede=rentGetRede(row.cliente_nome||'',cn14);
+      const sku=rentNormalizeSKU(row.produto,row.unidade);
+      const kg=rentEstimKg(row.produto,row.quantidade_vendida||0,row.unidade);
+      const val=row.valor_vendido||0;
+      const pf=(row.pct_devolucao||0)/100;
+      const dev=row.valor_devolvido>0?row.valor_devolvido:val*pf;
+      const qtdUn=(row.unidade||'').toUpperCase()==='CX'?(row.quantidade_vendida||0)*6:(row.quantidade_vendida||0);
+      const s=gs(sku.label);
+      s.especie=sku.especie; s.canal=sku.canal; s.emb=sku.emb;
+      s.fat_bruto+=val; s.valor_dev+=dev; s.kg+=kg; s.qtd_un+=qtdUn;
+      if(!s.por_rede[rede])s.por_rede[rede]={rede,fat_bruto:0,valor_dev:0,kg:0,qtd_un:0};
+      s.por_rede[rede].fat_bruto+=val; s.por_rede[rede].valor_dev+=dev;
+      s.por_rede[rede].kg+=kg; s.por_rede[rede].qtd_un+=qtdUn;
+    }
+  }
+  return Object.values(skus).map(s=>{
+    const descP=s.fat_bruto>0?Object.values(s.por_rede).reduce((acc,r)=>acc+r.fat_bruto*rentGetDesconto(r.rede),0)/s.fat_bruto:0;
+    const fat_liq=Math.max(0,s.fat_bruto-s.valor_dev);
+    const receita=fat_liq*(1-descP);
+    const rkg_bruto=s.kg>0?s.fat_bruto/s.kg:null;
+    const rkg_real=s.kg>0?receita/s.kg:null;
+    return{...s,receita,fat_liq,desc_ponderado:descP,rkg_bruto,rkg_real,por_rede:Object.values(s.por_rede)};
+  }).sort((a,b)=>b.fat_bruto-a.fat_bruto);
+}
+
+function renderRentPorSKU(lbl){
+  document.getElementById('rent-prod-period-label').textContent='\u2014 '+lbl;
+  const skuData=rentAgregarPorSKU(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo]);
+  const tb=document.getElementById('rent-prod-tbody');
+  if(!skuData.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
+  const thead=tb.closest('table').querySelector('thead tr');
+  if(thead)thead.innerHTML='<th>SKU</th><th>Emb.</th><th style="text-align:right">Kg</th><th style="text-align:right">Fat. Bruto</th><th style="text-align:right">R$/kg bruto</th><th style="text-align:right">Dev R$</th><th style="text-align:right">% Dev</th><th style="text-align:right">Receita Real</th><th style="text-align:right">R$/kg real</th>';
+  tb.innerHTML=skuData.map((s,i)=>{
+    const pct_dev=s.fat_bruto>0?s.valor_dev/s.fat_bruto:0;
+    const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
+    const embTag=s.emb==='CX'?'<span style="font-size:9px;background:rgba(55,138,221,.2);color:#378ADD;border-radius:3px;padding:1px 5px">CX</span>':s.emb==='KG'?'<span style="font-size:9px;background:rgba(127,119,221,.15);color:#7F77DD;border-radius:3px;padding:1px 5px">KG</span>':'<span style="font-size:9px;background:rgba(29,158,117,.15);color:#1D9E75;border-radius:3px;padding:1px 5px">UN</span>';
+    return`<tr style="cursor:pointer" data-sku-idx="${i}">`
+      +`<td style="font-weight:500">${s.label}</td>`
+      +`<td>${embTag}</td>`
+      +`<td style="text-align:right;color:var(--muted)">${Math.round(s.kg).toLocaleString('pt-BR')}</td>`
+      +`<td style="text-align:right">${rentFmtR(s.fat_bruto)}</td>`
+      +`<td style="text-align:right;color:#b0afaa">${s.rkg_bruto!=null?rentFmtR2(s.rkg_bruto)+'/kg':'\u2014'}</td>`
+      +`<td style="text-align:right;color:#E24B4A">${s.valor_dev>0?rentFmtR(s.valor_dev):'\u2014'}</td>`
+      +`<td style="text-align:right;color:${dcol}">${(pct_dev*100).toFixed(1)}%</td>`
+      +`<td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(s.receita)}</td>`
+      +`<td style="text-align:right;color:#f0f0ef">${s.rkg_real!=null?rentFmtR2(s.rkg_real)+'/kg':'\u2014'}</td>`
+      +'</tr>';
+  }).join('');
+  // Granel x Caixa
+  const byEsp={};
+  skuData.forEach(s=>{
+    if(!byEsp[s.especie])byEsp[s.especie]={esp:s.especie,cx:null,un:null};
+    if(s.emb==='CX'&&!byEsp[s.especie].cx)byEsp[s.especie].cx=s;
+    else if((s.emb==='UN'||s.emb==='KG')&&!byEsp[s.especie].un)byEsp[s.especie].un=s;
+  });
+  const pares=Object.values(byEsp).filter(e=>e.cx&&e.un).sort((a,b)=>a.esp.localeCompare(b.esp,'pt-BR'));
+  const gxcEl=document.getElementById('rent-granelcx-card');
+  if(pares.length>0&&gxcEl){
+    gxcEl.style.display='';
+    document.getElementById('rent-granelcx-tbody').innerHTML=pares.map(e=>{
+      const cx=e.cx,un=e.un;
+      const prem=cx.rkg_real!=null&&un.rkg_real!=null?cx.rkg_real-un.rkg_real:null;
+      const premPct=prem!=null&&un.rkg_real>0?prem/un.rkg_real*100:null;
+      const col=prem>0?'#1D9E75':prem<0?'#E24B4A':'var(--muted)';
+      return`<tr>`
+        +`<td style="font-weight:500">${e.esp}</td>`
+        +`<td style="text-align:right;color:#7F77DD">${un.rkg_real!=null?rentFmtR2(un.rkg_real)+'/kg':'\u2014'}</td>`
+        +`<td style="text-align:right;color:#378ADD">${cx.rkg_real!=null?rentFmtR2(cx.rkg_real)+'/kg':'\u2014'}</td>`
+        +`<td style="text-align:right;font-weight:700;color:${col}">${prem!=null?(prem>=0?'+':'')+rentFmtR2(prem)+'/kg':'\u2014'}</td>`
+        +`<td style="text-align:right;color:${col}">${premPct!=null?(premPct>=0?'+':'')+premPct.toFixed(1)+'%':'\u2014'}</td>`
+        +'</tr>';
+    }).join('');
+  } else if(gxcEl){gxcEl.style.display='none';}
+  // Totals
+  const t=skuData.reduce((a,s)=>({fb:a.fb+s.fat_bruto,dv:a.dv+s.valor_dev,rc:a.rc+s.receita,kg:a.kg+s.kg}),{fb:0,dv:0,rc:0,kg:0});
+  const tf=document.getElementById('rent-prod-tfoot');
+  if(tf)tf.innerHTML=`<tr style="font-weight:600;border-top:2px solid var(--border2)"><td colspan="2">TOTAL</td><td style="text-align:right;color:var(--muted)">${Math.round(t.kg).toLocaleString('pt-BR')}</td><td style="text-align:right;color:#378ADD">${rentFmtR(t.fb)}</td><td></td><td style="text-align:right;color:#E24B4A">${rentFmtR(t.dv)}</td><td style="text-align:right">${t.fb>0?(t.dv/t.fb*100).toFixed(1):'0.0'}%</td><td style="text-align:right;color:#1D9E75">${rentFmtR(t.rc)}</td><td style="text-align:right;color:#f0f0ef">${t.kg>0?rentFmtR2(t.rc/t.kg)+'/kg':'\u2014'}</td></tr>`;
+  tb.querySelectorAll('tr[data-sku-idx]').forEach(tr=>tr.addEventListener('click',()=>{
+    const s=skuData[+tr.dataset.skuIdx];
+    const sec=document.getElementById('rent-familia-section');
+    document.getElementById('rent-familia-title').textContent=s.label+' \u2014 redes';
+    document.getElementById('rent-familia-tbody').innerHTML=s.por_rede.map(r=>{
+      const desc_r=rentGetDesconto(r.rede),rc_r=Math.max(0,r.fat_bruto-r.valor_dev)*(1-desc_r);
+      return`<tr><td style="font-weight:500;color:${RENT_CORES[r.rede]||'var(--text)'}">${r.rede}</td><td style="text-align:right">${rentFmtR(r.fat_bruto)}</td><td style="text-align:right;color:#E24B4A">${r.valor_dev>0?rentFmtR(r.valor_dev):'\u2014'}</td><td style="text-align:right;color:#1D9E75">${rentFmtR(rc_r)}</td><td style="text-align:right;color:#b0afaa">${r.kg>0?rentFmtR2(rc_r/r.kg)+'/kg':'\u2014'}</td></tr>`;
+    }).join('');
+    if(sec){sec.style.display='';sec.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  }));
 }
 
 function renderRentPorProduto(lbl){
