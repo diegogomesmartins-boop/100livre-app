@@ -5175,7 +5175,7 @@ const ESPECIES_PROD = {
     custo_frete_bloco: 5.75,
     custo_compra_revenda: 27.00,
     custos_compra: { kentisa: 27.60, takoish: 27.00, melhor_fonte: 'Takoish' },
-    preco_venda_real: 43.00,
+    preco_venda_real: 39.25, // NF 36.261 GPA Qualitá: R$59,61/CX ÷ 1,2 × 0,79 = R$39,25/kg líq (recalcular via relatorioPrecoMedioVenda)
     meta_rend: 10,
     lotes: [
       { lote:'CONT 7 (set/25)',  inicio:'15/09/25', substrato:3104, colhido:662.8 },
@@ -5243,7 +5243,7 @@ const ESPECIES_PROD = {
     blocos_por_carga: 400,
     custo_compra_revenda: 15.74,
     custos_compra: { kentisa: 15.74, takoish: 20.00, melhor_fonte: 'Kentisa' },
-    preco_venda_real: 36.64,
+    preco_venda_real: 30.72 // NF 36.261 GPA Qualitá: R$46,65/CX ÷ 1,2 × 0,79 = R$30,72/kg líq,
     meta_rend: 16,
     nota: 'Cassia R$13/bl · Marcelo R$11/bl',
     lotes: [
@@ -5663,16 +5663,30 @@ function prodBuildComparativo() {
     const compraStr = compra > 0
       ? 'R$'+fmt2(compra)+'/kg'+(ep.custos_compra?'<span style="font-size:9px;color:var(--muted)"> (K:'+fmt2(ep.custos_compra.kentisa)+' · T:'+fmt2(ep.custos_compra.takoish)+')</span>':'')
       : '—';
+    // Colheita/kg e Embalagem/kg do simulador para comparativo
+    const extraPropComp = CUSTO_COLHEITA_KG + CUSTO_COMPARTILHADO_KG;
+    const extraCompComp = CUSTO_COMPARTILHADO_KG;
+    const ctotalComp = ckg !== null ? ckg + extraPropComp : null;
+    const custo_compra_total = compra > 0 ? compra + extraCompComp : null;
+    const mpFull = ctotalComp !== null ? venda - ctotalComp : null;
+    const mcFull = custo_compra_total !== null ? venda - custo_compra_total : null;
+    if (ckg !== null && custo_compra_total !== null) {
+      if (ctotalComp < custo_compra_total) { vd='✅ Produzir (+R$'+fmt2(custo_compra_total-ctotalComp)+'/kg)'; vc='#1D9E75'; }
+      else { const be=prodCustoBloco(ep)/(((custo_compra_total-extraCompComp)-CUSTO_COLHEITA_KG)*ep.peso_bloco)*100; vd='⚠ Produzir se >'+fmtPct(be); vc='#EF9F27'; }
+    } else if (compra===0) { vd='✅ Só produção'; vc='#1D9E75'; }
+    else { vd='Custo a definir'; vc='#EF9F27'; }
+    const esp_custo = CUSTO_TOTAL_ESPECIE.find(e => e.especie.toLowerCase().startsWith(ep.nome.toLowerCase().slice(0,4)));
+    const alertaStr = esp_custo?.alerta ? `<div style="font-size:9px;color:#EF9F27;margin-top:2px">${esp_custo.alerta}</div>` : '';
     rows += `<tr>
-      <td style="font-weight:600;cursor:pointer;color:#7F77DD" onclick="setProdEspecie('${key}')">${ep.nome}</td>
+      <td style="font-weight:600;cursor:pointer;color:#7F77DD" onclick="setProdEspecie('${key}')">${ep.nome}${alertaStr}</td>
       <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace">${ts.toLocaleString('pt-BR')} kg</td>
       <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace">${fmt2(tc)} kg</td>
       <td style="text-align:right"><span class="badge ${br}">${fmtPct(rend)}</span></td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;color:${ckgC}">${ckg!==null?'R$'+fmt2(ckg)+'/kg':'a definir'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${ckgC}">${ckg!==null?'R$'+fmt2(ckg)+'/kg <span style="font-size:9px;color:var(--muted)">(+R$'+fmt2(extraPropComp)+' shared)</span>':'a definir'}</td>
       <td style="text-align:right;color:#378ADD;font-family:'DM Mono',monospace;font-size:11px">${compraStr}</td>
       <td style="text-align:right;color:#1D9E75;font-family:'DM Mono',monospace">${fmtR(venda)}/kg</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;color:${mp!==null&&mp>0?'#1D9E75':'#E24B4A'}">${mp!==null?fmtR(mp)+'/kg':'—'}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;color:${mc!==null&&mc>0?'#1D9E75':'#E24B4A'}">${mc!==null?fmtR(mc)+'/kg':'—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${mpFull!==null&&mpFull>0?'#1D9E75':'#E24B4A'}">${mpFull!==null?fmtR(mpFull)+'/kg':'—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${mcFull!==null&&mcFull>0?'#1D9E75':'#E24B4A'}">${mcFull!==null?fmtR(mcFull)+'/kg':'—'}</td>
       <td style="text-align:center;font-size:11px;color:${vc}">${vd}</td>
     </tr>`;
   });
@@ -5760,15 +5774,23 @@ const CUSTOS_FIXOS = {
   referencia_folha: 'Folha Mensal Abr/2026 + DRE_2.xlsx',
 
   equipe: {
-    producao: {
-      pessoas: ['Guilherme Viana','Catia Muniz','Rogério Moreira','Clayton Aparecido','Merisvalda Vieira','Thalis Santos','Gabriel Toaldo'],
-      gross_abr: 24130,
-      pct_folha: 0.297,
-    },
+    // Classificação corrigida Jul/2026 por cargo (fonte: Diego). Controladoria precisa reclassificar.
+    // Nota: "Colheita R$18.586" da Controladoria era na prática EMBALAGEM. Rótulo errado no DRE.
     colheita: {
-      pessoas: ['Carlos José','Daniele Lopes','Erica Ortiz','Juliana Nogueira','Vitor Augusto','Suzana Mendes','Thiago Batista','Marcelo Moreira','Renan Barbosa'],
-      gross_abr: 18728,
-      pct_folha: 0.231,
+      // 7 pessoas — CC cogumelos, Osasco
+      pessoas: ['Carlos José Carvalho dos Santos','Daniele Lopes Pires','Danielly Rosa Teixeira','Kristian Ferreira da Silva','Suzana Mendes de Oliveira','Thais Nicole de Lima da Silva','Thiago Batista da Silva'],
+      gross_media_mes: FOLHA_COLHEITA_MES,
+      custo_kg: CUSTO_COLHEITA_KG,
+    },
+    embalagem: {
+      // 8 pessoas — packing/embalagem, Osasco
+      pessoas: ['Catia Muniz Campos de Lima','Erica Oliveira Ortiz','Gabriel Toaldo Rigolim Nascimento','Guilherme Viana do Valle','Juliana Nogueira do Valle','Merisvalda Vieira da Paixao','Thalis dos Santos Barbosa','Clayton Aparecido de Jesus'],
+      gross_media_mes: FOLHA_EMBALAGEM_MES,
+      custo_kg: CUSTO_EMBALAGEM_KG,
+    },
+    fora_cogumelos: {
+      // Não alocados ao CC cogumelos
+      pessoas: ['Vitor Augusto dos Santos Sousa (Ipiranga)','Marcelo Moreira da Silva (Manutenção → Admin)','Renan Barbosa de Freitas (Manutenção → Admin)','André Luiz Fadel (Agrônomo → desconsiderar)'],
     },
   },
 
@@ -5830,13 +5852,29 @@ const CUSTOS_FIXOS = {
   ],
 };
 
+// Folha constants — auditoria Jul/2026 (classificação por cargo, não Controladoria)
+// Colheita (7 pessoas): Carlos José, Daniele, Danielly, Kristian, Suzana, Thais, Thiago
+// Embalagem (8 pessoas): Catia, Erica, Gabriel, Guilherme, Juliana, Merisvalda, Thalis, Clayton
+const FOLHA_COLHEITA_MES    = 9314.39;    // média comp.03,04,06/2026
+const FOLHA_EMBALAGEM_MES   = 18155.96;   // média comp.03,04,06/2026
+const KG_COLHEITA_MES       = 1438;       // kg próprio/mês média Jan–Jun/26
+const KG_EMBALAGEM_MES      = 8900;       // kg total embalado/mês (próprio + revenda)
+const CUSTO_COLHEITA_KG     = +(FOLHA_COLHEITA_MES / KG_COLHEITA_MES).toFixed(2);    // R$6,48 — só produção própria
+const CUSTO_EMBALAGEM_KG    = +(FOLHA_EMBALAGEM_MES / KG_EMBALAGEM_MES).toFixed(2);  // R$2,04 — todo volume
+const CUSTO_ESTRUTURA_KG    = 7.71;  // energia R$1,75 + aluguel/fixos R$5,96
+const CUSTO_FRETE_KG        = 5.47;  // fretes ÷ 8900 kg (reconciliar contra Omie)
+const CUSTO_COMPARTILHADO_KG = +(CUSTO_EMBALAGEM_KG + CUSTO_ESTRUTURA_KG + CUSTO_FRETE_KG).toFixed(2); // R$15,22
+
+// fixo_colheita = CUSTO_COLHEITA_KG (só produção própria)
+// fixo_producao  = CUSTO_COMPARTILHADO_KG (emb 2.04 + estrutura 7.71 + frete 5.47 = 15.22)
+// Corrigido Jul/2026: fixo_colheita era 58.87 (roster errado ÷ 318 kg/mês). Agora 6.48.
 const CUSTO_TOTAL_ESPECIE = [
-  { especie:'Paris',         tipo:'revenda',          cmv:27.00, fonte_cmv:'Takoish R$27/kg (melhor)',    fixo_colheita:0,     fixo_producao:18.00, total:45.00,  venda_min:35, venda_max:43, margem_min:-10.00, margem_max:-2.00,  status:'critico' },
-  { especie:'Portobello',    tipo:'producao_propria',  cmv:20.84, fonte_cmv:'Substrato próprio',           fixo_colheita:58.87, fixo_producao:30.00, total:109.71, venda_min:40, venda_max:43, margem_min:-69.71, margem_max:-66.71, status:'critico' },
-  { especie:'Shitake',       tipo:'producao_propria',  cmv:13.88, fonte_cmv:'Blocos IWAO',                fixo_colheita:58.87, fixo_producao:30.00, total:102.75, venda_min:43, venda_max:55, margem_min:-59.75, margem_max:-47.75, status:'critico' },
-  { especie:'Shimeji Branco',tipo:'producao_propria',  cmv:12.71, fonte_cmv:'Blocos Cassia/Marcelo',      fixo_colheita:58.87, fixo_producao:30.00, total:101.58, venda_min:35, venda_max:42, margem_min:-66.58, margem_max:-59.58, status:'critico' },
-  { especie:'Shimeji Preto', tipo:'producao_propria',  cmv:12.71, fonte_cmv:'Blocos Cassia/Marcelo',      fixo_colheita:58.87, fixo_producao:30.00, total:101.58, venda_min:50, venda_max:80, margem_min:-51.58, margem_max:-21.58, status:'critico' },
-  { especie:'Shimeji Salmão',tipo:'producao_propria',  cmv:12.71, fonte_cmv:'Blocos Cassia/Marcelo',      fixo_colheita:58.87, fixo_producao:30.00, total:101.58, venda_min:50, venda_max:80, margem_min:-51.58, margem_max:-21.58, status:'critico' },
+  { especie:'Paris',         tipo:'revenda',          cmv:27.00, fonte_cmv:'Takoish R$27/kg (melhor)',  fixo_colheita:0,                  fixo_producao:CUSTO_COMPARTILHADO_KG, total:+(27.00+0+CUSTO_COMPARTILHADO_KG).toFixed(2),                    venda_min:35, venda_max:43, margem_min:+(35-(27.00+CUSTO_COMPARTILHADO_KG)).toFixed(2), margem_max:+(43-(27.00+CUSTO_COMPARTILHADO_KG)).toFixed(2), status:'critico' },
+  { especie:'Portobello',    tipo:'producao_propria', cmv:20.84, fonte_cmv:'Substrato próprio',         fixo_colheita:CUSTO_COLHEITA_KG,  fixo_producao:CUSTO_COMPARTILHADO_KG, total:+(20.84+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG).toFixed(2),    venda_min:40, venda_max:43, margem_min:+(40-(20.84+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), margem_max:+(43-(20.84+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), status:'atencao' },
+  { especie:'Shitake',       tipo:'producao_propria', cmv:13.88, fonte_cmv:'Blocos IWAO',               fixo_colheita:CUSTO_COLHEITA_KG,  fixo_producao:CUSTO_COMPARTILHADO_KG, total:+(13.88+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG).toFixed(2),    venda_min:43, venda_max:55, margem_min:+(43-(13.88+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), margem_max:+(55-(13.88+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), status:'ok' },
+  { especie:'Shimeji Branco',tipo:'producao_propria', cmv:12.71, fonte_cmv:'Blocos Cassia/Marcelo',     fixo_colheita:CUSTO_COLHEITA_KG,  fixo_producao:CUSTO_COMPARTILHADO_KG, total:+(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG).toFixed(2),    venda_min:35, venda_max:42, margem_min:+(35-(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), margem_max:+(42-(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), status:'atencao' },
+  { especie:'Shimeji Preto', tipo:'producao_propria', cmv:12.71, fonte_cmv:'Blocos Cassia/Marcelo',     fixo_colheita:CUSTO_COLHEITA_KG,  fixo_producao:CUSTO_COMPARTILHADO_KG, total:+(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG).toFixed(2),    venda_min:50, venda_max:80, margem_min:+(50-(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), margem_max:+(80-(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), status:'ok' },
+  { especie:'Shimeji Salmão',tipo:'producao_propria', cmv:12.71, fonte_cmv:'Blocos Cassia/Marcelo',     fixo_colheita:CUSTO_COLHEITA_KG,  fixo_producao:CUSTO_COMPARTILHADO_KG, total:+(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG).toFixed(2),    venda_min:50, venda_max:80, margem_min:+(50-(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), margem_max:+(80-(12.71+CUSTO_COLHEITA_KG+CUSTO_COMPARTILHADO_KG)).toFixed(2), status:'ok', alerta:'⚠ Nicho — só Zona Sul compra (9,3% fat., 25 NFs). Não escala sem novo canal.' },
 ];
 
 const CENARIOS_VOLUME = [
@@ -6119,10 +6157,10 @@ function _renderCustoKg() {
       <td style="padding:8px 8px;font-weight:600">${e.especie}</td>
       <td style="padding:8px 8px"><span style="font-size:10px;background:${tipoBg};color:${tipoColor};padding:2px 7px;border-radius:4px">${tipoLbl}</span></td>
       <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:11px">R$${fmt2(e.cmv)}</td>
-      <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:${e.fixo_colheita>0?'#EF9F27':'var(--muted2)'}">
+      <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:${e.fixo_colheita>0?'#EF9F27':'var(--muted2)'}" title="Folha colheita ÷ ${KG_COLHEITA_MES} kg/mês (7 pessoas)">
         ${e.fixo_colheita > 0 ? 'R$'+fmt2(e.fixo_colheita) : '—'}
       </td>
-      <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:#378ADD">R$${fmt2(e.fixo_producao)}</td>
+      <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:#378ADD" title="Emb R$${CUSTO_EMBALAGEM_KG} + Estrutura R$${CUSTO_ESTRUTURA_KG} + Frete R$${CUSTO_FRETE_KG}">R$${fmt2(e.fixo_producao)}</td>
       <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700">R$${fmt2(e.total)}</td>
       <td style="text-align:right;padding:8px;font-size:11px;color:var(--muted)">R$${e.venda_min}–${e.venda_max}</td>
       <td style="text-align:right;padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:${mColor}">${mStr}</td>
