@@ -43,26 +43,34 @@ BANCOS = [
 ]
 
 # ── OMIE API ───────────────────────────────────────────────────────
-def omie(endpoint, call, param):
+def omie(endpoint, call, param, tentativas=5):
+    """Chamada resiliente. IMPORTANTE: o OMIE fica lento e devolve timeout —
+    em 15/07/2026 o run agendado das 6h morreu com TimeoutError porque o except
+    só pegava HTTPError. Timeout NÃO é HTTPError. Pegue OSError também."""
     url  = f"https://app.omie.com.br/api/v1/{endpoint}/"
     body = json.dumps({"call": call, "app_key": OMIE_KEY,
                        "app_secret": OMIE_SECRET, "param": [param]}).encode()
-    for tent in range(4):
+    ultimo = None
+    for tent in range(tentativas):
         req = urllib.request.Request(url, data=body,
                                      headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=120) as r:
                 j = json.loads(r.read().decode())
             if isinstance(j, dict) and j.get("faultstring"):
                 fs = j["faultstring"]
                 if "REDUNDANT" in fs or "sendo executada" in fs:
-                    time.sleep(20); continue
-                raise RuntimeError(fs)
+                    time.sleep(20); ultimo = RuntimeError(fs); continue
+                raise RuntimeError(fs)          # erro de negócio -> não insiste
             return j
-        except urllib.error.HTTPError:
-            if tent == 3: raise
-            time.sleep(5)
-    raise RuntimeError("OMIE indisponível")
+        except (urllib.error.HTTPError, urllib.error.URLError,
+                TimeoutError, OSError, json.JSONDecodeError) as e:
+            ultimo = e
+            espera = 5 * (tent + 1)             # backoff: 5s, 10s, 15s, 20s
+            print(f"   ! {call}: {type(e).__name__} — tentativa {tent+1}/{tentativas}, "
+                  f"aguardando {espera}s")
+            time.sleep(espera)
+    raise RuntimeError(f"OMIE indisponível após {tentativas} tentativas: {ultimo}")
 
 def ddmmaaaa(d): return d.strftime("%d/%m/%Y")
 def parse_dt(s):
