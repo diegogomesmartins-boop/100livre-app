@@ -795,7 +795,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 
     <!-- Histórico de lotes -->
     <div class="cc" style="margin-bottom:12px">
-      <div class="ct" id="prod-lotes-titulo">Histórico de lotes</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="ct" id="prod-lotes-titulo" style="margin-bottom:0">Histórico de lotes</div>
+        <div style="display:flex;gap:6px">
+          <button class="mb on" id="lf-todos"     onclick="_setLoteFilter('todos')"     style="font-size:11px;padding:3px 9px">Todos</button>
+          <button class="mb"    id="lf-ativo"     onclick="_setLoteFilter('ativo')"     style="font-size:11px;padding:3px 9px;color:#378ADD">Ativos</button>
+          <button class="mb"    id="lf-encerrado" onclick="_setLoteFilter('encerrado')" style="font-size:11px;padding:3px 9px;color:#7F77DD">Encerrados</button>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px">
+        ATIVO = início &lt;120 dias · ENCERRADO = ciclo completo (único base comparável) · 💀 = falha (&lt;6% rendimento)
+      </div>
       <div style="overflow-x:auto">
         <table class="it" style="width:100%">
           <thead><tr>
@@ -812,9 +822,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
       </div>
     </div>
 
+    <!-- Bloco Falhas de Ciclo (Part 3) -->
+    <div class="cc" style="margin-bottom:12px" id="prod-falhas-card">
+      <div class="ct">Análise de Falhas — R$ em risco por ciclo</div>
+      <div id="prod-falhas-content" style="font-size:12px;color:var(--muted)">Carregando...</div>
+    </div>
+
     <!-- Comparativo geral por espécie -->
     <div class="cc" id="prod-comparativo-card">
-      <div class="ct">Comparativo por espécie — Produção própria vs Compra</div>
+      <div class="ct">Comparativo por espécie — Produção própria vs Compra <span style="font-size:10px;color:var(--muted)">(custos compartilhados incluídos: emb R$${CUSTO_EMBALAGEM_KG} + struct R$${CUSTO_ESTRUTURA_KG} + frete R$${CUSTO_FRETE_KG})</span></div>
       <div style="overflow-x:auto">
         <table class="it" style="width:100%">
           <thead><tr>
@@ -5294,6 +5310,8 @@ const ESPECIES_PROD = {
 let _prodChart   = null;
 let _prodRendAtual = 15;
 let _prodEspecie = 'paris';
+let _loteStatusFilter = 'todos'; // 'todos'|'ativo'|'encerrado'
+const FALHA_REND_THRESHOLD = 6;   // rendimento < 6% = falha (Part 3)
 
 function prodCustoBloco(ep) {
   if (ep.custo_bloco_pronto !== undefined) {
@@ -5595,6 +5613,25 @@ function prodUpdateChart(rendPct, extraProp, extraComp, ep) {
   });
 }
 
+// Parse DD/MM/YY or DD/MM/YYYY → Date
+function prodParseDate(s) {
+  if (!s) return null;
+  const p = s.split('/');
+  if (p.length < 3) return null;
+  const d = parseInt(p[0]), m = parseInt(p[1]);
+  let y = parseInt(p[2]);
+  if (y < 100) y += (y >= 50 ? 1900 : 2000);
+  return new Date(y, m - 1, d);
+}
+function prodLoteIsAtivo(l) {
+  const dt = prodParseDate(l.inicio);
+  if (!dt) return false;
+  return (Date.now() - dt.getTime()) < 120 * 24 * 60 * 60 * 1000; // < 120 dias
+}
+function prodLoteIsFalha(l) {
+  return l.substrato > 0 && (l.colhido / l.substrato * 100) < FALHA_REND_THRESHOLD;
+}
+
 function prodBuildLotes(ep) {
   if (!ep) ep = ESPECIES_PROD[_prodEspecie];
   const tbody = document.getElementById('prod-lotes-tbody');
@@ -5603,17 +5640,26 @@ function prodBuildLotes(ep) {
   const cb     = prodCustoBloco(ep);
   const compra = ep.custo_compra_revenda;
   const meta   = ep.meta_rend || 15;
-  let rows = '', ts = 0, tc = 0;
+  let rows = '', ts = 0, tc = 0, nFalhas = 0, kgFalha = 0;
   ep.lotes.forEach(l => {
     const rend   = l.colhido/l.substrato*100;
     const ckg    = cb !== null ? cb/(ep.peso_bloco*rend/100) : null;
+    const isAtivo = prodLoteIsAtivo(l);
+    const isFalha = prodLoteIsFalha(l);
+    // Filter by status
+    if (_loteStatusFilter === 'ativo' && !isAtivo) return;
+    if (_loteStatusFilter === 'encerrado' && isAtivo) return;
     ts += l.substrato; tc += l.colhido;
-    const badge  = rend >= meta ? 'bg' : rend >= meta*0.7 ? 'ba' : 'br';
+    if (isFalha) { nFalhas++; kgFalha += l.substrato; }
+    const badge  = isFalha ? 'br' : rend >= meta ? 'bg' : rend >= meta*0.7 ? 'ba' : 'br';
     const ckgStr = ckg !== null ? 'R$'+fmt2(ckg) : '—';
     const ckgCol = ckg !== null ? (compra > 0 && ckg <= compra ? '#1D9E75' : '#EF9F27') : 'var(--muted)';
-    const icon   = ckg !== null && (compra===0||ckg<=compra) ? '✅' : (ckg===null ? '?' : '⚠');
-    rows += `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:11px">${l.lote}</td>
+    const icon   = isFalha ? '💀' : (ckg !== null && (compra===0||ckg<=compra) ? '✅' : (ckg===null ? '?' : '⚠'));
+    const statusTag = isAtivo
+      ? '<span style="font-size:9px;background:rgba(55,138,221,.2);color:#378ADD;border-radius:3px;padding:1px 5px">ATIVO</span>'
+      : '<span style="font-size:9px;background:rgba(127,119,221,.15);color:#7F77DD;border-radius:3px;padding:1px 5px">ENC.</span>';
+    rows += `<tr style="${isFalha?'background:rgba(226,75,74,.06)':''}">
+      <td style="font-family:'DM Mono',monospace;font-size:11px">${l.lote} ${statusTag}</td>
       <td style="color:var(--muted)">${l.inicio}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace">${l.substrato.toLocaleString('pt-BR')} kg</td>
       <td style="text-align:right;font-family:'DM Mono',monospace">${fmt2(l.colhido)} kg</td>
@@ -5622,6 +5668,15 @@ function prodBuildLotes(ep) {
       <td style="text-align:center;font-size:16px">${icon}</td>
     </tr>`;
   });
+  // Failure summary footer note
+  if (nFalhas > 0 && _loteStatusFilter !== 'ativo') {
+    const kgPerdido = kgFalha * ((ep.meta_rend||15)/100) - tc * (nFalhas/ep.lotes.length);
+    const rPerda = kgFalha * ((ep.meta_rend||15)/100 - FALHA_REND_THRESHOLD/100) * ep.preco_venda_real;
+    rows += `<tr style="background:rgba(226,75,74,.04);font-size:10px">
+      <td colspan="3" style="color:#E24B4A;padding:4px 8px">⚠ ${nFalhas} lote(s) com falha (<${FALHA_REND_THRESHOLD}%) · ${kgFalha.toLocaleString('pt-BR')} kg substrato comprometido</td>
+      <td colspan="4" style="color:#E24B4A;text-align:right;padding:4px 8px">Perda estimada na meta ${ep.meta_rend||15}%: ${fmt2(kgFalha*((ep.meta_rend||15)/100 - 0.02))} kg · R$${fmt2(kgFalha*((ep.meta_rend||15)/100 - 0.02)*ep.preco_venda_real)}</td>
+    </tr>`;
+  }
   tbody.innerHTML = rows;
   const rt = tc/ts*100;
   const ct = cb !== null ? cb/(ep.peso_bloco*rt/100) : null;
@@ -5634,6 +5689,75 @@ function prodBuildLotes(ep) {
     <td style="text-align:right;font-family:'DM Mono',monospace;color:#EF9F27">${ct!==null?'R$'+fmt2(ct):'—'}</td>
     <td></td>
   </tr>`;
+}
+
+function prodBuildFalhasAnalysis() {
+  const el = document.getElementById('prod-falhas-content');
+  if (!el) return;
+  let totalLotes=0, lotesFalha=0, subFalha=0, subBom=0, kgColhFalha=0, kgColhBom=0;
+  const especieStats = {};
+  Object.entries(ESPECIES_PROD).forEach(([key, ep]) => {
+    ep.lotes.forEach(l => {
+      const rend = l.colhido/l.substrato*100;
+      const isFalha = rend < FALHA_REND_THRESHOLD;
+      totalLotes++;
+      if (!especieStats[key]) especieStats[key] = { nome:ep.nome, falha:0, total:0, kgFalha:0, preco:ep.preco_venda_real, meta:ep.meta_rend||15 };
+      especieStats[key].total++;
+      if (isFalha) {
+        lotesFalha++; subFalha += l.substrato; kgColhFalha += l.colhido;
+        especieStats[key].falha++; especieStats[key].kgFalha += l.substrato;
+      } else { subBom += l.substrato; kgColhBom += l.colhido; }
+    });
+  });
+  const taxaFalha = totalLotes > 0 ? (lotesFalha/totalLotes*100) : 0;
+  const rendBom   = subBom > 0 ? kgColhBom/subBom*100 : 0;
+  const rendFalha = subFalha > 0 ? kgColhFalha/subFalha*100 : 0;
+  const kgPerdidoEstim = subFalha * ((rendBom/100) - (kgColhFalha/subFalha));
+  const precoMedio = Object.values(especieStats).reduce((s,e)=>s+e.preco,0)/Object.keys(especieStats).length;
+  const rReceita   = kgPerdidoEstim * precoMedio;
+  const rContrib   = kgPerdidoEstim * (precoMedio - CUSTO_COLHEITA_KG - CUSTO_EMBALAGEM_KG);
+  const specRows = Object.values(especieStats).filter(e=>e.total>0).map(e => {
+    const pct = e.total>0?(e.falha/e.total*100):0;
+    const kgPerda = e.kgFalha*(rendBom/100);
+    const col = pct >= 50 ? '#E24B4A' : pct >= 30 ? '#EF9F27' : '#1D9E75';
+    return `<tr>
+      <td>${e.nome}</td>
+      <td style="text-align:right">${e.falha}/${e.total}</td>
+      <td style="text-align:right"><span style="color:${col};font-weight:700">${pct.toFixed(0)}%</span></td>
+      <td style="text-align:right;color:var(--muted)">${e.kgFalha.toLocaleString('pt-BR')} kg sub</td>
+      <td style="text-align:right;color:#E24B4A">≈ R$${fmt2(kgPerda*(e.preco-CUSTO_COLHEITA_KG-CUSTO_EMBALAGEM_KG))}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+      <div class="cc" style="padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px">Taxa de Falha</div>
+        <div style="font-size:22px;font-weight:700;color:${taxaFalha>=40?'#E24B4A':taxaFalha>=25?'#EF9F27':'#1D9E75'};font-family:'DM Mono',monospace">${taxaFalha.toFixed(0)}%</div>
+        <div style="font-size:10px;color:var(--muted)">${lotesFalha} de ${totalLotes} lotes &lt;${FALHA_REND_THRESHOLD}%</div>
+      </div>
+      <div class="cc" style="padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px">Rend. c/ falha</div>
+        <div style="font-size:22px;font-weight:700;color:#E24B4A;font-family:'DM Mono',monospace">${rendFalha.toFixed(1)}%</div>
+        <div style="font-size:10px;color:var(--muted)">vs ${rendBom.toFixed(1)}% s/ falha</div>
+      </div>
+      <div class="cc" style="padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px">Kg perdidos est.</div>
+        <div style="font-size:22px;font-weight:700;color:#E24B4A;font-family:'DM Mono',monospace">${Math.round(kgPerdidoEstim).toLocaleString('pt-BR')}</div>
+        <div style="font-size:10px;color:var(--muted)">a ${rendBom.toFixed(0)}% de rendimento</div>
+      </div>
+      <div class="cc" style="padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px">Contribuição perdida</div>
+        <div style="font-size:22px;font-weight:700;color:#E24B4A;font-family:'DM Mono',monospace">R$${fmt2(rContrib)}</div>
+        <div style="font-size:10px;color:var(--muted)">receita R$${fmt2(rReceita)} · var R$${fmt2(CUSTO_COLHEITA_KG+CUSTO_EMBALAGEM_KG)}/kg</div>
+      </div>
+    </div>
+    <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:8px 12px;font-size:11px;color:#EF9F27;margin-bottom:10px">
+      Causa (informada por Diego): <strong>adaptação, experiência da equipe e equipamento</strong>. Os ciclos que funcionam rendem ${rendBom.toFixed(1)}% — a meta é ${(Object.values(especieStats).reduce((s,e)=>s+e.meta,0)/Object.keys(especieStats).length).toFixed(0)}%. O problema não é a meta: é a taxa de falha.
+    </div>
+    <table class="it" style="width:100%;font-size:11px">
+      <thead><tr><th>Espécie</th><th style="text-align:right">Falhas</th><th style="text-align:right">% Falha</th><th style="text-align:right">Sub. em falha</th><th style="text-align:right">Contrib. perdida est.</th></tr></thead>
+      <tbody>${specRows}</tbody>
+    </table>`;
 }
 
 function prodBuildComparativo() {
@@ -5737,6 +5861,15 @@ function prodBuildFolhasEinstein() {
   }
 }
 
+function _setLoteFilter(f) {
+  _loteStatusFilter = f;
+  ['todos','ativo','encerrado'].forEach(v => {
+    const b = document.getElementById('lf-' + v);
+    if (b) b.classList.toggle('on', v === f);
+  });
+  prodBuildLotes(ESPECIES_PROD[_prodEspecie]);
+}
+
 function onProdSlider(val) {
   _prodRendAtual = parseFloat(val);
   document.getElementById('p-slider-val').textContent = fmtPct(_prodRendAtual);
@@ -5759,6 +5892,7 @@ function renderProducao() {
   prodBuildLotes(ep);
   prodBuildComparativo();
   prodBuildFolhasEinstein();
+  prodBuildFalhasAnalysis();
   _setProdDefaults(ep);
   prodUpdateSimulador(_prodRendAtual);
 }
