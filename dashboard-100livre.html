@@ -750,20 +750,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
               <td style="text-align:right;font-family:'DM Mono',monospace" id="ps-insumo">—</td>
               <td style="text-align:right;color:var(--muted)">—</td></tr>
             <tr><td style="color:var(--muted)">Custos fixos/kg <span style="color:#7F77DD;font-size:9px">✎</span></td>
-              <td style="text-align:right"><input type="number" id="ps-fixos" min="0" step="0.01" value="0" class="prod-inp" oninput="onProdInput()"></td>
-              <td style="text-align:right;color:var(--muted)">—</td></tr>
+              <td style="text-align:right"><input type="number" id="ps-fixos" min="0" step="0.01" value="5.96" class="prod-inp" oninput="onProdInput()"></td>
+              <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace" id="ps-fixos-compra">—</td></tr>
             <tr><td style="color:var(--muted)">Embalagem/kg <span style="color:#7F77DD;font-size:9px">✎</span></td>
-              <td style="text-align:right"><input type="number" id="ps-embalagem" min="0" step="0.01" value="0" class="prod-inp" oninput="onProdInput()"></td>
-              <td style="text-align:right;color:var(--muted)">—</td></tr>
+              <td style="text-align:right"><input type="number" id="ps-embalagem" min="0" step="0.01" value="2.04" class="prod-inp" oninput="onProdInput()"></td>
+              <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace" id="ps-embalagem-compra">—</td></tr>
             <tr><td style="color:var(--muted)">Energia/kg <span style="color:#7F77DD;font-size:9px">✎</span></td>
-              <td style="text-align:right"><input type="number" id="ps-energia" min="0" step="0.01" value="0" class="prod-inp" oninput="onProdInput()"></td>
-              <td style="text-align:right;color:var(--muted)">—</td></tr>
+              <td style="text-align:right"><input type="number" id="ps-energia" min="0" step="0.01" value="1.75" class="prod-inp" oninput="onProdInput()"></td>
+              <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace" id="ps-energia-compra">—</td></tr>
             <tr><td style="color:var(--muted)">Pessoas/kg <span style="color:#7F77DD;font-size:9px">✎</span></td>
-              <td style="text-align:right"><input type="number" id="ps-pessoas" min="0" step="0.01" value="0" class="prod-inp" oninput="onProdInput()"></td>
-              <td style="text-align:right;color:var(--muted)">—</td></tr>
+              <td style="text-align:right"><input type="number" id="ps-pessoas" min="0" step="0.01" value="6.48" class="prod-inp" oninput="onProdInput()"></td>
+              <td style="text-align:right;color:var(--muted)">— (só própria)</td></tr>
             <tr><td style="color:var(--muted)">Frete venda/kg <span style="color:#7F77DD;font-size:9px">✎</span></td>
-              <td style="text-align:right"><input type="number" id="ps-frete" min="0" step="0.01" value="0" class="prod-inp" oninput="onProdInput()"></td>
-              <td style="text-align:right;color:var(--muted)">—</td></tr>
+              <td style="text-align:right"><input type="number" id="ps-frete" min="0" step="0.01" value="5.47" class="prod-inp" oninput="onProdInput()"></td>
+              <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace" id="ps-frete-compra">—</td></tr>
             <tr style="border-top:2px solid var(--border2);font-weight:700">
               <td>Custo total/kg</td>
               <td style="text-align:right;color:#EF9F27;font-family:'DM Mono',monospace" id="ps-total-prop">—</td>
@@ -5309,8 +5309,14 @@ function prodCustoInsumoKg(rendPct, ep) {
   return cb / (ep.peso_bloco * rendPct / 100);
 }
 
-function prodTotalExtra() {
+function prodExtraPropria() {
   return ['fixos','embalagem','energia','pessoas','frete'].reduce((s,k) => {
+    const v = parseFloat(document.getElementById('ps-' + k).value) || 0;
+    return s + v;
+  }, 0);
+}
+function prodExtraCompra() {
+  return ['fixos','embalagem','energia','frete'].reduce((s,k) => {
     const v = parseFloat(document.getElementById('ps-' + k).value) || 0;
     return s + v;
   }, 0);
@@ -5326,16 +5332,22 @@ function prodRendMedio(ep) {
   return ts > 0 ? tc/ts*100 : 0;
 }
 
+function _setProdDefaults(ep) {
+  const isPropria = ep && ep.tipo === 'producao_propria';
+  const defs = { fixos: 5.96, embalagem: 2.04, energia: 1.75, pessoas: isPropria ? 6.48 : 0, frete: 5.47 };
+  Object.keys(defs).forEach(function(k) {
+    const el = document.getElementById('ps-' + k);
+    if (el) el.value = defs[k];
+  });
+}
+
 function setProdEspecie(key) {
   _prodEspecie = key;
   ['paris','shitake','portobello','shimeji_branco','shimeji_preto','shimeji_salmao'].forEach(k => {
     const b = document.getElementById('pbtn-' + k);
     if (b) b.classList.toggle('active', k === key);
   });
-  ['fixos','embalagem','energia','pessoas','frete'].forEach(k => {
-    const el = document.getElementById('ps-' + k);
-    if (el) el.value = 0;
-  });
+  _setProdDefaults(ESPECIES_PROD[key]);
   const ep = ESPECIES_PROD[key];
   _prodRendAtual = prodRendMedio(ep);
   const slider = document.getElementById('p-slider');
@@ -5348,13 +5360,14 @@ function setProdEspecie(key) {
   prodUpdateSimulador(_prodRendAtual);
 }
 
-function prodUpdateKPIs(rendPct, extraKg, ep) {
-  const cb      = prodCustoBloco(ep);
-  const cinsumo = cb !== null ? prodCustoInsumoKg(rendPct, ep) : null;
-  const ctotal  = cinsumo !== null ? cinsumo + extraKg : null;
-  const compra  = ep.custo_compra_revenda;
+function prodUpdateKPIs(rendPct, extraProp, extraComp, ep) {
+  const cb         = prodCustoBloco(ep);
+  const cinsumo    = cb !== null ? prodCustoInsumoKg(rendPct, ep) : null;
+  const ctotal     = cinsumo !== null ? cinsumo + extraProp : null;
+  const compra_raw = ep.custo_compra_revenda;
+  const custo_compra = compra_raw > 0 ? compra_raw + extraComp : null;
   const meta    = ep.meta_rend || 15;
-  const vantagem = ctotal !== null && compra > 0 ? compra - ctotal : null;
+  const vantagem = ctotal !== null && custo_compra !== null ? custo_compra - ctotal : null;
 
   const rendEl = document.getElementById('p-kpi-rend');
   rendEl.textContent = fmtPct(rendPct);
@@ -5364,7 +5377,7 @@ function prodUpdateKPIs(rendPct, extraKg, ep) {
   const cinsumoEl = document.getElementById('p-kpi-cinsumo');
   if (cinsumo !== null) {
     cinsumoEl.textContent = fmtR(cinsumo) + '/kg';
-    cinsumoEl.style.color = (compra > 0 && cinsumo <= compra) ? '#1D9E75' : '#EF9F27';
+    cinsumoEl.style.color = (compra_raw > 0 && cinsumo <= compra_raw) ? '#1D9E75' : '#EF9F27';
   } else {
     cinsumoEl.textContent = 'a definir';
     cinsumoEl.style.color = '#EF9F27';
@@ -5372,8 +5385,8 @@ function prodUpdateKPIs(rendPct, extraKg, ep) {
   document.getElementById('p-kpi-cinsumo-sub').textContent = ep.nota || (ep.custo_bloco_pronto !== undefined ? 'bloco+frete' : 'sub+turfa+frete');
 
   const compraEl = document.getElementById('p-kpi-compra');
-  if (compra > 0) {
-    compraEl.textContent = fmtR(compra) + '/kg';
+  if (compra_raw > 0) {
+    compraEl.textContent = fmtR(compra_raw) + '/kg';
     const cc = ep.custos_compra;
     document.getElementById('p-kpi-compra-sub').textContent = cc
       ? `Kentisa R$${fmt2(cc.kentisa)} | Takoish R$${fmt2(cc.takoish)} → ${cc.melhor_fonte}`
@@ -5390,7 +5403,7 @@ function prodUpdateKPIs(rendPct, extraKg, ep) {
     kvEl.textContent = (vantagem >= 0 ? '+' : '') + fmtR(vantagem) + '/kg';
     kvEl.style.color = vantagem >= 0 ? '#1D9E75' : '#E24B4A';
     document.getElementById('p-kpi-vantagem-sub').textContent = 'vs compra';
-  } else if (compra === 0 && ctotal !== null) {
+  } else if (compra_raw === 0 && ctotal !== null) {
     const marg = ep.preco_venda_real - ctotal;
     kvEl.textContent = fmtR(marg) + '/kg';
     kvEl.style.color = marg > 0 ? '#1D9E75' : '#E24B4A';
@@ -5403,37 +5416,44 @@ function prodUpdateKPIs(rendPct, extraKg, ep) {
 }
 
 function prodUpdateSimulador(rendPct) {
-  const ep      = ESPECIES_PROD[_prodEspecie];
-  const extraKg = prodTotalExtra();
-  const cb      = prodCustoBloco(ep);
-  const cinsumo = cb !== null ? prodCustoInsumoKg(rendPct, ep) : null;
-  const ctotal  = cinsumo !== null ? cinsumo + extraKg : null;
-  const venda   = ep.preco_venda_real;
-  const compra  = ep.custo_compra_revenda;
-  const margem  = ctotal !== null ? venda - ctotal : null;
-  const pct     = margem !== null && venda > 0 ? margem / venda * 100 : null;
-  const marg_c  = compra > 0 ? venda - compra : null;
-  const pct_c   = marg_c !== null && venda > 0 ? marg_c / venda * 100 : null;
+  const ep         = ESPECIES_PROD[_prodEspecie];
+  const extraProp  = prodExtraPropria();
+  const extraComp  = prodExtraCompra();
+  const cb         = prodCustoBloco(ep);
+  const cinsumo    = cb !== null ? prodCustoInsumoKg(rendPct, ep) : null;
+  const ctotal     = cinsumo !== null ? cinsumo + extraProp : null;
+  const venda      = ep.preco_venda_real;
+  const compra_raw = ep.custo_compra_revenda;
+  const custo_compra = compra_raw > 0 ? compra_raw + extraComp : null;
+  const margem     = ctotal !== null ? venda - ctotal : null;
+  const pct        = margem !== null && venda > 0 ? margem / venda * 100 : null;
+  const marg_c     = custo_compra !== null ? venda - custo_compra : null;
+  const pct_c      = marg_c !== null && venda > 0 ? marg_c / venda * 100 : null;
 
   let be_s = null;
-  if (cb !== null && compra > 0 && (compra - extraKg) > 0)
-    be_s = cb / ((compra - extraKg) * ep.peso_bloco) * 100;
+  if (cb !== null && compra_raw > 0 && (compra_raw + extraComp - extraProp) > 0)
+    be_s = cb / ((compra_raw + extraComp - extraProp) * ep.peso_bloco) * 100;
 
   const insumoEl = document.getElementById('ps-insumo');
   insumoEl.textContent = cinsumo !== null ? fmtR(cinsumo) + '/kg' : 'a definir';
-  insumoEl.style.color = cinsumo !== null && compra > 0 && cinsumo <= compra ? '#1D9E75' : '#EF9F27';
+  insumoEl.style.color = cinsumo !== null && compra_raw > 0 && cinsumo <= compra_raw ? '#1D9E75' : '#EF9F27';
 
   const totEl = document.getElementById('ps-total-prop');
   totEl.textContent = ctotal !== null ? fmtR(ctotal) + '/kg' : 'a definir';
-  totEl.style.color = ctotal !== null && compra > 0 && ctotal <= compra ? '#1D9E75' : '#EF9F27';
+  totEl.style.color = ctotal !== null && custo_compra !== null && ctotal <= custo_compra ? '#1D9E75' : '#EF9F27';
 
   const totCEl = document.getElementById('ps-total-compra');
-  totCEl.textContent = compra > 0 ? fmtR(compra) + '/kg' : 'N/A';
+  totCEl.textContent = custo_compra !== null ? fmtR(custo_compra) + '/kg' : 'N/A';
   totCEl.style.color = '#378ADD';
 
+  ['fixos','embalagem','energia','frete'].forEach(function(k){
+    const cel = document.getElementById('ps-' + k + '-compra');
+    if (cel) cel.textContent = fmtR(parseFloat(document.getElementById('ps-'+k).value)||0) + '/kg';
+  });
+
   const _cc = ep.custos_compra;
-  document.getElementById('ps-compra-header').textContent = compra > 0
-    ? (_cc ? `Melhor: ${_cc.melhor_fonte} (R$${fmt2(compra)}/kg)` : 'Compra (Ktsa/mercado)')
+  document.getElementById('ps-compra-header').textContent = compra_raw > 0
+    ? (_cc ? `Melhor: ${_cc.melhor_fonte} (R$${fmt2(compra_raw)}/kg)` : 'Compra (Ktsa/mercado)')
     : 'Compra';
   document.getElementById('ps-venda-prop').textContent    = fmtR(venda) + '/kg';
   document.getElementById('ps-venda-compra').textContent  = fmtR(venda) + '/kg';
@@ -5463,15 +5483,15 @@ function prodUpdateSimulador(rendPct) {
   } else { pCEl.textContent = 'N/A'; pCEl.style.color = 'var(--muted)'; }
 
   const melhor = document.getElementById('ps-melhor');
-  if (ctotal !== null && compra > 0) {
-    if (ctotal < compra) {
-      melhor.textContent = '✅ Produção própria (R$' + fmt2(compra - ctotal) + '/kg mais barato que comprar)';
+  if (ctotal !== null && custo_compra !== null) {
+    if (ctotal < custo_compra) {
+      melhor.textContent = '✅ Produção própria (R$' + fmt2(custo_compra - ctotal) + '/kg mais barato que comprar)';
       melhor.style.color = '#1D9E75';
     } else {
-      melhor.textContent = '⚠ Comprar (R$' + fmt2(ctotal - compra) + '/kg mais caro produzir)';
+      melhor.textContent = '⚠ Comprar (R$' + fmt2(ctotal - custo_compra) + '/kg mais caro produzir)';
       melhor.style.color = '#EF9F27';
     }
-  } else if (compra === 0) {
+  } else if (compra_raw === 0) {
     melhor.textContent = '✅ Produção própria (sem alternativa de compra)';
     melhor.style.color = '#1D9E75';
   } else {
@@ -5497,41 +5517,42 @@ function prodUpdateSimulador(rendPct) {
   if (parEl) {
     if (ep.custo_bloco_pronto !== undefined) {
       const fb = ep.custo_frete_carga / ep.blocos_por_carga;
-      parEl.textContent = `bloco=${ep.peso_bloco}kg · insumo=${cb !== null ? 'R$' + fmt2(cb) : 'a definir'}/bloco (bloco R$${ep.custo_bloco_pronto > 0 ? fmt2(ep.custo_bloco_pronto) : '?'} + frete R$${fmt2(fb)}) · compra=${compra > 0 ? 'R$' + fmt2(compra) : 'N/A'}/kg`;
+      parEl.textContent = `bloco=${ep.peso_bloco}kg · insumo=${cb !== null ? 'R$' + fmt2(cb) : 'a definir'}/bloco (bloco R$${ep.custo_bloco_pronto > 0 ? fmt2(ep.custo_bloco_pronto) : '?'} + frete R$${fmt2(fb)}) · compra=${compra_raw > 0 ? 'R$' + fmt2(compra_raw) : 'N/A'}/kg`;
     } else {
       const cv = ep.peso_bloco * ep.custo_substrato_kg + ep.custo_turfa_bloco + ep.custo_frete_bloco;
-      parEl.textContent = `bloco=${ep.peso_bloco}kg · insumo=R$${fmt2(cv)}/bloco (sub R$${fmt2(ep.custo_substrato_kg)}/kg×${ep.peso_bloco} + turfa R$${fmt2(ep.custo_turfa_bloco)} + frete R$${fmt2(ep.custo_frete_bloco)}) · compra=${compra > 0 ? 'R$' + fmt2(compra) : 'N/A'}/kg`;
+      parEl.textContent = `bloco=${ep.peso_bloco}kg · insumo=R$${fmt2(cv)}/bloco (sub R$${fmt2(ep.custo_substrato_kg)}/kg×${ep.peso_bloco} + turfa R$${fmt2(ep.custo_turfa_bloco)} + frete R$${fmt2(ep.custo_frete_bloco)}) · compra=${compra_raw > 0 ? 'R$' + fmt2(compra_raw) : 'N/A'}/kg`;
     }
   }
 
-  prodUpdateKPIs(rendPct, extraKg, ep);
-  prodUpdateChart(rendPct, extraKg, ep);
+  prodUpdateKPIs(rendPct, extraProp, extraComp, ep);
+  prodUpdateChart(rendPct, extraProp, extraComp, ep);
 }
 
-function prodUpdateChart(rendPct, extraKg, ep) {
+function prodUpdateChart(rendPct, extraProp, extraComp, ep) {
   const canvas = document.getElementById('chart-prod-breakeven');
   if (!canvas) return;
-  const cb     = prodCustoBloco(ep);
-  const compra = ep.custo_compra_revenda;
+  const cb        = prodCustoBloco(ep);
+  const compra_raw = ep.custo_compra_revenda;
+  const custo_compra = compra_raw > 0 ? compra_raw + extraComp : null;
   const venda  = ep.preco_venda_real;
   const meta   = ep.meta_rend || 15;
   const pts    = [];
   for (let r = 2; r <= 45; r += 0.25) pts.push(+(r.toFixed(2)));
-  const maxY = Math.max(120, venda * 1.2, compra * 2);
+  const maxY = Math.max(120, venda * 1.2, (custo_compra||0) * 2);
 
   const datasets = [];
   if (cb !== null) {
     datasets.push({
       label: 'Custo produção/kg',
-      data: pts.map(r => ({ x: r, y: +(cb/(ep.peso_bloco*r/100)+extraKg).toFixed(3) })),
+      data: pts.map(r => ({ x: r, y: +(cb/(ep.peso_bloco*r/100)+extraProp).toFixed(3) })),
       borderColor: '#7F77DD', borderWidth: 2, pointRadius: 0, tension: 0.2,
-      fill: compra > 0 ? { target: 1, above: 'rgba(226,75,74,0.12)', below: 'rgba(29,158,117,0.12)' } : false
+      fill: custo_compra !== null ? { target: 1, above: 'rgba(226,75,74,0.12)', below: 'rgba(29,158,117,0.12)' } : false
     });
   }
-  if (compra > 0) {
+  if (custo_compra !== null) {
     datasets.push({
-      label: 'Compra: R$' + fmt2(compra) + '/kg',
-      data: pts.map(r => ({ x: r, y: compra })),
+      label: 'Compra: R$' + fmt2(custo_compra) + '/kg',
+      data: pts.map(r => ({ x: r, y: custo_compra })),
       borderColor: '#EF9F27', borderWidth: 2, borderDash: [6,4], pointRadius: 0, fill: false
     });
   }
@@ -5541,8 +5562,8 @@ function prodUpdateChart(rendPct, extraKg, ep) {
     borderColor: '#1D9E75', borderWidth: 2, borderDash: [3,3], pointRadius: 0, fill: false
   });
   if (cb !== null) {
-    const atual_y = +(cb/(ep.peso_bloco*rendPct/100)+extraKg).toFixed(2);
-    const meta_y  = +(cb/(ep.peso_bloco*meta/100)+extraKg).toFixed(2);
+    const atual_y = +(cb/(ep.peso_bloco*rendPct/100)+extraProp).toFixed(2);
+    const meta_y  = +(cb/(ep.peso_bloco*meta/100)+extraProp).toFixed(2);
     datasets.push({ label:'Atual '+fmtPct(rendPct), data:[{x:rendPct,y:atual_y}],
       borderColor:'#E24B4A', backgroundColor:'#E24B4A', pointRadius:7, pointHoverRadius:9, showLine:false });
     datasets.push({ label:'Meta '+fmtPct(meta), data:[{x:meta,y:meta_y}],
@@ -5724,6 +5745,7 @@ function renderProducao() {
   prodBuildLotes(ep);
   prodBuildComparativo();
   prodBuildFolhasEinstein();
+  _setProdDefaults(ep);
   prodUpdateSimulador(_prodRendAtual);
 }
 
