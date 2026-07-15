@@ -4,7 +4,7 @@ Painel financeiro e automação de baixas da 100% Livre (Sprout Holdings).
 **Este repositório é a fonte da verdade.** O que está aqui é o que está no ar.
 
 - **Dashboard ao vivo:** https://diegogomesmartins-boop.github.io/100livre-app/dashboard-100livre.html
-- **Robô de baixas:** roda sozinho todo dia às **06:00 (BRT)** no GitHub Actions.
+- **Robô de baixas:** roda sozinho **3× por dia — 06:00, 12:00 e 18:00 (BRT)** — no GitHub Actions.
 
 ---
 
@@ -40,7 +40,7 @@ Nada roda na sua máquina. Se o computador desligar, o robô continua.
 |---|---|
 | `dashboard-100livre.html` | O dashboard inteiro, num arquivo só. A aba **Bancos** é um `<script type="module">` **no final do arquivo**, que se auto-instala. |
 | `robo_bancos.py` | O robô: lê OMIE, dá baixa, grava no Firestore. Multi-banco. |
-| `.github/workflows/robo-inter.yml` | Agendamento (cron 06:00 BRT) + botão de execução manual. |
+| `.github/workflows/robo-inter.yml` | Agendamento (06:00 · 12:00 · 18:00 BRT) + botão de execução manual. |
 | `robo_inter.py` | Versão anterior, só Inter. Mantido como histórico — **não é mais usado**. |
 
 ---

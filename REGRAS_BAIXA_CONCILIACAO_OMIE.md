@@ -1,7 +1,7 @@
 # Regras de Baixa e Conciliação Automática — OMIE / 100% Livre
 
 **Versão 2.0 · 14/07/2026** · substitui `regras-conciliacao-bancaria-robo.md` (v1.0)
-**Em produção:** `robo_bancos.py` · GitHub Actions · todo dia 06:00 BRT
+**Em produção:** `robo_bancos.py` · GitHub Actions · **06:00, 12:00 e 18:00 BRT**
 
 > **Como ler.** Cada afirmação é marcada:
 > **[V]** = verificado contra dado real, com a evidência ao lado.
@@ -249,6 +249,20 @@ entre chamadas; `ObterBoleto` só dos atrasados (26 chamadas), nunca dos 63 aber
 
 ### 10.6 O runner do GitHub roda em UTC
 `datetime.now()` marca 3h a mais. Use `timezone(timedelta(hours=-3))`.
+O cron do Actions também é UTC: **06/12/18 BRT = 09/15/21 UTC**. E ele não é
+pontual — pode atrasar até ~15 min sob carga do GitHub.
+
+### 10.7 Timeout NÃO é HTTPError — **[V] derrubou o 1º run automático**
+Em 15/07/2026 a primeira execução agendada (06h) morreu inteira:
+```
+TimeoutError: The read operation timed out
+```
+O `except` só pegava `urllib.error.HTTPError`. **`TimeoutError` é `OSError`**, não
+passa por ali — o robô morreu sem retry, sem baixa e sem painel. O OMIE fica lento
+de manhã; isso vai acontecer de novo.
+**Regra:** capture `(HTTPError, URLError, TimeoutError, OSError, JSONDecodeError)`,
+backoff progressivo (5s→25s), `timeout=120`. Um robô que roda sem ninguém olhando
+precisa ser paranoico com rede, não só com dado.
 
 ---
 

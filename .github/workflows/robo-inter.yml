@@ -4,7 +4,10 @@ name: robo-inter
 
 on:
   schedule:
-    - cron: "0 9 * * *"      # 09:00 UTC = 06:00 BRT, todo dia
+    # runner roda em UTC -> BRT = UTC-3.  06h/12h/18h BRT = 09/15/21 UTC
+    - cron: "0 9 * * *"      # 06:00 BRT — abre o dia
+    - cron: "0 15 * * *"     # 12:00 BRT — pega quem pagou de manhã
+    - cron: "0 21 * * *"     # 18:00 BRT — fecha o dia
   workflow_dispatch:          # botão para rodar manualmente
     inputs:
       dry_run:
