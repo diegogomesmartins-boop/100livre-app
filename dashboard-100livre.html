@@ -9315,16 +9315,17 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     <button class="mb" style="opacity:.5" disabled>Santander · em breve</button>
     <span id="bk-upd" style="margin-left:auto;color:var(--muted);font-size:11px;align-self:center"></span>
   </div>
-  <div class="kg" id="bk-kpis" style="grid-template-columns:repeat(5,1fr)"></div>
+  <div class="kg" id="bk-kpis" style="grid-template-columns:repeat(6,1fr)"></div>
   <div class="cc" style="margin-top:12px">
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <button class="mb" id="bk-t-atr" onclick="bkTab('atr')" style="border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)">Atrasados</button>
       <button class="mb" id="bk-t-prox" onclick="bkTab('prox')">A vencer</button>
+      <button class="mb" id="bk-t-conc" onclick="bkTab('conc')">A conciliar</button>
       <span id="bk-tot" style="margin-left:auto;color:var(--muted);font-size:11px;align-self:center"></span>
     </div>
     <table class="it" id="bk-table"></table>
   </div>
-  <div style="color:var(--muted);font-size:11px;margin-top:10px">Somente boletos emitidos (por banco). Atualizado 1×/dia pelo robô (OMIE). Botão Cobrar: revise a mensagem e o número, e envie pelo WhatsApp da empresa.</div>
+  <div style="color:var(--muted);font-size:11px;margin-top:10px">Somente boletos emitidos (por banco). Atualizado 1×/dia pelo robô (OMIE). Botão Cobrar: revise a mensagem e o número, e envie pelo WhatsApp da empresa. Títulos com crédito no extrato não entram na cobrança. <b>A conciliar</b>: o OMIE não expõe o ✓ por API — a lista vem pronta, o clique é no OMIE.</div>
 </div>
 <div id="bk-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;width:min(560px,92vw);max-height:88vh;overflow:auto">
@@ -9365,7 +9366,8 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
       <div class="kpi"><div class="kl">A vencer</div><div class="kv" style="color:var(--green)">${brl(k.a_vencer)}</div><div class="kd">${k.n_avencer||0} boletos</div></div>
       <div class="kpi"><div class="kl">Atrasado · cobrar</div><div class="kv" style="color:var(--red)">${brl(k.vencido)}</div><div class="kd">${k.n_vencido||0} atrasados</div></div>
       <div class="kpi"><div class="kl">Pagos (período)</div><div class="kv">${brl(k.pago_v)}</div><div class="kd">${k.pago_n||0} boletos</div></div>
-      <div class="kpi"><div class="kl">Baixas do robô</div><div class="kv" style="color:var(--blue)">${k.baixa_feita||0}</div><div class="kd">fila: ${k.baixa_fila||0}</div></div>`;
+      <div class="kpi"><div class="kl">Baixas do robô</div><div class="kv" style="color:var(--blue)">${k.baixa_feita||0}</div><div class="kd">fila: ${k.baixa_fila||0}</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="bkTab('conc')" title="ver a lista"><div class="kl">A conciliar</div><div class="kv" style="color:var(--amber)">${k.conc_n||0}</div><div class="kd">${brl(k.conc_v)} · ✓ no OMIE</div></div>`;
     bkTab(_bkT);
   }
   let _bkS={campo:'dias',dir:'desc'};
@@ -9375,8 +9377,11 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     bkTab(_bkT);
   }
   function bkTab(t){
-    if(t!==_bkT){ _bkS = {campo:'dias', dir: t==='atr' ? 'desc' : 'asc'}; }  // padrão por aba
+    if(t!==_bkT){ _bkS = {campo: t==='conc' ? 'valor' : 'dias', dir: (t==='atr'||t==='conc') ? 'desc' : 'asc'}; }
     _bkT=t;
+    const bc=document.getElementById('bk-t-conc');
+    if(bc) bc.style.cssText = t==='conc' ? 'border-color:rgba(239,159,39,.35);background:rgba(239,159,39,.12);color:var(--amber)' : '';
+    if(t==='conc'){ return bkTabConc(); }
     const a=document.getElementById('bk-t-atr'), p=document.getElementById('bk-t-prox');
     if(a) a.style.cssText=t==='atr'?'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)':'';
     if(p) p.style.cssText=t==='prox'?'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)':'';
@@ -9425,6 +9430,18 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     }
     return m + `Obrigado!`;
   }
+  function bkTabConc(){
+    ['bk-t-atr','bk-t-prox'].forEach(id=>{const e=document.getElementById(id); if(e) e.style.cssText='';});
+    const rows=[...(_bk.aConciliar||[])].sort((a,b)=>(b.valor||0)-(a.valor||0));
+    const tb=document.getElementById('bk-table');
+    if(tb) tb.innerHTML = rows.length
+      ? `<thead><tr><th>Data</th><th>Lançamento</th><th>Título</th><th style="text-align:right">Valor</th></tr></thead><tbody>`+
+        rows.map(r=>`<tr><td>${r.data||'—'}</td><td style="color:var(--muted)">${r.lanc}</td><td style="color:var(--muted)">${r.titulo||'—'}</td><td style="text-align:right">${brl(r.valor)}</td></tr>`).join('')+
+        `</tbody>`
+      : `<thead><tr><th>Conciliação</th></tr></thead><tbody><tr><td style="color:var(--green)">Tudo conciliado — nada pendente.</td></tr></tbody>`;
+    const tt=document.getElementById('bk-tot');
+    if(tt) tt.textContent = rows.length ? rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0)) : '';
+  }
   let _bkAtual=null;
   function bkCobrar(nf){
     const r=[...(_bk.atrasado||[]),...(_bk.aVencer||[])].find(x=>x.nf===nf);
@@ -9468,7 +9485,7 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
   }
   window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco; window.bkLink=bkLink;
   document.addEventListener('input',function(e){ if(e.target && (e.target.id==='bk-m-tel'||e.target.id==='bk-m-msg')) bkLink(); });
-  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort;
+  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort; window.bkTabConc=bkTabConc;
   // 4) wrap setView p/ tratar 'bancos'
   function install(){
     if(typeof window.setView!=='function'){ return setTimeout(install,300); }

@@ -128,6 +128,36 @@ def todos_boletos():
 
 ABERTO = ("A VENCER", "ATRASADO", "VENCE HOJE")
 
+# ── 2b. fila de conciliação ────────────────────────────────────────
+def a_conciliar(cc, nome):
+    """Movimentos de baixa de contas a receber (BAXR) sem data de conciliação.
+    O OMIE NÃO expõe conciliação por API (AlterarLancCC recusa o bloco 'diversos'
+    e os campos soltos em 'detalhes'), então o robô só ENXERGA e lista.
+    O ✓ continua sendo no OMIE — mas sem garimpo: a lista vem pronta."""
+    ini = ddmmaaaa(HOJE - datetime.timedelta(days=JANELA_DIAS))
+    out, pag, tot = [], 1, 1
+    while pag <= tot:
+        j = omie("financas/contacorrentelancamentos", "ListarLancCC",
+                 {"nPagina": pag, "nRegPorPagina": 100, "cOrigem": "BAXR",
+                  "dtPagInicial": ini, "dtPagFinal": ddmmaaaa(HOJE)})
+        tot = j.get("nTotPaginas") or 1          # armadilha conhecida: se vier vazio, não confie
+        for x in j.get("listaLancamentos", []) or []:
+            cab = x.get("cabecalho") or {}
+            div = x.get("diversos") or {}
+            if cab.get("nCodCC") != cc:
+                continue
+            if (div.get("dDtConc") or "").strip():
+                continue                          # já conciliado
+            out.append({"lanc": x.get("nCodLanc"), "titulo": div.get("nCodLancCR"),
+                        "valor": round(cab.get("nValorLanc") or 0, 2),
+                        "data": cab.get("dDtLanc")})
+        pag += 1
+        time.sleep(0.4)
+    out.sort(key=lambda x: -x["valor"])
+    print(f"   [{nome}] a conciliar: {len(out)} movimento(s) · "
+          f"R$ {sum(x['valor'] for x in out):.2f}")
+    return out
+
 # ── 3. baixa dos pagos ainda em aberto ─────────────────────────────
 def baixar(bol, pg, cc, pode_baixar):
     """Baixa o título pelo valor do documento; a diferença para mais (juros/multa
@@ -176,7 +206,7 @@ def nomes(codigos):
         time.sleep(0.12)
     return _cache_nomes
 
-def snapshot(banco, bol, feitas, fila, pg):
+def snapshot(banco, bol, feitas, fila, pg, conc):
     """Monta o painel. PORTÃO (Regras §9): nenhum título entra na fila de cobrança
     se existir crédito compatível no extrato — 'pago não baixado' não é inadimplência.
     Cobrar quem já pagou é o dano que este sistema existe para evitar."""
@@ -210,9 +240,11 @@ def snapshot(banco, bol, feitas, fila, pg):
                     "pago_v": round(sum(b["valor"] for b in pagos), 2), "pago_n": len(pagos),
                     "baixa_feita": len(feitas), "baixa_fila": len(fila),
                     "sem_tel": len([a for a in abertos if not a["tel"]]),
-                    "bloqueados": len(bloqueados)},
+                    "bloqueados": len(bloqueados),
+                    "conc_n": len(conc), "conc_v": round(sum(c["valor"] for c in conc), 2)},
             "atrasado": atrasado, "aVencer": avencer,
-            "baixas_log": feitas, "fila_revisao": fila, "bloqueados": bloqueados}
+            "baixas_log": feitas, "fila_revisao": fila, "bloqueados": bloqueados,
+            "aConciliar": conc}
 
 def firestore_db():
     import firebase_admin
@@ -236,8 +268,9 @@ def main():
         casa = len([b for b in meus if b["status"] in ABERTO and b["nf"] in pg])
         print(f"   abertos com pagamento casado por NF: {casa}")
         feitas, fila = baixar(meus, pg, banco["cc"], banco["baixa"])
+        conc = a_conciliar(banco["cc"], banco["nome"])
         print(f"   baixas: {len(feitas)} · fila revisão: {len(fila)}")
-        snap = snapshot(banco, meus, feitas, fila, pg)
+        snap = snapshot(banco, meus, feitas, fila, pg, conc)
         print("   KPIs:", json.dumps(snap["kpi"], ensure_ascii=False))
         if snap["kpi"].get("sem_tel"):
             print(f"   ATENÇÃO: {snap['kpi']['sem_tel']} cliente(s) em aberto sem telefone no cadastro OMIE")
