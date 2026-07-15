@@ -1337,15 +1337,42 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 }
 </script>
 
-<!-- Fallback: se o módulo ES não carregar (CDN offline, file:// etc.) mostra erro após 12s -->
+<!-- Captura erros reais do módulo ES e exibe na tela (em vez de culpar o CDN genericamente) -->
 <script>
 window._dashLoaded = false;
+
+function _showDashError(title, detail) {
+  if (window._dashLoaded) return;
+  var el = document.getElementById('loading');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:20px;max-width:600px;margin:0 auto">'
+    + '<div style="color:#EF4444;font-family:\'DM Mono\',monospace;font-size:13px;margin-bottom:8px;font-weight:600">' + title + '</div>'
+    + '<pre style="color:#F87171;font-size:11px;text-align:left;background:#1a1a1a;padding:12px;border-radius:6px;overflow:auto;max-height:300px;white-space:pre-wrap">' + detail + '</pre>'
+    + '</div>';
+  console.error('[dash]', title, detail);
+}
+
+// Captura erros síncronos (SyntaxError, ReferenceError, etc.) do módulo
+window.addEventListener('error', function(e) {
+  if (window._dashLoaded) return;
+  var detail = (e.message || String(e)) + (e.filename ? '\n\n' + e.filename + ':' + e.lineno : '') + (e.error && e.error.stack ? '\n\n' + e.error.stack : '');
+  _showDashError('Erro no módulo: ' + (e.error ? e.error.name || 'Error' : 'Error'), detail);
+});
+
+// Captura rejeições assíncronas (Promise.reject sem catch)
+window.addEventListener('unhandledrejection', function(e) {
+  if (window._dashLoaded) return;
+  var err = e.reason;
+  var detail = err ? ((err.name || 'Error') + ': ' + (err.message || String(err)) + (err.stack ? '\n\n' + err.stack : '')) : String(e.reason);
+  _showDashError('Erro assíncrono: ' + (err && err.name ? err.name : 'UnhandledRejection'), detail);
+});
+
+// Fallback de timeout: se passaram 15s e nenhum erro foi capturado, módulo simplesmente não respondeu
 setTimeout(function() {
   if (!window._dashLoaded) {
-    var el = document.getElementById('loading');
-    if (el) el.innerHTML = '<div style="text-align:center;padding:20px"><div style="color:#EF4444;font-family:\'DM Mono\',monospace;font-size:12px;margin-bottom:8px">Erro ao conectar</div><div style="color:#888;font-size:11px;max-width:320px">Firebase SDK não carregou (CDN inacessível ou protocolo file://).<br>Abra o arquivo via servidor HTTP: <code>python3 -m http.server 8765</code></div></div>';
+    _showDashError('Timeout (15s)', 'O módulo não inicializou.\nCausas possíveis: imports ES não resolvidos, Firebase inacessível, ou erro silencioso.\nTente: python3 -m http.server 8765');
   }
-}, 12000);
+}, 15000);
 </script>
 
 <!-- Firebase Modular SDK -->
@@ -6153,6 +6180,19 @@ function renderProducao() {
 // MÓDULO CUSTOS
 // =======================================================================
 
+// Folha constants — auditoria Jul/2026 (classificação por cargo, não Controladoria)
+// Colheita (7 pessoas): Carlos José, Daniele, Danielly, Kristian, Suzana, Thais, Thiago
+// Embalagem (8 pessoas): Catia, Erica, Gabriel, Guilherme, Juliana, Merisvalda, Thalis, Clayton
+const FOLHA_COLHEITA_MES    = 9314.39;    // média comp.03,04,06/2026
+const FOLHA_EMBALAGEM_MES   = 18155.96;   // média comp.03,04,06/2026
+const KG_COLHEITA_MES       = 1438;       // kg próprio/mês média Jan–Jun/26
+const KG_EMBALAGEM_MES      = 8900;       // kg total embalado/mês (próprio + revenda)
+const CUSTO_COLHEITA_KG     = +(FOLHA_COLHEITA_MES / KG_COLHEITA_MES).toFixed(2);    // R$6,48 — só produção própria
+const CUSTO_EMBALAGEM_KG    = +(FOLHA_EMBALAGEM_MES / KG_EMBALAGEM_MES).toFixed(2);  // R$2,04 — todo volume
+const CUSTO_ESTRUTURA_KG    = 7.71;  // energia R$1,75 + aluguel/fixos R$5,96
+const CUSTO_FRETE_KG        = 5.47;  // fretes ÷ 8900 kg (reconciliar contra Omie)
+const CUSTO_COMPARTILHADO_KG = +(CUSTO_EMBALAGEM_KG + CUSTO_ESTRUTURA_KG + CUSTO_FRETE_KG).toFixed(2); // R$15,22
+
 const CUSTOS_FIXOS = {
   periodo: 'Jan–Jun 2026',
   meses: 6,
@@ -6236,19 +6276,6 @@ const CUSTOS_FIXOS = {
     { mes:'2026-07', descricao:'Saída André Luiz Fadel (Eng. Agrônomo)', impacto_mes:-8648, nota:'Reduz custo admin/experimentos. Não impacta produção/colheita.' },
   ],
 };
-
-// Folha constants — auditoria Jul/2026 (classificação por cargo, não Controladoria)
-// Colheita (7 pessoas): Carlos José, Daniele, Danielly, Kristian, Suzana, Thais, Thiago
-// Embalagem (8 pessoas): Catia, Erica, Gabriel, Guilherme, Juliana, Merisvalda, Thalis, Clayton
-const FOLHA_COLHEITA_MES    = 9314.39;    // média comp.03,04,06/2026
-const FOLHA_EMBALAGEM_MES   = 18155.96;   // média comp.03,04,06/2026
-const KG_COLHEITA_MES       = 1438;       // kg próprio/mês média Jan–Jun/26
-const KG_EMBALAGEM_MES      = 8900;       // kg total embalado/mês (próprio + revenda)
-const CUSTO_COLHEITA_KG     = +(FOLHA_COLHEITA_MES / KG_COLHEITA_MES).toFixed(2);    // R$6,48 — só produção própria
-const CUSTO_EMBALAGEM_KG    = +(FOLHA_EMBALAGEM_MES / KG_EMBALAGEM_MES).toFixed(2);  // R$2,04 — todo volume
-const CUSTO_ESTRUTURA_KG    = 7.71;  // energia R$1,75 + aluguel/fixos R$5,96
-const CUSTO_FRETE_KG        = 5.47;  // fretes ÷ 8900 kg (reconciliar contra Omie)
-const CUSTO_COMPARTILHADO_KG = +(CUSTO_EMBALAGEM_KG + CUSTO_ESTRUTURA_KG + CUSTO_FRETE_KG).toFixed(2); // R$15,22
 
 // fixo_colheita = CUSTO_COLHEITA_KG (só produção própria)
 // fixo_producao  = CUSTO_COMPARTILHADO_KG (emb 2.04 + estrutura 7.71 + frete 5.47 = 15.22)
