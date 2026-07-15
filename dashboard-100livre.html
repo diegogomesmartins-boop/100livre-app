@@ -574,6 +574,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
       CNPJs normalizados (só dígitos) para evitar duplicatas formatadas
     </div>
     <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap" id="rent-sort-btns"></div>
+    <!-- Waterfall MC -->
+    <div class="cc" id="rent-waterfall-card" style="margin-bottom:14px;padding:12px;display:none"></div>
     <div id="rent-kpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px"></div>
 
     <!-- Sub-view: Por Rede -->
@@ -589,7 +591,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
             <th>Rede</th><th style="text-align:right">Fat. Bruto</th>
             <th style="text-align:right">Dev.</th><th style="text-align:right">% Dev</th>
             <th style="text-align:right">Desc. Com.</th><th style="text-align:right">Receita Real</th>
-            <th style="text-align:right">Margem</th><th style="text-align:right">NFs</th>
+            <th style="text-align:right;color:#b0afaa">CMV rev.</th><th style="text-align:right;color:#1D9E75">M.C.</th>
+            <th style="text-align:right">Ret.%</th><th style="text-align:right">NFs</th>
             <th style="text-align:right">Ticket/NF</th><th></th>
           </tr></thead>
           <tbody id="rent-tbody"></tbody><tfoot id="rent-tfoot"></tfoot></table>
@@ -4634,7 +4637,7 @@ const RENT_EXCLUIR_NOME = ['HB POOLING','IFCO','HOLAMGROW','INDATABRASIL','INDAT
 const rentFmtR  = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
 const rentFmtR2 = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-let _rentPeriodo='acum', _rentSort='receita', _rentFatC={}, _rentDevC={}, _rentPplC={}, _rentDados=[], _rentRedeIdx=null, _rentOutrosC=[];
+let _rentPeriodo='acum', _rentSort='receita', _rentFatC={}, _rentDevC={}, _rentPplC={}, _rentDreC={}, _rentDados=[], _rentRedeIdx=null, _rentOutrosC=[];
 let _rentSubView='rede', _rentFamIdx=null, _rentLojaIdx=null;
 let _rentProdGranView='familia';
 let _rentLojaFiltroRede='Todas', _rentLojaFiltroVendedor='Todos';
@@ -4747,6 +4750,15 @@ function rentNormalizeSKU(prod,unid){
 }
 function rentGetVendedor(rede){if(['GPA',"SAM'S",'SONDA'].includes(rede))return'Anderson';if(['CARREFOUR','MAMBO','HIROTA'].includes(rede))return'Lucas';if(['ZONA SUL','DIA','RESTAURANTES'].includes(rede))return'Julia';return'—';}
 
+async function rentLoadDre(ps){
+  for(const p of ps.filter(x=>!_rentDreC[x])){
+    try{
+      const d=await getDoc(doc(db,'dre_mensal',p));
+      _rentDreC[p]=d.exists()?d.data():null;
+      rentLog('dre '+p+': '+(d.exists()?'ok':'vazio'));
+    }catch(e){rentLog('ERR dre '+p);_rentDreC[p]=null;}
+  }
+}
 async function rentLoadFat(ps){for(const p of ps.filter(x=>!_rentFatC[x])){try{const d=await getDoc(doc(db,'faturamento_mensal',p));_rentFatC[p]=d.exists()?d.data():null;rentLog('fat '+p+': '+(d.exists()?Object.keys((d.data().por_cliente||{})).length+' clientes':'vazio'));}catch(e){rentLog('ERR fat '+p);_rentFatC[p]=null;}}}
 async function rentLoadDev(ps){for(const p of ps.filter(x=>!_rentDevC[x])){try{const s=await getDocs(query(collection(db,'devolucoes'),where('periodo','==',p)));_rentDevC[p]=[];s.forEach(d=>_rentDevC[p].push(d.data()));rentLog('dev '+p+': '+_rentDevC[p].length+' docs');}catch(e){_rentDevC[p]=[];}}}
 async function rentLoadPPL(ps){for(const p of ps.filter(x=>!_rentPplC[x])){try{const s=await getDocs(query(collection(db,'produto_por_loja'),where('periodo','==',p)));_rentPplC[p]=[];s.forEach(d=>_rentPplC[p].push(d.data()));rentLog('ppl '+p+': '+_rentPplC[p].length+' docs');}catch(e){_rentPplC[p]=[];}}}
@@ -4896,16 +4908,57 @@ async function renderRentabilidade(){
   document.getElementById(_lt).innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">carregando...</td></tr>';
   document.getElementById('rent-kpis').innerHTML='';
   const ps=_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo];
-  await Promise.all([rentLoadFat(ps),rentLoadDev(ps),rentLoadPPL(ps)]);
+  await Promise.all([rentLoadFat(ps),rentLoadDev(ps),rentLoadPPL(ps),rentLoadDre(ps)]);
   _rentDados=rentAgregar(ps);
   const so={receita:(a,b)=>b.receita-a.receita,margem:(a,b)=>b.margem-a.margem,ticket:(a,b)=>b.ticket-a.ticket,fat:(a,b)=>b.fat_bruto-a.fat_bruto};
   _rentDados.sort(so[_rentSort]||so.receita);
+
+  // CMV from dre_mensal
+  const _cmvTotal=ps.reduce((s,p)=>{const d=_rentDreC[p];return s+(d?(d.cmv_revenda||0)+(d.cmv_revenda_sem_nf||0):0);},0);
+  const _cmvRate=t.rc>0?_cmvTotal/t.rc:0; // CMV as fraction of receita real
+  window._rentCmvTotal=_cmvTotal; window._rentCmvRate=_cmvRate;
 
   if(!_rentDados.length){document.getElementById(_lt).innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
 
   const t=_rentDados.reduce((a,r)=>({fb:a.fb+r.fat_bruto,dv:a.dv+r.devolucoes,dc:a.dc+r.desc_val,rc:a.rc+r.receita,nf:a.nf+r.nfs}),{fb:0,dv:0,dc:0,rc:0,nf:0});
   const tm=t.fb>0?t.rc/t.fb:0, td2=t.fb>0?t.dv/t.fb:0;
   const lbl=_rentPeriodo==='acum'?'Jan–Jul/26':P2M[_rentPeriodo]+'/26';
+
+  // Waterfall card
+  const _mc=t.rc-_cmvTotal, _mcPct=t.rc>0?_mc/t.rc:0;
+  const _wfEl=document.getElementById('rent-waterfall-card');
+  if(_wfEl){_wfEl.style.display='';_wfEl.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;font-size:11px">
+      <div class="cc" style="padding:10px;text-align:center">
+        <div style="color:var(--muted2);margin-bottom:4px;font-size:9px;text-transform:uppercase">Fat. Bruto</div>
+        <div style="font-size:16px;font-weight:700;color:#378ADD;font-family:'DM Mono',monospace">${fmtK(t.fb)}</div>
+      </div>
+      <div class="cc" style="padding:10px;text-align:center">
+        <div style="color:var(--muted2);margin-bottom:4px;font-size:9px;text-transform:uppercase">−Dev (${(t.fb>0?t.dv/t.fb*100:0).toFixed(1)}%)</div>
+        <div style="font-size:16px;font-weight:700;color:#E24B4A;font-family:'DM Mono',monospace">${fmtK(t.fb-t.dv)}</div>
+      </div>
+      <div class="cc" style="padding:10px;text-align:center">
+        <div style="color:var(--muted2);margin-bottom:4px;font-size:9px;text-transform:uppercase">−Desc (${(t.fb>0?t.dc/t.fb*100:0).toFixed(1)}%)</div>
+        <div style="font-size:16px;font-weight:700;color:#EF9F27;font-family:'DM Mono',monospace">${fmtK(t.rc)}</div>
+      </div>
+      <div class="cc" style="padding:10px;text-align:center">
+        <div style="color:var(--muted2);margin-bottom:4px;font-size:9px;text-transform:uppercase">CMV rev. ${_cmvTotal>0?'('+(_cmvRate*100).toFixed(0)+'% rec.)':''}</div>
+        <div style="font-size:16px;font-weight:700;color:#E24B4A;font-family:'DM Mono',monospace">${_cmvTotal>0?fmtK(_cmvTotal):'—'}</div>
+        <div style="font-size:9px;color:var(--muted)">compras_revenda</div>
+      </div>
+      <div class="cc" style="padding:10px;text-align:center;border:1px solid rgba(29,158,117,.3)">
+        <div style="color:#1D9E75;margin-bottom:4px;font-size:9px;text-transform:uppercase;font-weight:700">Margem Contrib.</div>
+        <div style="font-size:16px;font-weight:700;color:#1D9E75;font-family:'DM Mono',monospace">${_cmvTotal>0?fmtK(_mc):'—'}</div>
+        <div style="font-size:9px;color:#1D9E75">${_cmvTotal>0?(_mcPct*100).toFixed(1)+'%':'sem CMV'}</div>
+      </div>
+      <div class="cc" style="padding:10px;text-align:center;background:rgba(239,159,39,.05)">
+        <div style="color:var(--muted2);margin-bottom:4px;font-size:9px;text-transform:uppercase">OpEx (ref. mai/26)</div>
+        <div style="font-size:14px;font-weight:700;color:#EF9F27;font-family:'DM Mono',monospace">~R$170k</div>
+        <div style="font-size:9px;color:var(--muted)">frete + folha + infra</div>
+      </div>
+    </div>
+    ${_cmvTotal===0?'<div style="font-size:10px;color:#EF9F27;margin-top:8px;padding:6px 10px;background:rgba(239,159,39,.08);border-radius:4px">⚠ CMV não carregado — rodar syncComprasRevenda ou syncHistorico para popular dre_mensal.cmv_revenda</div>':''}`;
+  }
 
   document.getElementById('rent-kpis').innerHTML=`
     <div class="kpi"><div class="kl">Fat. Bruto</div><div class="kv" style="color:#378ADD">${fmtK(t.fb)}</div><div class="kd">${t.nf} NFs · ${lbl}</div></div>
@@ -4936,6 +4989,11 @@ async function renderRentabilidade(){
       const s=r.margem>=0.55?'🟢':r.margem>=0.35?'🟡':'🔴';
       const dc2=r.pct_dev>0.20?'#E24B4A':r.pct_dev>0.10?'#EF9F27':'#1D9E75';
       const nc=r.rede==='OUTROS'?' <span style="font-size:10px;color:var(--muted)">('+Object.keys(r.clientes).length+')</span>':'';
+      const isPropria=r.rede==='EINSTEIN'||r.rede==='RESTAURANTES';
+      const cmvRede=isPropria?0:r.receita*_cmvRate;
+      const mcRede=r.receita-cmvRede, mcPctRede=r.receita>0?mcRede/r.receita:0;
+      const mcCol=mcPctRede>=0.40?'#1D9E75':mcPctRede>=0.20?'#EF9F27':'#E24B4A';
+      const cmvNote=isPropria?'<span style="font-size:9px;color:var(--muted)"> (prod. própria)</span>':'';
       return`<tr style="cursor:pointer" data-rent-i="${i}">
         <td style="font-weight:500;color:${RENT_CORES[r.rede]||'var(--text)'}">${r.rede}${nc}</td>
         <td style="text-align:right">${rentFmtR(r.fat_bruto)}</td>
@@ -4943,6 +5001,8 @@ async function renderRentabilidade(){
         <td style="text-align:right;color:${dc2}">${(r.pct_dev*100).toFixed(1)}%</td>
         <td style="text-align:right;color:#EF9F27">${r.desc_pct>0?rentFmtR(r.desc_val)+' ('+Math.round(r.desc_pct*100)+'%)':'—'}</td>
         <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(r.receita)}</td>
+        <td style="text-align:right;color:#b0afaa">${_cmvRate>0&&!isPropria?rentFmtR(cmvRede):isPropria?'<span style="color:var(--muted);font-size:10px">própria</span>':'—'}</td>
+        <td style="text-align:right"><span style="font-weight:700;color:${_cmvRate>0?mcCol:'var(--muted)'}">${_cmvRate>0?rentFmtR(mcRede)+' ('+(_mcPctRede=mcPctRede,(mcPctRede*100).toFixed(0))+'%)':'—'}</span></td>
         <td style="text-align:right"><span class="badge ${r.margem>=0.55?'bg':r.margem>=0.35?'ba':'br'}">${(r.margem*100).toFixed(1)}%</span></td>
         <td style="text-align:right;color:var(--muted)">${r.nfs}</td>
         <td style="text-align:right">${rentFmtR(r.ticket)}</td>
@@ -4957,6 +5017,8 @@ async function renderRentabilidade(){
       <td>TOTAL</td><td style="text-align:right;color:#378ADD">${rentFmtR(t.fb)}</td>
       <td style="text-align:right;color:#E24B4A">${rentFmtR(t.dv)}</td><td style="text-align:right">${(td2*100).toFixed(1)}%</td>
       <td style="text-align:right;color:#EF9F27">${rentFmtR(t.dc)}</td><td style="text-align:right;color:#1D9E75">${rentFmtR(t.rc)}</td>
+      <td style="text-align:right;color:#b0afaa">${_cmvTotal>0?rentFmtR(_cmvTotal):'—'}</td>
+      <td style="text-align:right;color:#1D9E75;font-weight:700">${_cmvTotal>0?rentFmtR(_mc)+' ('+((_mcPct)*100).toFixed(0)+'%)':'—'}</td>
       <td style="text-align:right"><span class="badge ${tm>=0.55?'bg':tm>=0.35?'ba':'br'}">${(tm*100).toFixed(1)}%</span></td>
       <td style="text-align:right;color:var(--muted)">${t.nf}</td><td style="text-align:right">${rentFmtR(t.nf>0?t.rc/t.nf:0)}</td><td></td>
     </tr>`;
