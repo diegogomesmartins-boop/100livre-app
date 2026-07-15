@@ -9011,15 +9011,27 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
       <div class="kpi"><div class="kl">Baixas do robô</div><div class="kv" style="color:var(--blue)">${k.baixa_feita||0}</div><div class="kd">fila: ${k.baixa_fila||0}</div></div>`;
     bkTab(_bkT);
   }
+  let _bkS={campo:'dias',dir:'desc'};
+  function bkSort(campo){
+    if(_bkS.campo===campo){ _bkS.dir = _bkS.dir==='desc' ? 'asc' : 'desc'; }
+    else { _bkS={campo:campo, dir:'desc'}; }
+    bkTab(_bkT);
+  }
   function bkTab(t){
+    if(t!==_bkT){ _bkS = {campo:'dias', dir: t==='atr' ? 'desc' : 'asc'}; }  // padrão por aba
     _bkT=t;
     const a=document.getElementById('bk-t-atr'), p=document.getElementById('bk-t-prox');
     if(a) a.style.cssText=t==='atr'?'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)':'';
     if(p) p.style.cssText=t==='prox'?'border-color:rgba(55,138,221,.3);background:rgba(55,138,221,.12);color:var(--blue)':'';
-    const rows=(t==='atr'?(_bk.atrasado||[]):(_bk.aVencer||[]));
+    let rows=[...(t==='atr'?(_bk.atrasado||[]):(_bk.aVencer||[]))];
+    const sgn=_bkS.dir==='desc'?-1:1;
+    rows.sort((a,b)=>{ const va=Number(a[_bkS.campo])||0, vb=Number(b[_bkS.campo])||0;
+      return va===vb ? 0 : (va<vb? -sgn : sgn); });
+    const seta=c=>_bkS.campo===c ? (_bkS.dir==='desc'?' ▼':' ▲') : '';
+    const th=(c,lbl,al)=>`<th onclick="bkSort('${c}')" style="cursor:pointer;user-select:none;${al?'text-align:'+al:''};${_bkS.campo===c?'color:var(--blue)':''}" title="ordenar">${lbl}${seta(c)}</th>`;
     const prazo=r=>r.dias>0?`<span class="badge br">${r.dias}d atraso</span>`:r.dias===0?`<span class="badge ba">vence hoje</span>`:`<span class="badge bg">vence em ${-r.dias}d</span>`;
     const tb=document.getElementById('bk-table');
-    if(tb) tb.innerHTML=`<thead><tr><th>Cliente</th><th>NF</th><th>Prazo</th><th style="text-align:right">Valor</th><th style="text-align:right">Ação</th></tr></thead><tbody>`+
+    if(tb) tb.innerHTML=`<thead><tr><th>Cliente</th><th>NF</th>`+th('dias','Prazo')+th('valor','Valor','right')+`<th style="text-align:right">Ação</th></tr></thead><tbody>`+
       rows.map(r=>`<tr><td>${r.cliente}${bkFone(r.tel).ok?'':' <span class="badge ba" style="opacity:.7">'+bkFone(r.tel).aviso+'</span>'}${bkJaCobrado(r.nf)?' <span class="badge bg" style="opacity:.8">cobrado hoje</span>':''}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar(${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
     const tt=document.getElementById('bk-tot'); if(tt) tt.textContent=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0));
   }
@@ -9099,7 +9111,7 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
   }
   window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco; window.bkLink=bkLink;
   document.addEventListener('input',function(e){ if(e.target && (e.target.id==='bk-m-tel'||e.target.id==='bk-m-msg')) bkLink(); });
-  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado;
+  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort;
   // 4) wrap setView p/ tratar 'bancos'
   function install(){
     if(typeof window.setView!=='function'){ return setTimeout(install,300); }
