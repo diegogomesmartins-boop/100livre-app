@@ -26,7 +26,9 @@ OMIE_KEY    = os.environ["OMIE_APP_KEY"]
 OMIE_SECRET = os.environ["OMIE_APP_SECRET"]
 DRY_RUN     = os.environ.get("DRY_RUN", "1") == "1"
 JANELA_DIAS = int(os.environ.get("JANELA_DIAS", "240"))
-HOJE        = datetime.date.today()
+BRT         = datetime.timezone(datetime.timedelta(hours=-3))   # runner roda em UTC
+AGORA       = datetime.datetime.now(BRT)
+HOJE        = AGORA.date()
 
 BANCOS = [
     {"slug": "inter", "nome": "Inter", "cc": int(os.environ.get("INTER_CC", "1972977169")),
@@ -180,7 +182,7 @@ def snapshot(banco, bol, feitas, fila):
     avencer  = sorted([a for a in abertos if a["dias"] <= 0], key=lambda x: x["dias"])
     pagos    = [b for b in bol if b["status"] == "RECEBIDO"]
     s = lambda arr: round(sum(x["valor"] for x in arr), 2)
-    return {"updated": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
+    return {"updated": AGORA.strftime("%d/%m/%Y %H:%M"),
             "banco": banco["nome"], "dry_run": DRY_RUN or not banco["baixa"],
             "kpi": {"a_receber": s(abertos), "n_aberto": len(abertos),
                     "a_vencer": s(avencer), "n_avencer": len(avencer),
