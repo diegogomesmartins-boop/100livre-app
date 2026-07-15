@@ -12,8 +12,13 @@ separados pela conta corrente (id_conta_corrente).
 Baixa automática por banco:
   - inter: LIGADA. A integração Inter↔OMIE grava a NF na observação do
     pagamento ("Boleto Inter: <nosso número> / NF: <nf>") -> casamento exato.
-  - itau: painel primeiro. Só baixa se ITAU_BAIXA=1 E o pagamento trouxer NF.
-    (o diagnóstico abaixo mostra no log se o extrato do Itaú traz NF)
+  - itau: LIGADA (14/07/2026). Verificado: o extrato do Itaú traz a NF em
+    358 de 381 recebimentos ("Conta Recebida"). Os 23 sem NF são transferências
+    e créditos em conta — não são boleto e ficam fora do escopo por construção.
+
+PORTÃO (Regras §9): título com crédito compatível no extrato NÃO entra na fila
+de cobrança ("pago não baixado" não é inadimplência). Verificado em 14/07/2026:
+0 falsos atrasados entre os 22 do Itaú.
 
 Segurança: DRY_RUN=1 não baixa nada; só casa por NF exata; casos duvidosos
 vão para a fila de revisão; log de auditoria de tudo.
@@ -34,7 +39,7 @@ BANCOS = [
     {"slug": "inter", "nome": "Inter", "cc": int(os.environ.get("INTER_CC", "1972977169")),
      "baixa": os.environ.get("INTER_BAIXA", "1") == "1"},
     {"slug": "itau",  "nome": "Itaú",  "cc": int(os.environ.get("ITAU_CC", "1973103311")),
-     "baixa": os.environ.get("ITAU_BAIXA", "0") == "1"},
+     "baixa": os.environ.get("ITAU_BAIXA", "1") == "1"},
 ]
 
 # ── OMIE API ───────────────────────────────────────────────────────
@@ -171,13 +176,28 @@ def nomes(codigos):
         time.sleep(0.12)
     return _cache_nomes
 
-def snapshot(banco, bol, feitas, fila):
+def snapshot(banco, bol, feitas, fila, pg):
+    """Monta o painel. PORTÃO (Regras §9): nenhum título entra na fila de cobrança
+    se existir crédito compatível no extrato — 'pago não baixado' não é inadimplência.
+    Cobrar quem já pagou é o dano que este sistema existe para evitar."""
     nm = nomes([b["cli"] for b in bol if b["status"] in ABERTO])
     dias = lambda v: (HOJE - parse_dt(v)).days
-    abertos = [{"nf": b["nf"], "cliente": (nm.get(b["cli"]) or {}).get("nome") or f"Cliente {b['cli']}",
+    abertos, bloqueados = [], []
+    for b in bol:
+        if b["status"] not in ABERTO:
+            continue
+        item = {"nf": b["nf"], "cliente": (nm.get(b["cli"]) or {}).get("nome") or f"Cliente {b['cli']}",
                 "tel": (nm.get(b["cli"]) or {}).get("tel") or "", "valor": round(b["valor"], 2),
                 "venc": b["venc"], "dias": dias(b["venc"]), "nosso": b["nosso"]}
-               for b in bol if b["status"] in ABERTO]
+        p = pg.get(b["nf"])
+        if p:                      # crédito existe -> falso atrasado, NÃO cobrar
+            bloqueados.append({**item, "pago_em": p.get("data"), "pago_valor": p.get("valor"),
+                               "motivo": "crédito no extrato — pago não baixado"})
+            continue
+        abertos.append(item)
+    if bloqueados:
+        print(f"   PORTÃO: {len(bloqueados)} título(s) fora da cobrança (já têm crédito no extrato): "
+              + ", ".join(f"NF {x['nf']}" for x in bloqueados[:8]))
     atrasado = sorted([a for a in abertos if a["dias"] > 0], key=lambda x: -x["dias"])
     avencer  = sorted([a for a in abertos if a["dias"] <= 0], key=lambda x: x["dias"])
     pagos    = [b for b in bol if b["status"] == "RECEBIDO"]
@@ -189,9 +209,10 @@ def snapshot(banco, bol, feitas, fila):
                     "vencido": s(atrasado), "n_vencido": len(atrasado),
                     "pago_v": round(sum(b["valor"] for b in pagos), 2), "pago_n": len(pagos),
                     "baixa_feita": len(feitas), "baixa_fila": len(fila),
-                    "sem_tel": len([a for a in abertos if not a["tel"]])},
+                    "sem_tel": len([a for a in abertos if not a["tel"]]),
+                    "bloqueados": len(bloqueados)},
             "atrasado": atrasado, "aVencer": avencer,
-            "baixas_log": feitas, "fila_revisao": fila}
+            "baixas_log": feitas, "fila_revisao": fila, "bloqueados": bloqueados}
 
 def firestore_db():
     import firebase_admin
@@ -216,7 +237,7 @@ def main():
         print(f"   abertos com pagamento casado por NF: {casa}")
         feitas, fila = baixar(meus, pg, banco["cc"], banco["baixa"])
         print(f"   baixas: {len(feitas)} · fila revisão: {len(fila)}")
-        snap = snapshot(banco, meus, feitas, fila)
+        snap = snapshot(banco, meus, feitas, fila, pg)
         print("   KPIs:", json.dumps(snap["kpi"], ensure_ascii=False))
         if snap["kpi"].get("sem_tel"):
             print(f"   ATENÇÃO: {snap['kpi']['sem_tel']} cliente(s) em aberto sem telefone no cadastro OMIE")

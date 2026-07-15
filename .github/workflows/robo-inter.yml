@@ -12,7 +12,7 @@ on:
         default: "0"
       itau_baixa:
         description: "Itaú: 1 = também baixa | 0 = só painel"
-        default: "0"
+        default: "1"
 
 permissions:
   contents: read
@@ -34,7 +34,7 @@ jobs:
           INTER_CC: "1972977169"
           ITAU_CC:  "1973103311"
           INTER_BAIXA: "1"
-          ITAU_BAIXA:  ${{ github.event.inputs.itau_baixa || '0' }}
+          ITAU_BAIXA:  ${{ github.event.inputs.itau_baixa || '1' }}
           # BAIXAS ATIVAS (0). Use "1" no workflow_dispatch para simular.
           DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
         run: python robo_bancos.py
