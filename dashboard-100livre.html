@@ -574,6 +574,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
       CNPJs normalizados (só dígitos) para evitar duplicatas formatadas
     </div>
     <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap" id="rent-sort-btns"></div>
+    <div id="rent-recon-note" style="font-size:10px;padding:4px 10px;margin-bottom:8px;background:rgba(239,159,39,.06);border-left:2px solid rgba(239,159,39,.35);display:none"></div>
     <!-- Waterfall MC -->
     <div class="cc" id="rent-waterfall-card" style="margin-bottom:14px;padding:12px;display:none"></div>
     <div id="rent-kpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px"></div>
@@ -2165,9 +2166,26 @@ function openEbitdaModal() {
       <span style="font-size:14px;font-weight:700">EBITDA Competência</span>
       <span style="font-family:'DM Mono',monospace;color:${ebitdaComp>=0?'#1D9E75':'#E24B4A'};font-size:16px;font-weight:700">${fmtF(ebitdaComp)}</span>
     </div>
-    ${gapExtra>0?`<div style="background:rgba(239,159,39,.07);border:1px solid rgba(239,159,39,.2);border-radius:7px;padding:10px 12px;margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6">
-      ⚠ <b style="color:var(--text)">Gap ${fmtF(gapExtra)}</b> — Cora (${fmtF(d.coratotal||0)}) e UY3 (${fmtF(d.uy3total||0)}) entram na Receita Caixa mas não no Faturamento NF porque essas contas não estão cadastradas no Omie. Por isso EBITDA Caixa ${ebitdaCaixa>ebitdaComp?'>' : '<'} EBITDA Competência neste período.
-    </div>`:''}`;
+      ${    ${(()=>{
+      const antec=d.dre.antecipacoes_extrato||0;
+      const gapCx=ebitdaCaixa-ebitdaComp;
+      const gapNF=d.fat-(d.dre.receita_liquida||0);
+      const items=[
+        {label:'UY3 (conta fora do Omie)',val:d.uy3total||0,cor:'#378ADD'},
+        {label:'Cora (conta fora do Omie)',val:d.coratotal||0,cor:'#7F77DD'},
+        {label:'Antecip. extrato (caixa — não é receita op.)',val:antec,cor:'#EF9F27'},
+        {label:'NFs emitidas s/ recebimento no mês',val:gapNF,cor:'#E24B4A'},
+      ].filter(x=>Math.abs(x.val)>100);
+      if(!items.length)return '';
+      return '<div style="background:rgba(239,159,39,.07);border:1px solid rgba(239,159,39,.2);border-radius:7px;padding:10px 12px;margin-top:10px">'
+        +'<div style="font-size:11px;font-weight:700;color:#EF9F27;margin-bottom:6px">Reconciliação Caixa × Competência — '+fmtF(Math.abs(gapCx))+' de gap</div>'
+        +items.map(x=>'<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+          +'<span style="color:var(--muted)">'+x.label+'</span>'
+          +'<span style="font-family:monospace;color:'+x.cor+';font-weight:600">'+(x.val>=0?'+ ':'− ')+fmtF(Math.abs(x.val))+'</span></div>').join('')
+        +'<div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5">EBITDA Caixa '+
+          (gapCx>=0?'<b style="color:#1D9E75">maior</b>':'<b style="color:#E24B4A">menor</b>')+
+          ' que Competência em '+fmtF(Math.abs(gapCx))+'. Antecipações são adiantamentos — caixa mas não receita operacional.</div></div>';
+    })()}}`;
 }
 
 function closeEbitdaModal(e) {
@@ -4923,6 +4941,14 @@ async function renderRentabilidade(){
   const t=_rentDados.reduce((a,r)=>({fb:a.fb+r.fat_bruto,dv:a.dv+r.devolucoes,dc:a.dc+r.desc_val,rc:a.rc+r.receita,nf:a.nf+r.nfs}),{fb:0,dv:0,dc:0,rc:0,nf:0});
   const tm=t.fb>0?t.rc/t.fb:0, td2=t.fb>0?t.dv/t.fb:0;
   const lbl=_rentPeriodo==='acum'?'Jan–Jul/26':P2M[_rentPeriodo]+'/26';
+  const _fatFS=ps.reduce((s,p)=>{const fd=_rentFatC[p];return s+(fd&&fd.faturamento_bruto!=null?fd.faturamento_bruto:fd&&fd.por_cliente?Object.values(fd.por_cliente).reduce((a,c)=>a+(c.total||0),0):0);},0);
+  const _fatGap=_fatFS-t.fb;
+  const _reconEl=document.getElementById('rent-recon-note');
+  if(_reconEl){
+    _reconEl.style.display=_fatFS>0?'':'none';
+    _reconEl.innerHTML=_fatFS>0?'Fat. NF (Firestore): <b>'+rentFmtR(_fatFS)+'</b> · Agregado (Rent.): <b>'+rentFmtR(t.fb)+'</b>'
+      +(_fatGap>500?' · <span style="color:#EF9F27">⚠ Excluídos (HB Pooling/Hochimix): '+rentFmtR(_fatGap)+'</span>':''):'';
+  }
 
   // Waterfall card
   const _mc=t.rc-_cmvTotal, _mcPct=t.rc>0?_mc/t.rc:0;
@@ -6737,7 +6763,7 @@ function _renderCustoKg() {
     <div style="background:rgba(239,159,39,.07);border:1px solid rgba(239,159,39,.3);border-radius:8px;padding:14px 16px;font-size:12px;line-height:1.7">
       <div style="font-weight:700;color:#EF9F27;margin-bottom:6px">⚠️ Pendências abertas — dados parcialmente confirmados</div>
       <ul style="margin:0;padding-left:18px;color:var(--muted)">
-        <li><strong style="color:#1D9E75">✓ Folha confirmada:</strong> Folha Abr/2026 Sprout Holdings — colheita R$18.728 gross (9 pessoas, 23,1%) + produção R$24.130 gross (7 pessoas, 29,7%). Projetado 6 meses: R$194k colheita + R$250k produção.</li>
+        <li><strong style="color:#1D9E75">✓ Folha confirmada:</strong> Folha Abr/2026 Sprout Holdings — custo colheita R$9.314/mês (7 pessoas CLT, CC cogumelos) + embalagem R$18.156/mês (8 pessoas CLT). Classificado por cargo corrigido na Part 1: R$9.314 ÷ 1.438 kg/mês = R$6,48/kg.</li>
         <li><strong style="color:var(--text)">Volumes:</strong> ${kgP.toLocaleString('pt-BR')} kg próprios e ${kgR.toLocaleString('pt-BR')} kg revenda — estimados. Confirmar via <code>colheita_diaria</code> e <code>compras_revenda</code>.</li>
         <li><strong style="color:var(--text)">Freelas capturadas:</strong> R$41.178 no sistema vs R$104k estimado — lançamentos jan/fev/abr sem keyword "freela" no obs do Omie ainda não capturados.</li>
         <li><strong style="color:var(--text)">Energia:</strong> R$10k/mês estimado — não encontrado no extrato Omie (possível embutimento no leasing).</li>
