@@ -4958,14 +4958,13 @@ async function renderRentabilidade(){
   const so={receita:(a,b)=>b.receita-a.receita,margem:(a,b)=>b.margem-a.margem,ticket:(a,b)=>b.ticket-a.ticket,fat:(a,b)=>b.fat_bruto-a.fat_bruto};
   _rentDados.sort(so[_rentSort]||so.receita);
 
-  // CMV from dre_mensal
-  const _cmvTotal=ps.reduce((s,p)=>{const d=_rentDreC[p];return s+(d?(d.cmv_revenda||0)+(d.cmv_revenda_sem_nf||0):0);},0);
-  const _cmvRate=t.rc>0?_cmvTotal/t.rc:0; // CMV as fraction of receita real
-  window._rentCmvTotal=_cmvTotal; window._rentCmvRate=_cmvRate;
-
   if(!_rentDados.length){document.getElementById(_lt).innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
 
   const t=_rentDados.reduce((a,r)=>({fb:a.fb+r.fat_bruto,dv:a.dv+r.devolucoes,dc:a.dc+r.desc_val,rc:a.rc+r.receita,nf:a.nf+r.nfs}),{fb:0,dv:0,dc:0,rc:0,nf:0});
+  // CMV from dre_mensal — calculado depois de t para evitar TDZ
+  const _cmvTotal=ps.reduce((s,p)=>{const d=_rentDreC[p];return s+(d?(d.cmv_revenda||0)+(d.cmv_revenda_sem_nf||0):0);},0);
+  const _cmvRate=t.rc>0?_cmvTotal/t.rc:0;
+  window._rentCmvTotal=_cmvTotal; window._rentCmvRate=_cmvRate;
   const tm=t.fb>0?t.rc/t.fb:0, td2=t.fb>0?t.dv/t.fb:0;
   const lbl=_rentPeriodo==='acum'?'Jan–Jul/26':P2M[_rentPeriodo]+'/26';
   const _fatFS=ps.reduce((s,p)=>{const fd=_rentFatC[p];return s+(fd&&fd.faturamento_bruto!=null?fd.faturamento_bruto:fd&&fd.por_cliente?Object.values(fd.por_cliente).reduce((a,c)=>a+(c.total||0),0):0);},0);
