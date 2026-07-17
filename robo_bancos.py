@@ -164,9 +164,18 @@ def enriquecer_boletos(rows, nome):
 # ── 2b. fila de conciliação ────────────────────────────────────────
 def a_conciliar(cc, nome):
     """Movimentos de baixa de contas a receber (BAXR) sem data de conciliação.
-    O OMIE NÃO expõe conciliação por API (AlterarLancCC recusa o bloco 'diversos'
-    e os campos soltos em 'detalhes'), então o robô só ENXERGA e lista.
-    O ✓ continua sendo no OMIE — mas sem garimpo: a lista vem pronta."""
+
+    CORRIGIDO 17/07: o OMIE CONCILIA por API. A crença anterior ("não expõe
+    conciliação") vinha de testar AlterarLancCC — endpoint errado. O certo é
+    financas/contareceber -> ConciliarRecebimento{codigo_baixa}, provado ponta a
+    ponta (conciliar + desconciliar) em 17/07. Baixa nova já nasce conciliada via
+    conciliar_documento="S" em baixar().
+
+    Esta função continua listando o BACKLOG: baixas antigas, feitas antes desta
+    correção ou pela integração bancária, sem codigo_baixa guardado. Para
+    conciliá-las: financas/mf -> ListarMovimentos (cNumDocFiscal COM zeros à
+    esquerda; a baixa vem na ULTIMA página, cOrigem=APBR) devolve nCodBaixa.
+    Ver regra 2.1 do REGRAS_BAIXA_CONCILIACAO_OMIE.md."""
     ini = ddmmaaaa(HOJE - datetime.timedelta(days=JANELA_DIAS))
     out, pag, tot = [], 1, 1
     while pag <= tot:
@@ -212,7 +221,12 @@ def baixar(bol, pg, cc, pode_baixar):
             continue
         param = {"codigo_lancamento": b["cod"], "codigo_conta_corrente": cc,
                  "valor": b["valor"], "data": p["data"],
-                 "observacao": "Baixa automática — robô bancos"}
+                 "observacao": "Baixa automática — robô bancos",
+                 # conciliar_documento: baixa + conciliação numa chamada atômica.
+                 # [V] 17/07: a API CONCILIA. A crença anterior ("não expõe
+                 # conciliação") veio de testar o endpoint errado (AlterarLancCC).
+                 # Ver regra 2.1 do REGRAS_BAIXA_CONCILIACAO_OMIE.md.
+                 "conciliar_documento": "S"}
         if dif > 0.01:
             param["juros"] = dif
             param["observacao"] += f" (juros/multa R$ {dif:.2f})"
