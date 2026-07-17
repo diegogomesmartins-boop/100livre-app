@@ -148,25 +148,105 @@ Respostas **diferentes** ⇒ `ConciliarRecebimento` existe e executou; só rejei
 **Consequência:** o ciclo completo é **100% API**. Sem clique, sem risco de acertar o
 lápis em vez do ✓ (E5), sem conciliação sem lastro (E1).
 
-#### 2.1.1 Pergunta aberta — **[P] como obter `codigo_baixa` de baixa que o robô não fez**
+#### 2.1.1 Como obter o `codigo_baixa` — **[V] resolvido em 17/07**
 
 Para baixas **feitas pelo robô**, o `codigo_baixa` vem no retorno do `LancarRecebimento`
-— basta guardar. Para baixas **pré-existentes** (ex.: `cOrigem: "Conta Recebida"`, vindas
-da integração do Inter), ainda **não sabemos** de onde ler o `codigo_baixa`. Testado em
-17/07, sem sucesso:
+— basta guardar. Para baixas **pré-existentes** (vindas da integração bancária, que o robô
+não fez), a fonte é o serviço **`financas/mf` → `ListarMovimentos`**. É o campo
+**`nCodBaixa`**, dentro de `detalhes`.
 
-- `ListarContasReceber` → não traz campo de baixa.
-- `ConsultarContaReceber` → `recebimento: null`, `lancamento_detalhe: null`.
-- `ListarLancCC` → parâmetros não mapeados (`nCodCC`, `dDtLancDe`, `cCodIntLanc` todos
-  recusados por `lanccListarRequest`). **Não adivinhar nome de parâmetro** (ver 2.4).
+```
+POST /api/v1/financas/mf/
+{ "call":"ListarMovimentos",
+  "param":[{ "nPagina":1, "nRegPorPagina":20,
+             "cNumDocFiscal":"00035572",   // ← zeros à esquerda! (ver 10.1)
+             "lDadosCad":true }] }
+```
 
-**Atenção:** `nCodLancamento` (movimento do extrato) **≠** `codigo_baixa`. A conciliação
-usa o `codigo_baixa`.
+**[V] Exemplo real (NF 35572, Santander, 17/07):**
 
-**Próximo passo:** ler a estrutura real de `lanccListarRequest` na doc oficial do OMIE
-antes de tentar de novo. Enquanto isso, o backlog pré-existente continua dependendo da
-tela — mas **toda baixa nova do robô** já pode nascer conciliada via
-`conciliar_documento:"S"`.
+| Campo | Valor |
+|---|---|
+| `nCodBaixa` | **2301064998** ← é este que o `ConciliarRecebimento` quer |
+| `nCodMovCC` | 2301064997 (movimento — **número diferente**) |
+| `nCodTitulo` | 2273053053 |
+| `dDtConcilia` | `""` = **não conciliado** |
+| `cOrigem` | `APBR` (a baixa) |
+| `nCodCC` | 1973114603 (Santander) |
+| `dDtPagamento` | 16/07/2026 |
+
+**Três armadilhas — [V] todas custaram tentativa:**
+
+1. **A NF exige zeros à esquerda no filtro.** `cNumDocFiscal:"35572"` → **0 registros,
+   sem erro**. `"00035572"` → acha. Falha silenciosa, do tipo mais perigoso.
+2. **A baixa vem na ÚLTIMA página, não na primeira.** A consulta devolve `total=2`, mas
+   **1 registro por página**: pág. 1 = o **título** (`cOrigem: VENR`, sem `nCodBaixa`);
+   pág. 2 = a **baixa** (`cOrigem: APBR`, com `nCodBaixa`). Ler só a pág. 1 leva à
+   conclusão errada de que o campo não existe.
+3. **`nCodCC` do título ≠ conta do dinheiro.** Na pág. 1 o `nCodCC` veio 1973103311
+   (Itaú — a conta padrão do título); na pág. 2, 1973114603 (Santander — onde o dinheiro
+   caiu). **Para saber onde entrou, usar o registro da baixa.**
+
+**Onde não está** (testado em 17/07, para ninguém repetir): `ListarContasReceber` não traz
+campo de baixa; `ConsultarContaReceber` devolve `recebimento: null` e
+`lancamento_detalhe: null`.
+
+**`ListarLancCC` — os parâmetros certos.** Em 17/07 foram tentados `nCodCC`, `dDtLancDe`
+e `cCodIntLanc`: **todos recusados** por `lanccListarRequest`. Os corretos já estavam no
+`robo_bancos.py`, na função `a_conciliar()`:
+
+```python
+{"nPagina": 1, "nRegPorPagina": 100, "cOrigem": "BAXR",
+ "dtPagInicial": "...", "dtPagFinal": "..."}
+```
+
+> **Lição (a mesma da 2.4, terceira vez no dia):** a resposta estava **no próprio código
+> do robô**. Antes de adivinhar nome de parâmetro, `grep` no repo e ler a doc oficial.
+> Adivinhar custou 3 tentativas aqui e 3 no `nCodBaixa`.
+
+> **Como foi achado — vale mais que o resultado.** Depois de adivinhar nome de parâmetro
+> três vezes (anti-padrão da 2.4), a saída foi **ler a lista oficial de serviços**
+> (`developer.omie.com.br/service-list/`), onde `financas/mf` está descrito como
+> *"Consulta de pagamentos, **baixas**, lançamentos no Conta Corrente"*. A resposta
+> estava na primeira linha da documentação. **Ler a doc é mais rápido que adivinhar.**
+
+**Consequência: o ciclo completo está destravado.** `ListarExtrato` dá a fila de não
+conciliados com a NF → `mf/ListarMovimentos` dá o `nCodBaixa` → `ConciliarRecebimento`
+concilia. Tudo por API, sem tela.
+
+#### 2.1.2 Ciclo ponta a ponta — **[V] provado e revertido em 17/07**
+
+Rodado numa baixa que o robô **não** fez (NF 35572, Santander, `nCodBaixa` 2301064998),
+justamente o caso que se acreditava impossível:
+
+| Passo | Resultado |
+|---|---|
+| Estado inicial (`ListarExtrato`) | `Não conciliado` |
+| `ConciliarRecebimento{codigo_baixa:2301064998}` | `codigo_status:"0"` · *"Baixa conciliada com sucesso!"* |
+| Releitura (2 fontes) | `cSituacao=Conciliado` · `dDtConcilia=17/07/2026 08:33:16` · `cUsConcilia=WEBSERVICE` |
+| `DesconciliarRecebimento{codigo_baixa:2301064998}` | `codigo_status:"0"` · *"Conciliação da Baixa revertida com sucesso!"* |
+| Estado final | `Não conciliado` · `dDtConcilia=""` · título intacto em `RECEBIDO` |
+
+`cUsConcilia = "WEBSERVICE"` é a assinatura da conciliação por API — dá para auditar
+depois o que foi robô e o que foi humano.
+
+##### ⚠️ Atraso de leitura pós-escrita — **[V] o mais traiçoeiro daqui**
+
+**A escrita retorna sucesso antes de a leitura refletir.** Medido em 17/07:
+
+- **+2,5s** após conciliar → `ListarExtrato` ainda dizia **"Não conciliado"**.
+- **~+30s** → `"Conciliado"`.
+
+A escrita tinha funcionado desde o primeiro instante. Quem relê rápido e acredita conclui
+que **falhou** — e o reflexo natural é **tentar de novo**, ou pior, "corrigir na mão".
+
+> **Regra: nunca decidir sobre o resultado de uma escrita na primeira releitura.**
+> Reler com retentativa até estabilizar (30s+), e só então marcar feito. Conferir por
+> **duas fontes** (`ListarExtrato.cSituacao` + `mf.dDtConcilia`). Consulta do **mês
+> inteiro** é mais confiável que janela curta — janela curta às vezes volta vazia.
+>
+> Isto se soma à regra "confia mas verifica": **nem o retorno de sucesso, nem a primeira
+> releitura são evidência.** O par (sucesso + releitura estável em duas fontes) é.
 
 ### 2.2 Conciliação automática nativa — **[V] NÃO está contratada em nenhuma conta**
 
@@ -410,6 +490,25 @@ contra todos os créditos desde novembro → **0 falsos atrasados**. A lista est
 `numero_documento_fiscal` = `"00036328"`, **não** `"36328"`.
 Comparar como string falha silenciosamente. **Sempre `int()`.**
 
+### 10.1-b O período do `ListarExtrato` NÃO filtra por `cDataInclusao` — **[V] 17/07**
+
+**O filtro `dPeriodoInicial`/`dPeriodoFinal` usa uma data diferente da data do banco.**
+Consequência medida em 17/07: movimentos com `cDataInclusao = 01/07/2026` **não voltam**
+na consulta de `01/07` a `31/07` — voltam na consulta de **junho**.
+
+Exemplo real: NF 35499 e 35428 (Inter, R$ 100 cada, `cDataInclusao` 01/07/2026)
+apareceram só na janela `01/06–30/06`. A consulta de julho devolveu 1 pendente; a
+varredura mês a mês, agrupando por `cDataInclusao`, achou 3.
+
+**Por que isso morde:** dá para varrer "o mês inteiro", ver zero pendências, e concluir
+que fechou — enquanto existem movimentos daquele mês pendurados na janela vizinha.
+Aconteceu em 17/07: a afirmação *"zero pendências em julho"* era verdadeira **para a
+janela 01–31/07**, e falsa para "todos os movimentos com data de julho".
+
+> **Regra: para varredura de backlog, cobrir o período inteiro mês a mês e agrupar pelo
+> `cDataInclusao` do movimento — nunca concluir cobertura a partir de uma única janela.**
+> Sempre incluir um mês de folga antes e depois do alvo.
+
 ### 10.2 `registros_por_pagina` é capado em 100
 Pedir 200 devolve 100. Confie no `total_de_paginas` da resposta, não na sua conta.
 
@@ -550,6 +649,38 @@ esperado 3"* — detectando sozinho o incidente das janelas engolidas.
 ele não avisa. Não tem solução dentro do GitHub Actions: precisa de um pinger externo
 (Healthchecks.io / cron-job.org / UptimeRobot) fazendo dead-man switch. **Pendente.**
 O cadastro da conta externa é do Diego — o Claude não cria conta.
+
+## 15.1 Backlog Inter+Itaú zerado por API — **[V] 17/07**
+
+Varredura de **nov/2025 a jul/2026**, mês a mês, agrupando por `cDataInclusao` (ver 10.1-b).
+
+| | Movimentos | Valor |
+|---|---|---|
+| Encontrados `Não conciliado` | 111 | R$ 53.595,79 |
+| **Conciliados por API** | **102** | **R$ 33.886,96** |
+| Exceções (não tocar) | 9 | R$ 19.708,83 |
+
+**Critério de "casa exato"** (o mesmo de julho, 127/127 sem uma falha):
+`nCodBaixa` existe · a baixa está **na mesma conta** do movimento · `dDtConcilia` vazio ·
+título `RECEBIDO` · **exatamente uma** baixa para aquela NF naquela conta.
+
+**As 9 exceções — e por que cada uma é legítima:**
+
+| Caso | Valor | Motivo |
+|---|---|---|
+| Inter 27/04 · s/ NF | R$ 13.702,94 | `Crédito em Conta Corrente` — **não é baixa de título**, não tem `codigo_baixa`. Pelo porte e origem, provável **antecipação UY3** → regra 6.3: nunca automatizar por extrato. |
+| DIA BRASIL · NF 30336 ×2 | R$ 1.341,25 cada | Mesma NF, mesmo valor, **2 movimentos e 2 baixas**. Não há como saber qual baixa pertence a qual movimento. |
+| DIA BRASIL · NF 30494 ×2 | R$ 1.156,25 cada | Idem. |
+| 4 créditos s/ NF | R$ 1.010,89 | `Crédito em Conta Corrente` / `de Transferência` — sem título. |
+
+> **O DIA BRASIL é a regra do "valor repetido" pegando um caso real.** A regra dizia
+> *"valor repetido = não conciliar sem a NF exata"*. Aqui **nem a NF resolve** — ela
+> também se repete. É o caso em que a fila de exceção existe: conciliar chutando teria
+> 50% de chance de amarrar a baixa ao movimento errado.
+
+**Verificação (o que dá confiança, não o retorno de sucesso):** revarredura das 18
+janelas → restaram 9, e são **exatamente** os 9 previstos. Soma fecha:
+33.886,96 + 19.708,83 = 53.595,79. Se a conta não fechasse, algo teria escapado.
 
 ## 16. Inventário de OFX — **[V] 17/07**
 
