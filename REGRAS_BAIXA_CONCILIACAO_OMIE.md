@@ -41,12 +41,22 @@ o custo, e a **regra derivada**. Sem culpa e sem rodeio — o registro é a entr
 | **E5** | 11/07 | Clique errado no grid **desconciliou** o R$ 160 — o lápis e o ✓ ficam a ~14px um do outro. | Baixo, corrigido na hora. | **R-E5: Robô nunca edita campo de movimento clicando na tela.** Observação vai na baixa (`LancarRecebimento.observacao`), por API. (E1 é a reincidência disto — o grid do OMIE é uma armadilha conhecida.) |
 | **E6** | 11/07 | Lista de conciliação montada só a partir do relatório de boletos pagos, sem checar o status no OMIE. Itens já conciliados (ex.: NF 34156) apareceram como pendentes. | Retrabalho + lista errada entregue. | **R-E6 (= regra 00): O OMIE é a matriz.** O que "falta conciliar" vem sempre do `cSituacao` do OMIE. Fonte externa é conferência por NF, nunca origem da fila. |
 
+| **E7** | 17/07 | 4 movimentos do DIA BRASIL (R$ 4.995) mandados para exceção como "ambíguo". A ambiguidade **não existia**: cada baixa já tem seu `nCodMovCC`, e `ConciliarRecebimento` age sobre a baixa. Pior: nem se procurou o lastro fora do OMIE. O Diego perguntou *"procurou na rede SharePoint?"* — o extrato estava lá, e fecha no centavo (2 × 1.341,25 = crédito de 2.682,50 em 12/12). | R$ 4.995 parados por engano; teriam ficado parados indefinidamente se o Diego não perguntasse. | **R-E7: "ambíguo no OMIE" ≠ "sem resposta".** Procurar lastro fora do OMIE antes de mandar para exceção. Ver 15.2. |
+| **E8** | 17/07 | Ao ver `BLOQUEIO JUDICIAL` no extrato e "EM RECUPERAÇÃO JUDICIAL" no nome do DIA, foi insinuado que tinham relação. **Não têm.** Correção do Diego. | Ruído apresentado como sinal; quase virou motivo para não conciliar. | **R-E8: não inferir conexão entre fatos só porque aparecem juntos.** Coincidir na mesma tela não é evidência de relação. Se não dá para provar o vínculo, não mencionar como se fosse achado. |
+
 ### Padrão que os erros revelam
 
 **E1, E5** são o mesmo erro: agir na tela antes de entender. **E3, E4** são o mesmo
-erro: aceitar um resultado verde/negativo sem provar. Os dois se resumem a uma frase:
+erro: aceitar um resultado verde/negativo sem provar. **E7, E8** são o mesmo erro: parar
+de procurar cedo demais e preencher a lacuna com suposição. Os três se resumem a:
 
-> **Não confunda "não deu erro" com "está certo", nem "falhou uma vez" com "é impossível".**
+> **Não confunda "não deu erro" com "está certo", nem "falhou uma vez" com "é impossível",
+> nem "não achei" com "não existe".**
+
+**E quem pegou o quê.** E3 e E4 foram pegos por ler log e doc. **E1, E7 e E8 foram pegos
+pelo Diego** — perguntando "o que você quer excluir?", "procurou no SharePoint?" e
+"bloqueio judicial não tem nada a ver". Três dos oito. A revisão humana não é formalidade
+aqui: é o que fecha a diferença entre um sistema que parece certo e um que está certo.
 
 ---
 
@@ -500,6 +510,15 @@ Exemplo real: NF 35499 e 35428 (Inter, R$ 100 cada, `cDataInclusao` 01/07/2026)
 apareceram só na janela `01/06–30/06`. A consulta de julho devolveu 1 pendente; a
 varredura mês a mês, agrupando por `cDataInclusao`, achou 3.
 
+**[V] E o desvio não é de um dia — pode ser de meses.** NF 30336 e 30494 (Itaú, DIA
+BRASIL) têm `cDataInclusao = 04/02/2026` e **só aparecem na janela `01/12–31/12/2025`**.
+Nem a janela de fevereiro nem a de janeiro os devolvem. O filtro parece seguir a **data
+do pagamento/competência** (12/12 e 19/12/2025), não a data de inclusão.
+
+> **Corolário:** "desloca ~1 dia" (como dizia o skill do robô) **subestima o problema**.
+> Não existe folga segura. Para varredura de backlog, **cobrir todo o período desde a
+> primeira operação** e agrupar por `cDataInclusao`. Uma janela estreita não prova nada.
+
 **Por que isso morde:** dá para varrer "o mês inteiro", ver zero pendências, e concluir
 que fechou — enquanto existem movimentos daquele mês pendurados na janela vizinha.
 Aconteceu em 17/07: a afirmação *"zero pendências em julho"* era verdadeira **para a
@@ -657,8 +676,10 @@ Varredura de **nov/2025 a jul/2026**, mês a mês, agrupando por `cDataInclusao`
 | | Movimentos | Valor |
 |---|---|---|
 | Encontrados `Não conciliado` | 111 | R$ 53.595,79 |
-| **Conciliados por API** | **102** | **R$ 33.886,96** |
-| Exceções (não tocar) | 9 | R$ 19.708,83 |
+| **Conciliados por API** | **106** | **R$ 38.881,96** |
+| Exceções reais | 5 | R$ 14.713,83 |
+
+*(102 na 1ª passada + 4 do DIA BRASIL, resolvidos depois — ver 15.2.)*
 
 **Critério de "casa exato"** (o mesmo de julho, 127/127 sem uma falha):
 `nCodBaixa` existe · a baixa está **na mesma conta** do movimento · `dDtConcilia` vazio ·
@@ -681,6 +702,53 @@ título `RECEBIDO` · **exatamente uma** baixa para aquela NF naquela conta.
 **Verificação (o que dá confiança, não o retorno de sucesso):** revarredura das 18
 janelas → restaram 9, e são **exatamente** os 9 previstos. Soma fecha:
 33.886,96 + 19.708,83 = 53.595,79. Se a conta não fechasse, algo teria escapado.
+
+## 15.2 DIA BRASIL — a exceção que não era — **[V] 17/07**
+
+**Como entrou na fila de exceção.** NF 30336 (2 × R$ 1.341,25) e NF 30494
+(2 × R$ 1.156,25): mesma NF, mesmo valor, 2 movimentos e 2 baixas cada. Foram
+classificadas como *"ambíguo — não dá pra saber qual baixa é de qual movimento"*.
+
+**Erro 1 — a ambiguidade era imaginária.** `ConciliarRecebimento` recebe o
+**`codigo_baixa`**, e cada baixa **já tem seu `nCodMovCC`**:
+
+```
+NF 30336:  baixa 2186448558 -> movimento 2186448537   (pago 12/12/2025)
+           baixa 2186449203 -> movimento 2186449187   (pago 12/12/2025)
+NF 30494:  baixa 2186450488 -> movimento 2186450471   (pago 19/12/2025)
+           baixa 2186451083 -> movimento 2186451065   (pago 19/12/2025)
+```
+
+O vínculo baixa↔movimento **já existe no OMIE**. Não se escolhe pareamento; conciliar
+as duas baixas concilia os dois movimentos. **Não existe pareamento errado possível.**
+
+**Erro 2 — inferência sem evidência.** Ao ver `BLOQUEIO JUDICIAL` no extrato e "EM
+RECUPERAÇÃO JUDICIAL" no nome do DIA, foi sugerido que uma coisa tinha a ver com a
+outra. **Não tem.** São lançamentos independentes na mesma conta. Correção do Diego.
+
+**O lastro estava no SharePoint — e fecha no centavo.** Pergunta do Diego: *"procurou na
+rede SharePoint?"*. Não tinha procurado. Em `Financeiro/YASMIN/Extrato_..._dez.pdf`:
+
+| Extrato Itaú | Valor | Baixas OMIE | Soma |
+|---|---|---|---|
+| `12/12/2025 RECEBIMENTOS DIA BRASIL` | R$ 2.682,50 | 2 × 1.341,25 (NF 30336) | **2.682,50** ✓ |
+| `19/12/2025 RECEBIMENTOS DIA BRASIL` | R$ 2.312,50 | 2 × 1.156,25 (NF 30494) | **2.312,50** ✓ |
+
+**O DIA credita em lote diário** — um crédito no banco, N baixas no OMIE. É o mesmo
+padrão que este documento já registrava para o Itaú ("OFX do Itaú credita boleto em LOTE
+diário"), e não foi reconhecido quando apareceu.
+
+**Os 4 foram conciliados e verificados** (`Conciliado` na releitura).
+
+> **Regra derivada (R-E7): "ambíguo no OMIE" ≠ "sem resposta".** Antes de mandar algo
+> para a fila de exceção, procurar o lastro **fora** do OMIE — SharePoint
+> (`Financeiro/04-Extratos`, `Financeiro/YASMIN`, `Financeiro/05-Clientes/<cliente>`),
+> pastas de rede, portal do cliente. A fila de exceção é para o que **não tem** lastro,
+> não para o que dá trabalho achar.
+>
+> **Regra derivada (R-E8): N movimentos somando 1 crédito é lote, não duplicata.**
+> Quando vários movimentos de mesma NF/valor/data aparecerem, **somar antes de julgar**.
+> Se a soma casa com um crédito único do extrato, está certo — é lote.
 
 ## 16. Inventário de OFX — **[V] 17/07**
 
