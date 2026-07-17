@@ -5054,7 +5054,7 @@ async function renderRentabilidade(){
         <td style="text-align:right;color:#EF9F27">${r.desc_pct>0?rentFmtR(r.desc_val)+' ('+Math.round(r.desc_pct*100)+'%)':'—'}</td>
         <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(r.receita)}</td>
         <td style="text-align:right;color:#b0afaa">${_cmvRate>0&&!isPropria?rentFmtR(cmvRede):isPropria?'<span style="color:var(--muted);font-size:10px">própria</span>':'—'}</td>
-        <td style="text-align:right"><span style="font-weight:700;color:${_cmvRate>0?mcCol:'var(--muted)'}">${_cmvRate>0?rentFmtR(mcRede)+' ('+(_mcPctRede=mcPctRede,(mcPctRede*100).toFixed(0))+'%)':'—'}</span></td>
+        <td style="text-align:right"><span style="font-weight:700;color:${_cmvRate>0?mcCol:'var(--muted)'}">${_cmvRate>0?rentFmtR(mcRede)+' ('+(mcPctRede*100).toFixed(0)+'%)':'—'}</span></td>
         <td style="text-align:right"><span class="badge ${r.margem>=0.55?'bg':r.margem>=0.35?'ba':'br'}">${(r.margem*100).toFixed(1)}%</span></td>
         <td style="text-align:right;color:var(--muted)">${r.nfs}</td>
         <td style="text-align:right">${rentFmtR(r.ticket)}</td>
