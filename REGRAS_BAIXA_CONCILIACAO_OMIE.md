@@ -44,6 +44,8 @@ o custo, e a **regra derivada**. Sem culpa e sem rodeio — o registro é a entr
 | **E7** | 17/07 | 4 movimentos do DIA BRASIL (R$ 4.995) mandados para exceção como "ambíguo". A ambiguidade **não existia**: cada baixa já tem seu `nCodMovCC`, e `ConciliarRecebimento` age sobre a baixa. Pior: nem se procurou o lastro fora do OMIE. O Diego perguntou *"procurou na rede SharePoint?"* — o extrato estava lá, e fecha no centavo (2 × 1.341,25 = crédito de 2.682,50 em 12/12). | R$ 4.995 parados por engano; teriam ficado parados indefinidamente se o Diego não perguntasse. | **R-E7: "ambíguo no OMIE" ≠ "sem resposta".** Procurar lastro fora do OMIE antes de mandar para exceção. Ver 15.2. |
 | **E8** | 17/07 | Ao ver `BLOQUEIO JUDICIAL` no extrato e "EM RECUPERAÇÃO JUDICIAL" no nome do DIA, foi insinuado que tinham relação. **Não têm.** Correção do Diego. | Ruído apresentado como sinal; quase virou motivo para não conciliar. | **R-E8: não inferir conexão entre fatos só porque aparecem juntos.** Coincidir na mesma tela não é evidência de relação. Se não dá para provar o vínculo, não mencionar como se fosse achado. |
 
+| **E9** | 17/07 | Varredura inteira do backlog agrupada por **`cDataInclusao`**, achando que era a data do banco — porque **o skill do robô afirma isso**. É a data de digitação. Gerou: diagnóstico de "758 não conciliados no Santander" como se fosse caos generalizado (são 758 em 9.683, com 93% concentrados em 3 meses); "janeiro tem 211 movimentos em 7 datas, isso é lançamento em lote" (janeiro tem 695 mov, 672 conciliados, **14** pendentes); e a explicação errada da armadilha 10.1-b, culpando o filtro do OMIE por um erro de leitura. | Meia sessão de análise em cima do campo errado. Quase virou execução: a regra de casamento proposta ("data+valor") teria falhado em massa. | **R-E9: `dDataLancamento` é o banco; `cDataInclusao` é a digitação.** Para qualquer comparação com extrato/OFX, usar `dDataLancamento`. Ver 10.1-a. |
+
 ### Padrão que os erros revelam
 
 **E1, E5** são o mesmo erro: agir na tela antes de entender. **E3, E4** são o mesmo
@@ -53,10 +55,18 @@ de procurar cedo demais e preencher a lacuna com suposição. Os três se resume
 > **Não confunda "não deu erro" com "está certo", nem "falhou uma vez" com "é impossível",
 > nem "não achei" com "não existe".**
 
-**E quem pegou o quê.** E3 e E4 foram pegos por ler log e doc. **E1, E7 e E8 foram pegos
-pelo Diego** — perguntando "o que você quer excluir?", "procurou no SharePoint?" e
-"bloqueio judicial não tem nada a ver". Três dos oito. A revisão humana não é formalidade
-aqui: é o que fecha a diferença entre um sistema que parece certo e um que está certo.
+**E4 e E9 são gêmeos, e o parentesco importa:** os dois nasceram de **acreditar numa
+frase escrita** — "a API não concilia" e "cDataInclusao é a data do banco" — ambas no
+skill do robô, ambas falsas, ambas nunca conferidas contra o sistema. **Documentação
+errada é pior que documentação ausente:** ausência faz você olhar; erro faz você parar de
+olhar. É por isso que o item 0 e as marcas [V]/[P] existem.
+
+**E quem pegou o quê.** E3, E4 e E9 foram pegos por ler log, doc e dado. **E1, E7 e E8
+foram pegos pelo Diego** — perguntando "o que você quer excluir?", "procurou no
+SharePoint?" e "bloqueio judicial não tem nada a ver". Três dos nove. E o E9 só apareceu
+porque ele mandou **mostrar cada grupo antes de efetivar** — a análise ia para execução
+com o campo errado. A revisão humana não é formalidade aqui: é o que fecha a diferença
+entre um sistema que parece certo e um que está certo.
 
 ---
 
@@ -500,6 +510,33 @@ contra todos os créditos desde novembro → **0 falsos atrasados**. A lista est
 `numero_documento_fiscal` = `"00036328"`, **não** `"36328"`.
 Comparar como string falha silenciosamente. **Sempre `int()`.**
 
+### 10.1-a ⚠️ `cDataInclusao` NÃO é a data do banco — **[V] 17/07, o erro mais caro do dia**
+
+**`dDataLancamento` = data do banco.** É quando o dinheiro andou.
+**`cDataInclusao` = data de digitação no OMIE.** É quando alguém lançou. **Nada a ver.**
+
+**[V] Prova (Santander, janela `01/01–31/01/2026`, 14 não conciliados):**
+
+```
+cDataInclusao  : 08/07/2026  em TODOS os 14      ← digitados de uma vez, em julho
+dDataLancamento: 15/01, 16/01, 19/01, 20/01, 22/01, 23/01, 26/01, 27/01, 30/01   ← o banco
+```
+
+**O filtro `dPeriodoInicial`/`dPeriodoFinal` usa `dDataLancamento`.** Não está deslocado,
+não tem bug: quem lê `cDataInclusao` é que está na coluna errada.
+
+> **Correção de premissa — o skill do robô está errado.** O skill diz *"cDataInclusao é
+> a data real do banco; o filtro de período vem deslocado ~1 dia"*. **As duas metades são
+> falsas.** Essa frase produziu, em 17/07:
+> - varredura inteira agrupada pelo campo errado;
+> - um falso alarme de *"211 movimentos em 7 datas, isso é lançamento em lote"* — era
+>   artefato de ler a data de digitação;
+> - a explicação errada da 10.1-b (abaixo), que culpava o filtro.
+>
+> **Regra: para qualquer coisa que se compare com o banco — OFX, extrato, data de
+> crédito — usar `dDataLancamento`. `cDataInclusao` só serve para auditar quem digitou
+> o quê e quando.**
+
 ### 10.1-b O período do `ListarExtrato` NÃO filtra por `cDataInclusao` — **[V] 17/07**
 
 **O filtro `dPeriodoInicial`/`dPeriodoFinal` usa uma data diferente da data do banco.**
@@ -510,14 +547,15 @@ Exemplo real: NF 35499 e 35428 (Inter, R$ 100 cada, `cDataInclusao` 01/07/2026)
 apareceram só na janela `01/06–30/06`. A consulta de julho devolveu 1 pendente; a
 varredura mês a mês, agrupando por `cDataInclusao`, achou 3.
 
-**[V] E o desvio não é de um dia — pode ser de meses.** NF 30336 e 30494 (Itaú, DIA
-BRASIL) têm `cDataInclusao = 04/02/2026` e **só aparecem na janela `01/12–31/12/2025`**.
-Nem a janela de fevereiro nem a de janeiro os devolvem. O filtro parece seguir a **data
-do pagamento/competência** (12/12 e 19/12/2025), não a data de inclusão.
+**[V] Exemplo que fecha o raciocínio.** NF 30336 e 30494 (Itaú, DIA BRASIL) têm
+`cDataInclusao = 04/02/2026` e **só aparecem na janela `01/12–31/12/2025`** — porque o
+`dDataLancamento` delas é 12/12 e 19/12/2025, que é quando o banco creditou (confirmado
+no extrato: R$ 2.682,50 e R$ 2.312,50). Nada de anômalo: **o filtro está certo, a leitura
+é que estava errada** (ver 10.1-a).
 
-> **Corolário:** "desloca ~1 dia" (como dizia o skill do robô) **subestima o problema**.
-> Não existe folga segura. Para varredura de backlog, **cobrir todo o período desde a
-> primeira operação** e agrupar por `cDataInclusao`. Uma janela estreita não prova nada.
+> **Corolário:** não existe "desvio da janela" a compensar. **Use `dDataLancamento` e o
+> filtro casa.** Agrupar backlog por `cDataInclusao` produz relatório sem sentido —
+> mistura o que o banco fez com o que a digitação fez.
 
 **Por que isso morde:** dá para varrer "o mês inteiro", ver zero pendências, e concluir
 que fechou — enquanto existem movimentos daquele mês pendurados na janela vizinha.
@@ -749,6 +787,66 @@ diário"), e não foi reconhecido quando apareceu.
 > **Regra derivada (R-E8): N movimentos somando 1 crédito é lote, não duplicata.**
 > Quando vários movimentos de mesma NF/valor/data aparecerem, **somar antes de julgar**.
 > Se a soma casa com um crédito único do extrato, está certo — é lote.
+
+## 15.3 Santander — o passivo de R$ 555k, diagnosticado — **[V] 17/07**
+
+**Varredura completa por `dDataLancamento`, jan/2025 → jul/2026** (19 janelas):
+
+| | Movimentos |
+|---|---|
+| Total no período | **9.683** |
+| **Já conciliados** | **8.567 (88%)** |
+| Não conciliados | **758** |
+| Líquido dos 758 | **R$ 555.338,93** |
+
+**O gap é exatamente esta fila.** Saldo Conciliado −267.443,78 × Saldo Atual 286.845,80
+= **554.289,58**. Diferença para o líquido: **R$ 1.049,35** (movimentos anteriores a
+jan/2025). **Não é dinheiro sumido — é o ✓ que faltou**, agora quantificado.
+
+**E está concentrado em 3 meses:**
+
+| Mês | Não conc. | Valor |
+|---|---|---|
+| **12/2025** | 254 | R$ 200.028,10 |
+| **11/2025** | 225 | R$ 282.744,31 |
+| **06/2026** | 224 | R$ 139.758,46 |
+| 10/2025 | 28 | −R$ 46.584,29 |
+| 01/2026 | 14 | −R$ 19.677,51 |
+| demais 6 meses | 13 | ~R$ 900 |
+
+**703 dos 758 (93%) estão em nov/25, dez/25 e jun/26.** Os outros 16 meses estão
+essencialmente fechados — jul/25 e set/25 com **zero** pendências em 613 e 812
+movimentos. **Alguém já conciliou quase tudo; três meses ficaram para trás.**
+
+> **Correção do que foi dito antes.** Durante 17/07 foi afirmado que o Santander tinha
+> "758 não conciliados" como se fosse desordem generalizada, e que janeiro/2026 tinha
+> "211 movimentos em 7 datas". **Ambos errados**, pelo mesmo motivo: agrupamento por
+> `cDataInclusao` (ver 10.1-a). Janeiro tem **695 movimentos, 672 conciliados, 14
+> pendentes**. O problema é 10× menor e 5× mais localizado do que o diagnóstico inicial.
+
+**Composição dos 758** (por `cOrigem`, a ser refeita por `dDataLancamento`):
+`Conta Recebida` 384 · `Conta Paga` 132 · `Débito de Transferência` 109 ·
+`Débito em Conta Corrente` 17 · demais 5.
+
+**[V] Assimetria da API — confirmada por doc e por probe:**
+
+| Serviço | Conciliar por API? |
+|---|---|
+| `financas/contareceber` | **Sim** — `ConciliarRecebimento` / `DesconciliarRecebimento` |
+| `financas/contapagar` | **NÃO** — a lista de métodos não tem nenhum `Conciliar*` |
+
+Métodos do `contapagar` (doc oficial, 17/07): `AlterarContaPagar`, `CancelarPagamento`,
+`ConsultarContaPagar`, `ExcluirContaPagar`, `IncluirContaPagar`, `IncluirContaPagarPorLote`,
+`LancarPagamento`, `ListarContasPagar`, `UpsertContaPagar`, `UpsertContaPagarPorLote`.
+Existe `conciliar_documento` no **momento da baixa** (`LancarPagamento`), não para baixa
+já feita.
+
+> **⚠️ Armadilha aritmética — conciliar só os recebimentos PIORA o KPI.**
+> Conciliar os 384 `Conta Recebida` por API levaria o Saldo Conciliado de −267.443,78
+> para ~+793.125, contra Saldo Atual de 286.845,80 — o gap **inverte de sinal** e vira
+> −506k, exatamente o peso dos pagamentos deixados para trás. **Meia conciliação não é
+> meio caminho andado: é o erro trocando de lado.** R e P têm de fechar juntos, no mesmo
+> período.
 
 ## 16. Inventário de OFX — **[V] 17/07**
 
