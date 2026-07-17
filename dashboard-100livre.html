@@ -9509,8 +9509,11 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     const prazo=r=>r.dias>0?`<span class="badge br">${r.dias}d atraso</span>`:r.dias===0?`<span class="badge ba">vence hoje</span>`:`<span class="badge bg">vence em ${-r.dias}d</span>`;
     const tb=document.getElementById('bk-table');
     if(tb) tb.innerHTML=`<thead><tr><th>Cliente</th><th>NF</th>`+th('dias','Prazo')+th('valor','Valor','right')+`<th style="text-align:right">Ação</th></tr></thead><tbody>`+
-      rows.map(r=>`<tr><td>${r.cliente}${bkFone(r.tel).ok?'':' <span class="badge ba" style="opacity:.7">'+bkFone(r.tel).aviso+'</span>'}${bkJaCobrado(r.nf)?' <span class="badge bg" style="opacity:.8">cobrado hoje</span>':''}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar(${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
-    const tt=document.getElementById('bk-tot'); if(tt) tt.textContent=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0));
+      rows.map(r=>`<tr><td>${bkIcone(r.tel)} ${r.cliente}${bkFone(r.tel).ok?'':' <span class="badge ba" style="opacity:.7">'+bkFone(r.tel).aviso+'</span>'}${bkJaCobrado(r.nf)?' <span class="badge bg" style="opacity:.8">cobrado hoje</span>':''}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar(${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
+    const semTel=rows.filter(r=>!bkFone(r.tel).ok).length;
+    const tt=document.getElementById('bk-tot');
+    if(tt) tt.innerHTML=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0))+
+      (semTel?' · <span style="color:var(--red)">☎ '+semTel+' sem telefone</span>':' · <span style="color:var(--green)">☎ todos com telefone</span>');
   }
   // telefone -> {ok, e164, aviso}. Celular BR = DDD + 9 dígitos.
   function bkFone(t){
@@ -9519,6 +9522,13 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     if(d.length===11 && d[2]==='9') return {ok:true,e164:'55'+d,aviso:''};
     if(d.length===10) return {ok:false,e164:'55'+d,aviso:'telefone antigo (8 díg.)'};
     return {ok:false,e164:'55'+d,aviso:'telefone suspeito'};
+  }
+  // ☎ ao lado do nome: verde = celular válido no cadastro · vermelho = falta ou está errado
+  function bkIcone(tel){
+    const f=bkFone(tel);
+    return f.ok
+      ? '<span title="celular no cadastro" style="color:var(--green)">☎</span>'
+      : '<span title="'+(f.aviso||'sem telefone')+' — cadastrar no OMIE" style="color:var(--red)">☎</span>';
   }
   function bkJaCobrado(nf){
     try{ return localStorage.getItem('bk_cob_'+_bkB+'_'+nf)===new Date().toISOString().slice(0,10); }catch(e){ return false; }
@@ -9601,7 +9611,7 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
   }
   window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco; window.bkLink=bkLink;
   document.addEventListener('input',function(e){ if(e.target && (e.target.id==='bk-m-tel'||e.target.id==='bk-m-msg')) bkLink(); });
-  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort; window.bkTabConc=bkTabConc;
+  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort; window.bkTabConc=bkTabConc; window.bkIcone=bkIcone;
   // 4) wrap setView p/ tratar 'bancos'
   function install(){
     if(typeof window.setView!=='function'){ return setTimeout(install,300); }
