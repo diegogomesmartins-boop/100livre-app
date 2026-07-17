@@ -2,9 +2,13 @@
 # Vigia do robo-inter.
 # Motivo: o agendador do GH Actions as vezes descarta a execucao agendada. Quando isso
 # acontece nao existe run pra falhar, entao ninguem fica sabendo -- o robo simplesmente
-# nao rodou e o silencio parece sucesso. Este workflow conta as execucoes bem-sucedidas
-# das ultimas 24h e FALHA se faltou alguma. A falha aqui E o alerta: o GitHub dispara
-# e-mail automatico pro dono do cron.
+# nao rodou e o silencio parece sucesso. Este workflow conta as execucoes AGENDADAS
+# bem-sucedidas das ultimas 24h e FALHA se faltou alguma. A falha aqui E o alerta: o
+# GitHub dispara e-mail automatico pro dono do cron.
+#
+# Conta so event == "schedule" de proposito. Disparo manual (workflow_dispatch) nao
+# entra na conta: se contasse, um dispatch manual mascararia justamente a janela
+# agendada que furou -- que e o unico problema que este vigia existe pra pegar.
 name: robo-heartbeat
 
 on:
@@ -20,7 +24,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Contar execucoes do robo-inter nas ultimas 24h
+      - name: Contar execucoes agendadas do robo-inter nas ultimas 24h
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -34,17 +38,17 @@ jobs:
             --limit 50 \
             --json conclusion,event,createdAt > runs.json
 
-          OK=$(jq --arg d "$DESDE" '[.[] | select(.createdAt >= $d and .conclusion == "success")] | length' runs.json)
+          OK=$(jq --arg d "$DESDE" '[.[] | select(.createdAt >= $d and .event == "schedule" and .conclusion == "success")] | length' runs.json)
           FALHOU=$(jq --arg d "$DESDE" '[.[] | select(.createdAt >= $d and .conclusion == "failure")] | length' runs.json)
 
-          echo "--- execucoes na janela ---"
+          echo "--- todas as execucoes na janela ---"
           jq -r --arg d "$DESDE" '.[] | select(.createdAt >= $d) | "  \(.createdAt)  \(.event)  \(.conclusion)"' runs.json
-          echo "---------------------------"
-          echo "sucesso: $OK | falha: $FALHOU"
+          echo "------------------------------------"
+          echo "agendadas com sucesso: $OK (esperado 3) | falhas de qualquer tipo: $FALHOU"
 
           if [ "$OK" -lt 3 ]; then
-            echo "::error::robo-inter teve apenas $OK execucao(oes) bem-sucedida(s) nas ultimas 24h; esperado 3 (06/12/18 BRT). Ou o agendador engoliu uma janela, ou o robo quebrou. Confira o extrato do Inter/Itau no OMIE antes de confiar no painel."
+            echo "::error::robo-inter teve apenas $OK execucao(oes) AGENDADA(s) bem-sucedida(s) nas ultimas 24h; esperado 3 (06/12/18 BRT). Ou o agendador engoliu uma janela, ou o robo quebrou. Confira o extrato do Inter/Itau no OMIE antes de confiar no painel."
             exit 1
           fi
 
-          echo "OK: as 3 janelas do dia rodaram."
+          echo "OK: as 3 janelas agendadas do dia rodaram."
