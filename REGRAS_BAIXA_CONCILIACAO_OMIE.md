@@ -61,18 +61,61 @@ AlterarLancCC + {detalhes:{dDtConc}}   → ERROR: Tag [DDTCONC] não faz parte
 
 **Consequência:** o ✓ é manual no OMIE. O robô **enxerga e lista** (seção 8), não clica.
 
-### 2.2 Conciliação automática nativa — **[V] só para 3 bancos**
+### 2.2 Conciliação automática nativa — **[V] NÃO está contratada em nenhuma conta**
 
-A tela "Importar Extrato → Buscar Automaticamente", que casa e concilia sozinha,
-exige **Integração Bancária Automática**, que o OMIE oferece para
-**Caixa, Itaú e Safra**. **Inter não está na lista.**
+**Verificado na tela em 17/07/2026 (Diego).** Em `Finanças → Movimentação de Contas
+Correntes → Importar Extrato`, **Santander e Itaú** oferecem **apenas**
+*"Importar agora — o arquivo OFX a partir do meu computador"*.
+**Não existe o botão "Buscar Automaticamente"** em nenhuma das contas.
 
-O que existe com o Inter é a integração de **boletos** (cobrança): ela traz o
-pagamento e baixa o título, mas **não entrega o extrato** para conciliar. É por
-isso que o movimento do Inter nasce "Não conciliado".
+Ou seja: a Integração Bancária Automática **não está habilitada aqui**. O fato de o
+OMIE suportar Caixa/Itaú/Safra no catálogo **não significa que a conta tem o
+serviço** — são coisas diferentes (catálogo do fornecedor × contrato do cliente).
 
-> **Frente aberta:** ligar a Integração Bancária do **Itaú** é o único caminho em
-> que este ciclo fecha de fábrica, sem gambiarra. Não está ligada.
+> **Correção de premissa.** Entre 14 e 17/07 este documento afirmou que "ligar a
+> Integração Bancária do Itaú é o caminho que fecha o ciclo de fábrica". Isso foi
+> escrito lendo a documentação do OMIE, **sem verificar a tela do cliente**. Dois
+> cliques no seletor de conta teriam mostrado que o botão não existe. A afirmação
+> ficou 3 dias no documento como se fosse fato.
+
+### 2.3 Consequência: **OFX é o único caminho de conciliação hoje** — **[V]**
+
+| Caminho | Situação |
+|---|---|
+| API (`AlterarLancCC`) | **Impossível** — ver 2.1 |
+| "Buscar Automaticamente" | **Não contratado** em nenhuma conta — ver 2.2 |
+| Inter | **Nem é suportado** pelo OMIE (só Caixa/Itaú/Safra) |
+| **Importar OFX + conciliar na tela** | **Único caminho vivo.** Casa por data+valor, permite lote |
+
+**O passivo:** em 17/07/2026, a tela do Santander mostrava
+**Saldo Conciliado −R$ 268.793,33 × Saldo Atual R$ 286.845,80** — uma distância de
+**R$ 555.639,13**. Não é dinheiro faltando: é o acúmulo de baixas que nunca foram
+amarradas ao extrato. O "Saldo Conciliado" do OMIE **não é confiável** enquanto o
+OFX não for importado com regularidade.
+
+**Para contratar** (se um dia virar prioridade): a pergunta ao OMIE/gerente é
+*"quanto custa e o que exige habilitar a Integração Bancária Automática do Itaú
+nesta conta"* — não "existe?". Vale só para o Itaú; Inter e Santander não têm a opção.
+
+---
+
+## 2.4 REGRA DE MÉTODO — **verificar antes de afirmar**
+
+*(Definida pelo Diego em 17/07/2026, depois de eu errar exatamente nisso.)*
+
+**Sempre confirmar se a informação/recurso existe no OMIE do cliente — na tela ou
+na API — antes de propor solução ou registrar como fato.**
+
+Documentação de fornecedor descreve o que o produto *pode* fazer. Só o ambiente do
+cliente diz o que ele *tem*. Confundir os dois produziu, neste projeto:
+
+1. "Ligar a integração do Itaú" — recomendado 3 dias; **não existe na conta** (2.2).
+2. "O Itaú não deve ter NF no extrato" — suposição que manteve a baixa desligada;
+   a medição mostrou **358 de 381 com NF** (§4).
+3. "A integração do Inter não baixa sozinha" — ela baixa (§4).
+4. "Os telefones não estão no cadastro" — estavam, **errados** (§11).
+
+Em todos, o custo de verificar era de minutos. **Marque [P] e verifique, ou não escreva.**
 
 ---
 
