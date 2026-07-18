@@ -628,14 +628,6 @@ Cobrança automática teria mandado boleto e valor para o WhatsApp de estranhos.
 4. O nome do cadastro **não é** o nome de quem responde (ex.: cadastro "Ana
    Karolina", contato real "Pedro").
 
-### 11.1 Telefone pelo WhatsApp Web — [V] 18/07/2026
-
-Quando o cadastro do OMIE tem fixo, número errado ou vazio, o histórico do WhatsApp Web da empresa casa o nome/CNPJ do devedor com uma conversa real. Regras do que funciona: uma busca por vez, limpar pelo X (Ctrl+A NÃO seleciona a busca e as consultas se concatenam), esperar ~6s e ler por SCREENSHOT, não por script (o painel atualiza depois do DOM, então script rápido devolve o resultado da busca anterior). Buscar por nome fantasia, razão social e pedaços do CNPJ. Confirmar abrindo a conversa: nome que casa no texto de uma mensagem antiga não é o cliente.
-
-**Limite [V]:** o WhatsApp Web só mostra histórico a partir de 17/03/2026 (aviso na tela). Devedores antigos (76–213 dias) provavelmente conversaram antes disso, então "não achei aqui" NÃO prova ausência — o histórico completo está no celular. **Antes de gravar,** o badge "8 díg." confunde 3 casos: fixo (11 3155-7563, válido mas não é WhatsApp), lixo (11 2222-2222) e celular antigo de verdade. Só o último é erro.
-
-**Varredura 18/07 (7 devedores Itaú sem celular):** Cumbuca Boa (NF 36044) → 11 96627-1695, financeiro da Cumbuca, conversa de ontem — gravado (número antigo preservado no telefone2). Terraço Italia e Emporium: candidatos não confirmados, não gravados. 8F, G.M.A.P, Rodrigo Aparecido e Lejazz Pinheiros: nada no histórico pós-17/03. **Ao gravar** use AlterarCliente reenviando o cadastro inteiro (§10) e guarde o número antigo no telefone2 — nunca apague.
-
 ---
 
 ## 12. Cobrança (saída) — regras
@@ -855,6 +847,51 @@ já feita.
 > −506k, exatamente o peso dos pagamentos deixados para trás. **Meia conciliação não é
 > meio caminho andado: é o erro trocando de lado.** R e P têm de fechar juntos, no mesmo
 > período.
+
+## 15.4 SONDA — conciliação de antecipação por planilha — **[V] 17/07**
+
+**O problema:** SONDA paga por **antecipação (borderô)**, não por boleto. O crédito no
+banco é um **lote** que não casa 1:1 com as NFs. A regra 6.3 já dizia *"nunca automatizar
+antecipação por extrato"* — e está certa: somando a planilha de uma semana (R$ 15.207
+líquido) **nenhum crédito único do extrato bate**. O extrato não é o lastro; **a planilha
+de antecipação é**.
+
+**Método validado (10 conciliados de teste, 10/10 OK por releitura):**
+
+1. **Planilha semanal** (`SPROUT HOLDINGS S.A.<ddMM>.xlsx`), filtro **coluna G < 0** =
+   as NFs a conciliar. Diego: *"só considerar valores da coluna G com o negativo"*.
+2. **Casar por NÚMERO — coluna B = a nossa NF.** (Cuidado: nas planilhas de outubro a
+   coluna B vinha com número de **título interno** (29xxx) ≠ NF-e (30xxx); nas de
+   novembro em diante B **é** a NF. Sempre conferir a faixa antes.)
+3. **Conferir o valor pela coluna R** (`Valor do Título a Receber`) — **não** por G nem I.
+4. **`dDataLancamento` do OMIE = coluna Q.** (Diego: *"na Q considerar o dia seguinte no
+   extrato, o pagamento é D+1"* — vale para achar a linha no **extrato**, não para o
+   casamento planilha↔OMIE, que é por número.)
+5. Para os que casam: `mf/ListarMovimentos` → `nCodBaixa` → `ConciliarRecebimento`.
+
+**⚠️ O valor do OMIE NÃO é igual ao da planilha — e isso é esperado.** O OMIE guarda o
+título com deságio embutido; a coluna R é o líquido. A razão OMIE/R é o **deságio da
+antecipação** e **varia com o prazo**: medido entre **1,00 e 1,137** (0 a ~14%). Não é
+erro — é o custo de antecipar, e depende dos "Dias Antecipação" (coluna P).
+
+> **A razão vira o filtro de segurança (R-E12).** Casar só por número é **inseguro** — há
+> **colisão de NF** (mesma NF-e em série/período diferente). Guardrail: aceitar apenas
+> `1,00 ≤ OMIE/R ≤ ~1,16`. Fora disso, **exceção**. Em 17/07 isso pegou 6 colisões reais
+> (NF 31326 com razão **35,7**; 31407 com **0,0007** — OMIE R$ 0,20 vs planilha R$ 275) e
+> mais 6 numa faixa-limite (razão 1,16) que ficaram para revisão.
+
+**Resultado 17/07 (nov+dez) — FECHADO:** de 213 SONDA no período, **202 conciliados por
+API** (10 de teste + 186 do lote + 6 da faixa-limite razão 1,16), verificados por
+releitura mês a mês (a conta fechou exata: restaram os 11 esperados). Zero falhas, zero
+cliques.
+
+**Restam 10, dois grupos que NÃO se automatiza:**
+
+1. **4 sem antecipação** (NF 30182, 30530, 31358, 31565) — NF-e de SONDA **fora das
+   planilhas de borderô e sem "nosso número"**. Não foram antecipadas; ou SONDA pagou
+   direto, ou seguem em aberto. Exigem conferência humana / cruzamento com outra conta.
+2. **6 colisões de número** (30809, 30817, 31090, 31325, 31326, 31407) — pegos pelo
+   guardrail R-E12. Mesma NF, título diferente. **Resolver na tela do OMIE, não por API.**
 
 ## 16. Inventário de OFX — **[V] 17/07**
 
