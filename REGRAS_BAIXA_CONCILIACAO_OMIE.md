@@ -628,6 +628,14 @@ Cobrança automática teria mandado boleto e valor para o WhatsApp de estranhos.
 4. O nome do cadastro **não é** o nome de quem responde (ex.: cadastro "Ana
    Karolina", contato real "Pedro").
 
+### 11.1 Telefone pelo WhatsApp Web — [V] 18/07/2026
+
+Quando o cadastro do OMIE tem fixo, número errado ou vazio, o histórico do WhatsApp Web da empresa casa o nome/CNPJ do devedor com uma conversa real. Regras do que funciona: uma busca por vez, limpar pelo X (Ctrl+A NÃO seleciona a busca e as consultas se concatenam), esperar ~6s e ler por SCREENSHOT, não por script (o painel atualiza depois do DOM, então script rápido devolve o resultado da busca anterior). Buscar por nome fantasia, razão social e pedaços do CNPJ. Confirmar abrindo a conversa: nome que casa no texto de uma mensagem antiga não é o cliente.
+
+**Limite [V]:** o WhatsApp Web só mostra histórico a partir de 17/03/2026 (aviso na tela). Devedores antigos (76–213 dias) provavelmente conversaram antes disso, então "não achei aqui" NÃO prova ausência — o histórico completo está no celular. **Antes de gravar,** o badge "8 díg." confunde 3 casos: fixo (11 3155-7563, válido mas não é WhatsApp), lixo (11 2222-2222) e celular antigo de verdade. Só o último é erro.
+
+**Varredura 18/07 (7 devedores Itaú sem celular):** Cumbuca Boa (NF 36044) → 11 96627-1695, financeiro da Cumbuca, conversa de ontem — gravado (número antigo preservado no telefone2). Terraço Italia e Emporium: candidatos não confirmados, não gravados. 8F, G.M.A.P, Rodrigo Aparecido e Lejazz Pinheiros: nada no histórico pós-17/03. **Ao gravar** use AlterarCliente reenviando o cadastro inteiro (§10) e guarde o número antigo no telefone2 — nunca apague.
+
 ---
 
 ## 12. Cobrança (saída) — regras
