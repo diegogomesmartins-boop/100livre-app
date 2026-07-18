@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>100% Livre — Dashboard</title>
-<meta name="build-stamp" content="2026-07-18T10:20:41Z">
+<meta name="build-stamp" content="2026-07-17T00:01:41Z">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -80,8 +80,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .dtotal{padding:10px 16px;border-top:1px solid var(--border2);font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);display:flex;justify-content:space-between;background:var(--bg2)}
 .it{width:100%;border-collapse:collapse;font-size:12px}
 .it th{text-align:left;padding:7px 10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:400}
-.it th.sortable{cursor:pointer;user-select:none}.it th.sortable:hover{color:#c8c6c0}
-.it th.sort-desc::after{content:' ↓';color:#4ade80}.it th.sort-asc::after{content:' ↑';color:#4ade80}
 .it td{padding:9px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px}
 .it tr:last-child td{border-bottom:none}
 .it tr:hover td{background:var(--bg3)}
@@ -612,18 +610,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
         </div>
         <div style="overflow-x:auto">
           <table class="it"><thead><tr>
-            <th class="sortable" data-sort-col="0" data-sort-type="str" onclick="rentSortTable('rent-mix-tbody',this)">Produto</th>
-            <th style="text-align:right" class="sortable" data-sort-col="1" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">Qtd</th>
-            <th style="text-align:right">Un</th>
-            <th style="text-align:right" class="sortable" data-sort-col="3" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">Fat. Bruto</th>
-            <th style="text-align:right" class="sortable" data-sort-col="4" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">Preço médio</th>
-            <th style="text-align:right" class="sortable" data-sort-col="5" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">Dev Qtd</th>
-            <th style="text-align:right" class="sortable" data-sort-col="6" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">Dev R$</th>
-            <th style="text-align:right" class="sortable" data-sort-col="7" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">% Dev</th>
-            <th style="text-align:right" class="sortable" data-sort-col="8" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">Receita Real</th>
-            <th style="text-align:right" class="sortable" data-sort-col="9" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">R$/kg líq</th>
-            <th style="text-align:right" class="sortable" data-sort-col="10" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">R$/bja líq</th>
-            <th style="text-align:right" class="sortable" data-sort-col="11" data-sort-type="num" onclick="rentSortTable('rent-mix-tbody',this)">% fat.</th>
+            <th>Produto</th><th style="text-align:right">Qtd</th><th style="text-align:right">Un</th>
+            <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">Preço médio</th>
+            <th style="text-align:right">Dev Qtd</th><th style="text-align:right">Dev R$</th>
+            <th style="text-align:right">% Dev</th><th style="text-align:right">Receita Real</th>
+            <th style="text-align:right">R$/kg líq</th><th style="text-align:right">R$/bja líq</th>
+            <th style="text-align:right">% fat.</th>
           </tr></thead><tbody id="rent-mix-tbody"></tbody></table>
         </div>
       </div>
@@ -651,18 +643,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
           </div>
         </div>
         <div style="overflow-x:auto">
-          <table class="it"><thead id="rent-prod-thead"><tr>
-            <th class="sortable" data-sort-col="0" data-sort-type="str" onclick="rentSortTable('rent-prod-tbody',this)">Família</th>
-            <th style="text-align:right" class="sortable" data-sort-col="1" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">Kg</th>
-            <th style="text-align:right" class="sortable" data-sort-col="2" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">Fat. Bruto</th>
-            <th style="text-align:right" class="sortable" data-sort-col="3" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">R$/kg bruto</th>
-            <th style="text-align:right" class="sortable" data-sort-col="4" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">Dev R$</th>
-            <th style="text-align:right" class="sortable" data-sort-col="5" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">% Dev</th>
-            <th style="text-align:right" class="sortable" data-sort-col="6" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">Desc. Pond.</th>
-            <th style="text-align:right" class="sortable" data-sort-col="7" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">Receita Real</th>
-            <th style="text-align:right" class="sortable" data-sort-col="8" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">R$/kg real</th>
-            <th style="text-align:right" class="sortable" data-sort-col="9" data-sort-type="num" onclick="rentSortTable('rent-prod-tbody',this)">R$/bja real</th>
-            <th></th>
+          <table class="it"><thead><tr>
+            <th>Família</th><th style="text-align:right">Kg</th>
+            <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">R$/kg bruto</th>
+            <th style="text-align:right">Dev R$</th>
+            <th style="text-align:right">% Dev</th><th style="text-align:right">Desc. Pond.</th>
+            <th style="text-align:right">Receita Real</th><th style="text-align:right">R$/kg real</th><th style="text-align:right">R$/bja real</th><th></th>
           </tr></thead>
           <tbody id="rent-prod-tbody"></tbody><tfoot id="rent-prod-tfoot"></tfoot></table>
         </div>
@@ -716,16 +702,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
         <div class="ct">Por Loja <span id="rent-loja-period-label" style="color:#378ADD"></span></div>
         <div style="overflow-x:auto">
           <table class="it"><thead><tr>
-            <th class="sortable" data-sort-col="0" data-sort-type="str" onclick="rentSortTable('rent-loja-tbody',this)">Loja</th>
-            <th class="sortable" data-sort-col="1" data-sort-type="str" onclick="rentSortTable('rent-loja-tbody',this)">Rede</th>
-            <th style="text-align:right" class="sortable" data-sort-col="2" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">Fat. Bruto</th>
-            <th style="text-align:right" class="sortable" data-sort-col="3" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">Dev R$</th>
-            <th style="text-align:right" class="sortable" data-sort-col="4" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">% Dev</th>
-            <th style="text-align:right" class="sortable" data-sort-col="5" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">Desc.</th>
-            <th style="text-align:right" class="sortable" data-sort-col="6" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">Receita Real</th>
-            <th style="text-align:right" class="sortable" data-sort-col="7" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">Produtos</th>
-            <th style="text-align:right" class="sortable" data-sort-col="8" data-sort-type="num" onclick="rentSortTable('rent-loja-tbody',this)">Ticket/NF</th>
-            <th>Ação</th><th></th>
+            <th>Loja</th><th>Rede</th>
+            <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">Dev R$</th>
+            <th style="text-align:right">% Dev</th><th style="text-align:right">Desc.</th>
+            <th style="text-align:right">Receita Real</th>
+            <th style="text-align:right">Produtos</th><th style="text-align:right">Ticket/NF</th><th>Ação</th><th></th>
           </tr></thead>
           <tbody id="rent-loja-tbody"></tbody><tfoot id="rent-loja-tfoot"></tfoot></table>
         </div>
@@ -4977,13 +4958,14 @@ async function renderRentabilidade(){
   const so={receita:(a,b)=>b.receita-a.receita,margem:(a,b)=>b.margem-a.margem,ticket:(a,b)=>b.ticket-a.ticket,fat:(a,b)=>b.fat_bruto-a.fat_bruto};
   _rentDados.sort(so[_rentSort]||so.receita);
 
+  // CMV from dre_mensal
+  const _cmvTotal=ps.reduce((s,p)=>{const d=_rentDreC[p];return s+(d?(d.cmv_revenda||0)+(d.cmv_revenda_sem_nf||0):0);},0);
+  const _cmvRate=t.rc>0?_cmvTotal/t.rc:0; // CMV as fraction of receita real
+  window._rentCmvTotal=_cmvTotal; window._rentCmvRate=_cmvRate;
+
   if(!_rentDados.length){document.getElementById(_lt).innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
 
   const t=_rentDados.reduce((a,r)=>({fb:a.fb+r.fat_bruto,dv:a.dv+r.devolucoes,dc:a.dc+r.desc_val,rc:a.rc+r.receita,nf:a.nf+r.nfs}),{fb:0,dv:0,dc:0,rc:0,nf:0});
-  // CMV from dre_mensal — calculado depois de t para evitar TDZ
-  const _cmvTotal=ps.reduce((s,p)=>{const d=_rentDreC[p];return s+(d?(d.cmv_revenda||0)+(d.cmv_revenda_sem_nf||0):0);},0);
-  const _cmvRate=t.rc>0?_cmvTotal/t.rc:0;
-  window._rentCmvTotal=_cmvTotal; window._rentCmvRate=_cmvRate;
   const tm=t.fb>0?t.rc/t.fb:0, td2=t.fb>0?t.dv/t.fb:0;
   const lbl=_rentPeriodo==='acum'?'Jan–Jul/26':P2M[_rentPeriodo]+'/26';
   const _fatFS=ps.reduce((s,p)=>{const fd=_rentFatC[p];return s+(fd&&fd.faturamento_bruto!=null?fd.faturamento_bruto:fd&&fd.por_cliente?Object.values(fd.por_cliente).reduce((a,c)=>a+(c.total||0),0):0);},0);
@@ -5073,7 +5055,7 @@ async function renderRentabilidade(){
         <td style="text-align:right;color:#EF9F27">${r.desc_pct>0?rentFmtR(r.desc_val)+' ('+Math.round(r.desc_pct*100)+'%)':'—'}</td>
         <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(r.receita)}</td>
         <td style="text-align:right;color:#b0afaa">${_cmvRate>0&&!isPropria?rentFmtR(cmvRede):isPropria?'<span style="color:var(--muted);font-size:10px">própria</span>':'—'}</td>
-        <td style="text-align:right"><span style="font-weight:700;color:${_cmvRate>0?mcCol:'var(--muted)'}">${_cmvRate>0?rentFmtR(mcRede)+' ('+(mcPctRede*100).toFixed(0)+'%)':'—'}</span></td>
+        <td style="text-align:right"><span style="font-weight:700;color:${_cmvRate>0?mcCol:'var(--muted)'}">${_cmvRate>0?rentFmtR(mcRede)+' ('+(_mcPctRede=mcPctRede,(mcPctRede*100).toFixed(0))+'%)':'—'}</span></td>
         <td style="text-align:right"><span class="badge ${r.margem>=0.55?'bg':r.margem>=0.35?'ba':'br'}">${(r.margem*100).toFixed(1)}%</span></td>
         <td style="text-align:right;color:var(--muted)">${r.nfs}</td>
         <td style="text-align:right">${rentFmtR(r.ticket)}</td>
@@ -5115,53 +5097,13 @@ function _setRentProdView(v){
   }
 }
 
-// ── Ordenação de tabelas ──────────────────────────────────────────
-const _rentSortState = {};
-
-function _rentSortVal(td, type) {
-  const raw = td ? td.textContent.trim() : '';
-  if (!raw || raw === '—' || raw === '-' || raw === '') return type === 'str' ? '￿' : null;
-  if (type === 'str') return raw.toLowerCase();
-  const c = raw.replace(/R\$\s*/g,'').replace(/\s*\/[a-záéíóúç]+$/i,'').replace(/\s*%$/,'').replace(/\./g,'').replace(',','.').trim();
-  const n = parseFloat(c);
-  return isNaN(n) ? null : n;
-}
-
-function rentSortTable(tbodyId, th) {
-  const tbody = document.getElementById(tbodyId);
-  if (!tbody) return;
-  const colIdx = parseInt(th.dataset.sortCol);
-  const type = th.dataset.sortType || 'num';
-  const st = _rentSortState[tbodyId] || {col: -1, dir: 0};
-  const newDir = st.col === colIdx ? (st.dir + 1) % 3 : 1;
-  _rentSortState[tbodyId] = {col: colIdx, dir: newDir};
-  const thead = tbody.closest('table').querySelector('thead');
-  if (thead) {
-    thead.querySelectorAll('th.sortable').forEach(el => el.classList.remove('sort-desc','sort-asc'));
-    if (newDir > 0) th.classList.add(newDir === 1 ? 'sort-desc' : 'sort-asc');
-  }
-  const rows = Array.from(tbody.querySelectorAll('tr[data-row-idx]'));
-  rows.sort((a, b) => {
-    if (newDir === 0) return parseInt(a.dataset.rowIdx) - parseInt(b.dataset.rowIdx);
-    const av = _rentSortVal(a.cells[colIdx], type);
-    const bv = _rentSortVal(b.cells[colIdx], type);
-    if (av === null && bv === null) return 0;
-    if (av === null) return 1;
-    if (bv === null) return -1;
-    if (type === 'str') return newDir === 1 ? av.localeCompare(bv,'pt-BR') : bv.localeCompare(av,'pt-BR');
-    return newDir === 1 ? bv - av : av - bv;
-  });
-  rows.forEach(r => tbody.appendChild(r));
-}
-
 function rentAbrirMix(idx){
   _rentRedeIdx=idx;
-  delete _rentSortState['rent-mix-tbody'];
   document.getElementById('rent-outros-section').style.display='none';
   const r=_rentDados[idx]; if(!r) return;
   document.getElementById('rent-mix-section').style.display='';
   document.getElementById('rent-mix-title').textContent=`Mix — ${r.rede} (${r.nfs} NFs · margem ${(r.margem*100).toFixed(1)}% · desc ${Math.round(r.desc_pct*100)}% · dev via ${r.dev_fonte})`;
-  document.getElementById('rent-mix-tbody').innerHTML=r.mix_calc.map((it,ridx)=>{
+  document.getElementById('rent-mix-tbody').innerHTML=r.mix_calc.map(it=>{
     const un=it.unidade==='KG'?'kg':'bja';
     const itKg=rentEstimKg(it.produto,it.qtd_vendida||0,it.unidade);
     const itUnid=(it.unidade||'').toUpperCase(), itQtd=it.qtd_vendida||0;
@@ -5170,7 +5112,7 @@ function rentAbrirMix(idx){
     const itRbjaBruto=itBja>0?it.valor_vendido/itBja:null;
     const itRkgLiq=itRkgBruto!==null?itRkgBruto*(1-r.desc_pct):null;
     const itRbjaLiq=itRbjaBruto!==null?itRbjaBruto*(1-r.desc_pct):null;
-    return`<tr data-row-idx="${ridx}">
+    return`<tr>
       <td>${it.produto||'—'}</td>
       <td style="text-align:right;color:var(--muted)">${it.qtd_vendida>0?it.qtd_vendida.toLocaleString('pt-BR',{maximumFractionDigits:2}):'—'}</td>
       <td style="text-align:right;color:var(--muted)">${it.unidade}</td>
@@ -5236,23 +5178,13 @@ function renderRentPorSKU(lbl){
   const skuData=rentAgregarPorSKU(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo]);
   const tb=document.getElementById('rent-prod-tbody');
   if(!skuData.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
-  delete _rentSortState['rent-prod-tbody'];
   const thead=tb.closest('table').querySelector('thead tr');
-  if(thead)thead.innerHTML=''
-    +'<th class="sortable" data-sort-col="0" data-sort-type="str" onclick="rentSortTable(\'rent-prod-tbody\',this)">SKU</th>'
-    +'<th>Emb.</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="2" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">Kg</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="3" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">Fat. Bruto</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="4" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">R$/kg bruto</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="5" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">Dev R$</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="6" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">% Dev</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="7" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">Receita Real</th>'
-    +'<th style="text-align:right" class="sortable" data-sort-col="8" data-sort-type="num" onclick="rentSortTable(\'rent-prod-tbody\',this)">R$/kg real</th>';
+  if(thead)thead.innerHTML='<th>SKU</th><th>Emb.</th><th style="text-align:right">Kg</th><th style="text-align:right">Fat. Bruto</th><th style="text-align:right">R$/kg bruto</th><th style="text-align:right">Dev R$</th><th style="text-align:right">% Dev</th><th style="text-align:right">Receita Real</th><th style="text-align:right">R$/kg real</th>';
   tb.innerHTML=skuData.map((s,i)=>{
     const pct_dev=s.fat_bruto>0?s.valor_dev/s.fat_bruto:0;
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
     const embTag=s.emb==='CX'?'<span style="font-size:9px;background:rgba(55,138,221,.2);color:#378ADD;border-radius:3px;padding:1px 5px">CX</span>':s.emb==='KG'?'<span style="font-size:9px;background:rgba(127,119,221,.15);color:#7F77DD;border-radius:3px;padding:1px 5px">KG</span>':'<span style="font-size:9px;background:rgba(29,158,117,.15);color:#1D9E75;border-radius:3px;padding:1px 5px">UN</span>';
-    return`<tr style="cursor:pointer" data-row-idx="${i}" data-sku-idx="${i}">`
+    return`<tr style="cursor:pointer" data-sku-idx="${i}">`
       +`<td style="font-weight:500">${s.label}</td>`
       +`<td>${embTag}</td>`
       +`<td style="text-align:right;color:var(--muted)">${Math.round(s.kg).toLocaleString('pt-BR')}</td>`
@@ -5309,14 +5241,13 @@ function renderRentPorProduto(lbl){
   document.getElementById('rent-prod-period-label').textContent='— '+lbl;
   _rentFamDados=rentAgregarPorFamilia(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo]);
   _rentFamDados.sort((a,b)=>b.fat_bruto-a.fat_bruto);
-  delete _rentSortState['rent-prod-tbody'];
   const tb=document.getElementById('rent-prod-tbody');
   if(!_rentFamDados.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
   tb.innerHTML=_rentFamDados.map((f,i)=>{
     const pct_dev=f.fat_bruto>0?f.valor_dev/f.fat_bruto:0;
     const s=f.margem>=0.55?'🟢':f.margem>=0.35?'🟡':'🔴';
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
-    return`<tr style="cursor:pointer" data-row-idx="${i}" data-rent-fam="${i}">
+    return`<tr style="cursor:pointer" data-rent-fam="${i}">
       <td style="font-weight:500">${f.familia}</td>
       <td style="text-align:right;color:var(--muted)">${Math.round(f.kg).toLocaleString('pt-BR')} kg</td>
       <td style="text-align:right">${rentFmtR(f.fat_bruto)}</td>
@@ -5401,7 +5332,6 @@ function renderRentPorLoja(lbl){
   if(_rentLojaFiltroRede!=='Todas') dados=dados.filter(l=>l.rede===_rentLojaFiltroRede);
   if(_rentLojaFiltroVendedor!=='Todos') dados=dados.filter(l=>rentGetVendedor(l.rede)===_rentLojaFiltroVendedor);
   dados=dados.slice(0,200);
-  delete _rentSortState['rent-loja-tbody'];
   const tb=document.getElementById('rent-loja-tbody');
   if(!dados.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
   tb.innerHTML=dados.map((l,i)=>{
@@ -5414,7 +5344,7 @@ function renderRentPorLoja(lbl){
     const sondaBadge = sondaAcao
       ? `<span title="Dev% Abr-Jun: ${sondaAcao.dev_rec}% — ${sondaAcao.motivo}" style="font-size:9px;white-space:nowrap">${sondaAcao.acao}</span>`
       : '';
-    return`<tr style="cursor:pointer${mamboProblema?';background:rgba(239,68,68,.05)':''}" data-row-idx="${i}" data-rent-loja="${i}">
+    return`<tr style="cursor:pointer${mamboProblema?';background:rgba(239,68,68,.05)':''}" data-rent-loja="${i}">
       <td style="font-weight:500;font-size:12px" title="${l.cnpj}">${nome.length>30?nome.slice(0,28)+'…':nome}${badgeMambo}</td>
       <td style="font-weight:500;color:${RENT_CORES[l.rede]||'var(--text)'};">${l.rede}</td>
       <td style="text-align:right">${rentFmtR(l.fat_bruto)}</td>
@@ -6977,6 +6907,79 @@ const PATCHOULI_DATA = {
     'Calcular custo real de secagem por kg',
     'Padronizar rendimento: meta ≥2,5% a partir do próximo ciclo',
   ],
+
+  // ─── Colheitas por ciclo produtivo (massa fresca de campo) ───
+  // Fonte da verdade = totais medidos (caule_g, folha_g). Médias/vaso são derivadas.
+  colheitas: [
+    {
+      id: 'ipiranga-2026-07',
+      local: 'Ipiranga',
+      plantio: '11/04/2026',
+      colheita: '15/07/2026',
+      dias: 95,
+      seco_pct: 23,          // relação folha seca/fresca de referência
+      preco_kg_seco: 4800,
+      obs_flags: [
+        'Bandeja A: média/vaso do caule anotada como 233 g, mas total medido (2,80 kg ÷ 13 vasos) = 215 g. Usado o total. Conferir ficha.',
+        'Torre 3 · Bandeja Q: média/vaso da folha anotada como 155 g, mas total medido (1,855 kg ÷ 16 vasos) = 116 g. Usado o total. Conferir ficha.',
+      ],
+      linhas: [
+        { b:'A', torre:'Principal', luz:'Rosa',   vasos:13, caule_g:2800, folha_g:1800 },
+        { b:'C', torre:'Principal', luz:'Rosa',   vasos:15, caule_g:3060, folha_g:1970 },
+        { b:'E', torre:'Principal', luz:'Rosa',   vasos:10, caule_g:3010, folha_g:2000 },
+        { b:'G', torre:'Principal', luz:'Branca', vasos:15, caule_g:2900, folha_g:1975 },
+        { b:'I', torre:'Principal', luz:'Branca', vasos:16, caule_g:3010, folha_g:2009 },
+        { b:'K', torre:'Principal', luz:'Branca', vasos:16, caule_g:3250, folha_g:2124 },
+        { b:'M', torre:'Principal', luz:'Branca', vasos:16, caule_g:3240, folha_g:2120 },
+        { b:'O', torre:'Principal', luz:'Branca', vasos:16, caule_g:2710, folha_g:1800 },
+        { b:'Q', torre:'Principal', luz:'Branca', vasos:16, caule_g:2690, folha_g:1550 },
+        { b:'Q', torre:'Torre 4',   luz:'Rosa',   vasos:13, caule_g:2460, folha_g:1725 },
+        { b:'Q', torre:'Torre 3',   luz:'Rosa',   vasos:16, caule_g:2890, folha_g:1855 },
+      ],
+    },
+  ],
+
+  // ─── Histórico de laboratório (SLAB — Osasco, Salas 4 e 6) ───
+  // Fonte: deck "Historico patchouli" (SLAB). Números conferidos nos gráficos originais.
+  lab: {
+    fonte: 'SLAB — Pesquisa em ambiente controlado (Osasco · Sala 4 "branco frio" · Sala 6 "full spectrum")',
+    // Estimativa de produção de óleo do próprio deck (p.83)
+    estimativa: {
+      planta_fresca_g: 414,   // massa fresca média por planta (folhas + ramos)
+      planta_seca_g: 42,      // massa seca média por planta
+      seco_fresco_pct: 10.1,  // 42 / 414
+      oleo_pct_base: 2.5,     // rendimento óleo / massa seca (ref. campo — Alessandra)
+      oleo_pct_melhor: 3.5,   // melhor cenário (literatura 1,5–3,5%)
+      modulo: 1000,
+      oleo_g_ciclo_base: 1050,
+      oleo_g_ciclo_melhor: 1470,
+    },
+    // Taxas de secagem para o cruzamento com o campo (dois cenários)
+    seco_lab_pct: 10,   // planta inteira (referência SLAB)
+    seco_folha_pct: 23, // folha (card Ipiranga)
+    ciclos: [
+      { c:'1º — Fase 1', periodo:'02/08/23 → 16/11/23', dias:106,
+        fresca:'até 1,27 kg/trat.', secagem:'≈9–10%',
+        destaque:'Full spectrum &gt; branco frio em ativos (patchoulol 1,06 vs 0,67). Sala 4 rendeu mais biomassa nesta fase.' },
+      { c:'2º', periodo:'28/12/23 → 25/04/24', dias:119,
+        fresca:'0,42–0,52 kg (colheita 11/04)', secagem:'—',
+        destaque:'Melhor horticultural: fibra de coco "fibroso" + full spectrum 380µmol. Glândulas de óleo Sala 6 ≈ Sala 4 (NS).' },
+      { c:'3º', periodo:'11/07/24 → 07/11/24', dias:119,
+        fresca:'220µmol 162g vs 380µmol 77g/planta', secagem:'—',
+        destaque:'220µmol superou 380µmol em massa fresca. Fibra de coco (154–231g) &gt;&gt; Sphagnotec 12 (90–101g).' },
+      { c:'Mudas 24/25', periodo:'28/11/24 → 09/04/25', dias:82,
+        fresca:'100% Livre 451g vs Clonagri 393g', secagem:'15% / 11%',
+        destaque:'Muda "100% Livre" rendeu mais massa em menos dias (60 vs 92). Sala 4 381g &gt; Sala 6 102g.' },
+    ],
+    // Qualidade de óleo (área relativa do cromatograma) — confirma o que já está em "testes_anteriores"
+    espectro: {
+      // Full spectrum (rosa/magenta) vs Branco frio (branco)
+      patchoulol_fs: 1.062, patchoulol_bf: 0.671,   // Teste 1
+      pogostone_fs: 0.259,  pogostone_bf: 0.217,
+      rend_seca_fs: 43.2,   rend_seca_bf: 37.2,
+    },
+    glandulas: { sala6_qtd: 3.07, sala4_qtd: 2.63, sala6_diam: 63.4, sala4_diam: 62.7, ns: true },
+  },
 };
 
 const _SC = {validacao:'ec-val',producao:'ec-prod',negociacao:'ec-neg',critico:'ec-crit'};
@@ -7018,6 +7021,7 @@ function _renderExpContent() {
     setTimeout(_initMorangoChart, 50);
   } else if (_expTab === 'patchouli') {
     content.innerHTML = _buildPatchouliCard();
+    setTimeout(_initPatchouliCharts, 50);
   } else if (_expTab === 'cannabis') {
     content.innerHTML = '<div style="height:calc(100vh - 140px);margin:-8px 0"><iframe src="./cannabis.html?v=' + Date.now() + '" style="width:100%;height:100%;border:none;border-radius:8px" loading="lazy"></iframe></div>';
   } else {
@@ -7150,6 +7154,114 @@ function _buildPatchouliCard() {
     </div>`;
   }).join('');
 
+  // ─── Colheitas por ciclo produtivo (massa fresca de campo) ───
+  const kg = g => (g/1000).toFixed(2).replace('.',',');
+  const luzColor = luz => luz === 'Rosa' ? '#DD3C8F' : '#378ADD';
+  const colheitasHtml = (P.colheitas || []).map(CO => {
+    const L = CO.linhas;
+    const sum = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
+    const totV = sum(L, x => x.vasos);
+    const totC = sum(L, x => x.caule_g);
+    const totF = sum(L, x => x.folha_g);
+    const folhaPct = totF / totC * 100;
+    const medF = totF / totV;
+    const secoKg = totF / 1000 * CO.seco_pct / 100;
+    const receita = secoKg * CO.preco_kg_seco;
+    const perLuz = luz => {
+      const s = L.filter(x => x.luz === luz);
+      const v = sum(s, x => x.vasos), c = sum(s, x => x.caule_g), f = sum(s, x => x.folha_g);
+      return { n: s.length, v, c, f, fv: f / v, cv: c / v, fpct: c ? f / c * 100 : 0 };
+    };
+    const rosa = perLuz('Rosa'), branca = perLuz('Branca');
+    const wl = L.map(x => ({ ...x, fv: x.folha_g / x.vasos, cv: x.caule_g / x.vasos }));
+    const maxFv = Math.max(...wl.map(x => x.fv));
+    const bestFv = maxFv;
+
+    const rows = wl.map(x => {
+      const best = x.fv === bestFv;
+      const barW = Math.round(x.fv / maxFv * 100);
+      return `<tr style="${best ? 'background:rgba(29,158,117,.1);font-weight:600' : ''}">
+        <td style="padding:4px 8px;font-size:11px">Bandeja ${x.b}${best ? ' <span style="font-size:9px;background:rgba(29,158,117,.2);color:#1D9E75;border:1px solid rgba(29,158,117,.4);border-radius:3px;padding:1px 5px">★ melhor</span>' : ''}</td>
+        <td style="padding:4px 8px;font-size:11px;text-align:center;color:var(--muted)">${x.torre}</td>
+        <td style="padding:4px 8px;font-size:11px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${luzColor(x.luz)};margin-right:5px"></span>${x.luz}</td>
+        <td style="padding:4px 8px;font-size:11px;text-align:center">${x.vasos}</td>
+        <td style="padding:4px 8px;font-size:11px;text-align:right">${kg(x.folha_g)}</td>
+        <td style="padding:4px 8px;font-size:11px;text-align:right;color:${best ? '#1D9E75' : 'var(--text)'}">
+          <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+            <div style="width:56px;height:6px;border-radius:3px;background:var(--border);overflow:hidden">
+              <div style="width:${barW}%;height:100%;background:${best ? '#1D9E75' : luzColor(x.luz)};border-radius:3px"></div>
+            </div>${Math.round(x.fv)} g
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--bg3)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700">Colheita — ${CO.local}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Plantio ${CO.plantio} → Colheita ${CO.colheita} · ${CO.dias} dias · ${totV} vasos · ${L.length} bandejas</div>
+        </div>
+        <span style="background:rgba(29,158,117,.15);color:#1D9E75;border:1px solid rgba(29,158,117,.4);border-radius:4px;font-size:10px;padding:2px 8px;align-self:center">Ciclo concluído</span>
+      </div>
+
+      <div class="emg" style="margin-bottom:14px">
+        <div class="em"><div style="font-size:10px;color:var(--muted2)">Folha fresca</div><div style="font-size:20px;font-weight:800;color:#1D9E75;font-family:'DM Mono',monospace">${kg(totF)} kg</div><div style="font-size:10px;color:var(--muted)">${Math.round(medF)} g/vaso · média</div></div>
+        <div class="em"><div style="font-size:10px;color:var(--muted2)">Biomassa c/ caule</div><div style="font-size:20px;font-weight:800;font-family:'DM Mono',monospace">${kg(totC)} kg</div><div style="font-size:10px;color:var(--muted)">${Math.round(totC / totV)} g/vaso</div></div>
+        <div class="em"><div style="font-size:10px;color:var(--muted2)">Folha / biomassa</div><div style="font-size:20px;font-weight:800;color:#7F77DD;font-family:'DM Mono',monospace">${folhaPct.toFixed(0)}%</div><div style="font-size:10px;color:var(--muted)">caule ≈ ${(100 - folhaPct).toFixed(0)}%</div></div>
+        <div class="em" style="background:rgba(239,159,39,.1)"><div style="font-size:10px;color:var(--muted2)">Folha seca estim.</div><div style="font-size:20px;font-weight:800;color:#EF9F27;font-family:'DM Mono',monospace">${secoKg.toFixed(2).replace('.', ',')} kg</div><div style="font-size:10px;color:#EF9F27">@${CO.seco_pct}% seco/fresco</div></div>
+        <div class="em" style="background:rgba(29,158,117,.1)"><div style="font-size:10px;color:var(--muted2)">Receita estim.</div><div style="font-size:20px;font-weight:800;color:#1D9E75;font-family:'DM Mono',monospace">${fmtK(receita)}</div><div style="font-size:10px;color:var(--muted)">@ ${fmtK(CO.preco_kg_seco)}/kg seco</div></div>
+        <div class="em"><div style="font-size:10px;color:var(--muted2)">Melhor bandeja</div><div style="font-size:18px;font-weight:800;font-family:'DM Mono',monospace">${(() => { const bst = wl.find(x => x.fv === bestFv); return 'Bandeja ' + bst.b; })()}</div><div style="font-size:10px;color:#1D9E75">${Math.round(bestFv)} g folha/vaso · Luz ${wl.find(x => x.fv === bestFv).luz}</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:16px">
+        <div>
+          <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Resultado por Bandeja</div>
+          <table style="width:100%;border-collapse:collapse">
+            <thead><tr style="border-bottom:2px solid var(--border)">
+              <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Bandeja</th>
+              <th style="text-align:center;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Torre</th>
+              <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Luz</th>
+              <th style="text-align:center;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Vasos</th>
+              <th style="text-align:right;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Folha</th>
+              <th style="text-align:right;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Folha g/vaso</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          ${CO.obs_flags && CO.obs_flags.length ? `<div style="margin-top:8px;background:rgba(239,159,39,.08);border:1px solid rgba(239,159,39,.25);border-radius:6px;padding:8px">
+            <div style="font-size:9px;color:#EF9F27;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px">⚠️ Conferir ficha de campo</div>
+            ${CO.obs_flags.map(o => `<div style="font-size:10px;color:var(--muted);padding:2px 0">• ${o}</div>`).join('')}
+          </div>` : ''}
+        </div>
+
+        <div>
+          <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Folha por Vaso (g) — por Bandeja</div>
+          <div style="height:170px;position:relative"><canvas id="chart-colheita-${CO.id}"></canvas></div>
+          <div style="margin-top:14px">
+            <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Luz Rosa × Luz Branca</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+              <div style="background:rgba(221,60,143,.1);border:1px solid rgba(221,60,143,.3);border-radius:6px;padding:8px">
+                <div style="color:#DD3C8F;font-weight:700;margin-bottom:4px">● Luz Rosa</div>
+                <div style="color:var(--muted)">${rosa.n} bandejas · ${rosa.v} vasos</div>
+                <div style="margin-top:3px">Folha: <strong>${Math.round(rosa.fv)} g/vaso</strong></div>
+                <div>Caule: ${Math.round(rosa.cv)} g/vaso</div>
+                <div style="color:var(--muted)">Folha/biomassa: ${rosa.fpct.toFixed(0)}%</div>
+              </div>
+              <div style="background:rgba(55,138,221,.1);border:1px solid rgba(55,138,221,.3);border-radius:6px;padding:8px">
+                <div style="color:#378ADD;font-weight:700;margin-bottom:4px">● Luz Branca</div>
+                <div style="color:var(--muted)">${branca.n} bandejas · ${branca.v} vasos</div>
+                <div style="margin-top:3px">Folha: <strong>${Math.round(branca.fv)} g/vaso</strong></div>
+                <div>Caule: ${Math.round(branca.cv)} g/vaso</div>
+                <div style="color:var(--muted)">Folha/biomassa: ${branca.fpct.toFixed(0)}%</div>
+              </div>
+            </div>
+            <div style="margin-top:8px;font-size:10px;color:#1D9E75">Luz Rosa: +${((rosa.fv / branca.fv - 1) * 100).toFixed(0)}% folha/vaso vs Luz Branca</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
   return `<div class="ecard ec-prod">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
       <div>
@@ -7169,6 +7281,11 @@ function _buildPatchouliCard() {
       <div class="em" style="background:rgba(239,159,39,.1)"><div style="font-size:10px;color:var(--muted2)">Potencial/torre/ano</div><div style="font-size:20px;font-weight:800;color:#EF9F27;font-family:'DM Mono',monospace">${fmtK(C.receita_torre_ano)}</div><div style="font-size:10px;color:#EF9F27">${C.ciclos_ano}× ciclos · ${C.massa_seca_torre_kg} kg/ciclo</div></div>
       <div class="em" style="background:rgba(239,68,68,.1)"><div style="font-size:10px;color:var(--muted2)">Contrato de volume</div><div style="font-size:15px;font-weight:700;color:#EF4444">Pendente</div><div style="font-size:10px;color:#EF4444">${CM.status_contrato}</div></div>
     </div>
+
+    <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:4px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Ciclo Produtivo — Colheita de Campo</div>
+    ${colheitasHtml}
+
+    <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:4px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Projeção Comercial & Rendimento de Óleo</div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
       <div>
@@ -7226,6 +7343,9 @@ function _buildPatchouliCard() {
       </div>
     </div>
 
+    <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Histórico Laboratório (SLAB) × Campo — Cruzamento</div>
+    ${_buildPatchouliLab(P)}
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div>
         <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Alertas</div>
@@ -7237,6 +7357,131 @@ function _buildPatchouliCard() {
       </div>
     </div>
   </div>`;
+}
+
+function _buildPatchouliLab(P) {
+  const LB = P.lab;
+  if (!LB) return '';
+  const g1 = v => v.toFixed(1).replace('.', ',');
+  const g2 = v => v.toFixed(2).replace('.', ',');
+  const CO = P.colheitas[0];
+  const totF = CO.linhas.reduce((a, x) => a + x.folha_g, 0) / 1000; // kg folha
+  const totC = CO.linhas.reduce((a, x) => a + x.caule_g, 0) / 1000; // kg com caule
+
+  // ── A. Linha do tempo dos ciclos (lab + campo) ──
+  const cicloRows = LB.ciclos.map(c => `<tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:5px 8px;font-size:11px;font-weight:600;white-space:nowrap">${c.c}</td>
+    <td style="padding:5px 8px;font-size:11px;color:var(--muted);white-space:nowrap">${c.periodo}</td>
+    <td style="padding:5px 8px;font-size:11px;text-align:center">${c.dias}d</td>
+    <td style="padding:5px 8px;font-size:11px">${c.fresca}</td>
+    <td style="padding:5px 8px;font-size:11px;color:var(--muted)">${c.destaque}</td>
+  </tr>`).join('');
+  const ipiRow = `<tr style="background:rgba(29,158,117,.1);border-bottom:1px solid var(--border)">
+    <td style="padding:5px 8px;font-size:11px;font-weight:700;white-space:nowrap;color:#1D9E75">Campo — Ipiranga</td>
+    <td style="padding:5px 8px;font-size:11px;color:var(--muted);white-space:nowrap">${CO.plantio.slice(0,5)} → ${CO.colheita.slice(0,5)}/26</td>
+    <td style="padding:5px 8px;font-size:11px;text-align:center">${CO.dias}d</td>
+    <td style="padding:5px 8px;font-size:11px;font-weight:600">folha ${g2(totF)}kg · c/ caule ${g2(totC)}kg</td>
+    <td style="padding:5px 8px;font-size:11px;color:#1D9E75">1º ciclo em campo (144 plantas/torre) · Luz Rosa +15% folha/vaso vs Branca</td>
+  </tr>`;
+
+  // ── B. Potencial de óleo do Ipiranga (base × secagem × rendimento) ──
+  const bases = [{ n: 'Folha', kg: totF }, { n: 'Com caule', kg: totC }];
+  const secas = [{ n: LB.seco_lab_pct, lbl: LB.seco_lab_pct + '% (lab)' }, { n: LB.seco_folha_pct, lbl: LB.seco_folha_pct + '% (folha)' }];
+  const combos = [];
+  bases.forEach(b => secas.forEach(s => {
+    const seca = b.kg * s.n / 100;
+    combos.push({
+      base: b.n, secaLbl: s.lbl, secaKg: seca,
+      o25: seca * 1000 * LB.estimativa.oleo_pct_base / 100,
+      o35: seca * 1000 * LB.estimativa.oleo_pct_melhor / 100,
+      ref: (b.n === 'Com caule' && s.n === LB.seco_lab_pct),
+    });
+  }));
+  const comboRows = combos.map(c => `<tr style="${c.ref ? 'background:rgba(29,158,117,.12);font-weight:600' : ''};border-bottom:1px solid var(--border)">
+    <td style="padding:4px 8px;font-size:11px">${c.base}${c.ref ? ' <span style="font-size:9px;background:rgba(29,158,117,.2);color:#1D9E75;border:1px solid rgba(29,158,117,.4);border-radius:3px;padding:1px 5px">≈ ref. lab</span>' : ''}</td>
+    <td style="padding:4px 8px;font-size:11px;text-align:center">${c.secaLbl}</td>
+    <td style="padding:4px 8px;font-size:11px;text-align:right">${g2(c.secaKg)} kg</td>
+    <td style="padding:4px 8px;font-size:11px;text-align:right;color:#EF9F27">${Math.round(c.o25)} g</td>
+    <td style="padding:4px 8px;font-size:11px;text-align:right;color:#1D9E75">${Math.round(c.o35)} g</td>
+  </tr>`).join('');
+
+  // ── C. Espectro / potência de fótons ──
+  const E = LB.espectro;
+  const patchGanho = ((E.patchoulol_fs / E.patchoulol_bf - 1) * 100).toFixed(0);
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px">
+      <div>
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">A · Linha do Tempo dos Ciclos — Lab (SLAB) → Campo</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Ciclo</th>
+            <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Período</th>
+            <th style="text-align:center;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Duração</th>
+            <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Massa fresca (ref.)</th>
+            <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Destaque</th>
+          </tr></thead>
+          <tbody>${cicloRows}${ipiRow}</tbody>
+        </table>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Fonte lab: ${LB.fonte}</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <div>
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">B · Potencial de Óleo do Ipiranga (taxas do lab)</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Base</th>
+            <th style="text-align:center;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Secagem</th>
+            <th style="text-align:right;padding:3px 8px;font-size:10px;color:var(--muted2);font-weight:600">Massa seca</th>
+            <th style="text-align:right;padding:3px 8px;font-size:10px;color:#EF9F27;font-weight:600">Óleo 2,5%</th>
+            <th style="text-align:right;padding:3px 8px;font-size:10px;color:#1D9E75;font-weight:600">Óleo 3,5%</th>
+          </tr></thead>
+          <tbody>${comboRows}</tbody>
+        </table>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">Estimativa SLAB (p.83): 2,5% de óleo sobre massa seca (melhor cenário 3,5%). "≈ ref. lab" = base folhas+ramos e secagem ~10%, igual à referência do deck (414g fresca → 42g seca/planta).</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Óleo estimado por cenário (g/ciclo)</div>
+        <div style="height:190px;position:relative"><canvas id="chart-patchouli-oleo"></canvas></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <div>
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">C · Espectro & Potência de Fótons</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+          <div style="background:rgba(221,60,143,.1);border:1px solid rgba(221,60,143,.3);border-radius:6px;padding:8px">
+            <div style="color:#DD3C8F;font-weight:700;margin-bottom:4px">● Full spectrum / Luz Rosa</div>
+            <div>Lab: patchoulol <strong>${g2(E.patchoulol_fs)}</strong> · pogostone ${g2(E.pogostone_fs)} · rend. ${g1(E.rend_seca_fs)}%</div>
+            <div style="color:#1D9E75;margin-top:2px">Campo: +15% folha/vaso vs Branca</div>
+          </div>
+          <div style="background:rgba(55,138,221,.1);border:1px solid rgba(55,138,221,.3);border-radius:6px;padding:8px">
+            <div style="color:#378ADD;font-weight:700;margin-bottom:4px">● Branco frio / Luz Branca</div>
+            <div>Lab: patchoulol <strong>${g2(E.patchoulol_bf)}</strong> · pogostone ${g2(E.pogostone_bf)} · rend. ${g1(E.rend_seca_bf)}%</div>
+            <div style="color:var(--muted);margin-top:2px">Campo: base de comparação</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;background:rgba(29,158,117,.08);border:1px solid rgba(29,158,117,.25);border-radius:6px;padding:8px">
+          <span style="font-size:11px;color:#1D9E75;font-weight:600">Luz rica em vermelho/rosa vence nas duas pontas: +${patchGanho}% de patchoulol no lab e +15% de folha/vaso no campo.</span>
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--muted)">Potência de fótons (biomassa) varia por ciclo: 3º ciclo 220µmol &gt; 380µmol, mas Fase 1 / 2º favoreceram mais fótons. Glândulas de óleo: Sala 6 (220µm) ${g2(LB.glandulas.sala6_qtd)}/mm² vs Sala 4 (380µm) ${g2(LB.glandulas.sala4_qtd)}/mm² — diferença NS.</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">D · Substrato & Muda</div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px;font-size:11px;margin-bottom:8px">
+          <div style="font-weight:700;color:#7F77DD;margin-bottom:3px">Substrato</div>
+          <div>Fibra de coco "fibroso" = melhor desempenho horticultural recorrente no lab. Sphagnotec 12 fica abaixo (90–101g vs 154–231g no 3º ciclo).</div>
+          <div style="color:var(--muted);margin-top:3px">No Ciclo 4 do Ipiranga já se usou Fibra de coco e Sphagtotec 12 — cruzar rendimento de óleo por substrato.</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:6px;padding:8px;font-size:11px">
+          <div style="font-weight:700;color:#7F77DD;margin-bottom:3px">Muda</div>
+          <div>Muda "100% Livre" rendeu mais massa fresca em menos dias que "Clonagri": <strong>451 g em 60 dias</strong> vs 393 g em 92 dias.</div>
+          <div style="color:#1D9E75;margin-top:3px">Priorizar muda própria para reduzir ciclo e custo.</div>
+        </div>
+      </div>
+    </div>`;
 }
 
 function _initMorangoChart() {
@@ -7255,6 +7500,72 @@ function _initMorangoChart() {
       plugins: { legend:{labels:{color:'#aaa',font:{size:10},boxWidth:14,padding:10}}, tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw}\u00b0Brix`}} }
     }
   });
+}
+
+let _chartsColheita = {};
+function _initPatchouliCharts() {
+  if (typeof Chart === 'undefined') return;
+  const luzColor = luz => luz === 'Rosa' ? '#DD3C8F' : '#378ADD';
+  (PATCHOULI_DATA.colheitas || []).forEach(CO => {
+    const cv = document.getElementById('chart-colheita-' + CO.id);
+    if (!cv) return;
+    if (_chartsColheita[CO.id]) { _chartsColheita[CO.id].destroy(); }
+    const L = CO.linhas;
+    const labels = L.map(x => x.b + (x.torre && x.torre !== 'Principal' ? ' (' + x.torre.replace('Torre ', 'T') + ')' : ''));
+    const folhaVals = L.map(x => Math.round(x.folha_g / x.vasos));
+    const cauleVals = L.map(x => Math.round(x.caule_g / x.vasos));
+    const cores = L.map(x => luzColor(x.luz));
+    _chartsColheita[CO.id] = new Chart(cv, {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label: 'Folha g/vaso', data: folhaVals, backgroundColor: cores, borderRadius: 3, order: 2 },
+        { label: 'Caule g/vaso', data: cauleVals, type: 'line', borderColor: 'rgba(160,160,160,.7)', borderWidth: 1.5, borderDash: [4, 3], pointRadius: 2, pointBackgroundColor: 'rgba(160,160,160,.9)', tension: 0.2, order: 1 },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 150 },
+        scales: { x: { ticks: { color: '#aaa', font: { size: 9 } }, grid: { display: false } },
+                  y: { beginAtZero: true, ticks: { color: '#aaa', font: { size: 9 }, callback: v => v + 'g' }, grid: { color: 'rgba(255,255,255,.04)' } } },
+        plugins: { legend: { labels: { color: '#aaa', font: { size: 10 }, boxWidth: 12, padding: 8, generateLabels: () => [
+                     { text: 'Folha g/vaso · Luz Rosa', fillStyle: '#DD3C8F', strokeStyle: '#DD3C8F' },
+                     { text: 'Luz Branca', fillStyle: '#378ADD', strokeStyle: '#378ADD' },
+                     { text: 'Caule g/vaso', fillStyle: 'rgba(160,160,160,.7)', strokeStyle: 'rgba(160,160,160,.7)' },
+                   ] } },
+                   tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw + ' g/vaso',
+                                           afterLabel: ctx => ctx.datasetIndex === 0 ? 'Luz ' + L[ctx.dataIndex].luz : '' } } }
+      }
+    });
+  });
+
+  // ── Óleo estimado do Ipiranga por cenário ──
+  const co = document.getElementById('chart-patchouli-oleo');
+  const LB = PATCHOULI_DATA.lab;
+  if (co && LB) {
+    if (_chartsColheita.__oleo) { _chartsColheita.__oleo.destroy(); }
+    const CO = PATCHOULI_DATA.colheitas[0];
+    const totF = CO.linhas.reduce((a, x) => a + x.folha_g, 0) / 1000;
+    const totC = CO.linhas.reduce((a, x) => a + x.caule_g, 0) / 1000;
+    const bases = [{ n: 'Folha', kg: totF }, { n: 'C/ caule', kg: totC }];
+    const secas = [LB.seco_lab_pct, LB.seco_folha_pct];
+    const labels = [], o25 = [], o35 = [];
+    bases.forEach(b => secas.forEach(s => {
+      const seca = b.kg * s / 100;
+      labels.push(b.n + ' @' + s + '%');
+      o25.push(Math.round(seca * 1000 * LB.estimativa.oleo_pct_base / 100));
+      o35.push(Math.round(seca * 1000 * LB.estimativa.oleo_pct_melhor / 100));
+    }));
+    _chartsColheita.__oleo = new Chart(co, {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label: 'Óleo 2,5%', data: o25, backgroundColor: '#EF9F27', borderRadius: 3 },
+        { label: 'Óleo 3,5%', data: o35, backgroundColor: '#1D9E75', borderRadius: 3 },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 150 },
+        scales: { x: { ticks: { color: '#aaa', font: { size: 9 } }, grid: { display: false } },
+                  y: { beginAtZero: true, ticks: { color: '#aaa', font: { size: 9 }, callback: v => v + 'g' }, grid: { color: 'rgba(255,255,255,.04)' } } },
+        plugins: { legend: { labels: { color: '#aaa', font: { size: 10 }, boxWidth: 12, padding: 8 } },
+                   tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw + ' g óleo/ciclo' } } }
+      }
+    });
+  }
 }
 
 // ─── LALAMOVE ────────────────────────────────────────────────────────────────
@@ -9579,11 +9890,8 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     const prazo=r=>r.dias>0?`<span class="badge br">${r.dias}d atraso</span>`:r.dias===0?`<span class="badge ba">vence hoje</span>`:`<span class="badge bg">vence em ${-r.dias}d</span>`;
     const tb=document.getElementById('bk-table');
     if(tb) tb.innerHTML=`<thead><tr><th>Cliente</th><th>NF</th>`+th('dias','Prazo')+th('valor','Valor','right')+`<th style="text-align:right">Ação</th></tr></thead><tbody>`+
-      rows.map(r=>`<tr><td>${bkIcone(r.tel)} ${r.cliente}${bkFone(r.tel).ok?'':' <span class="badge ba" style="opacity:.7">'+bkFone(r.tel).aviso+'</span>'}${bkJaCobrado(r.nf)?' <span class="badge bg" style="opacity:.8">cobrado hoje</span>':''}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar(${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
-    const semTel=rows.filter(r=>!bkFone(r.tel).ok).length;
-    const tt=document.getElementById('bk-tot');
-    if(tt) tt.innerHTML=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0))+
-      (semTel?' · <span style="color:var(--red)">☎ '+semTel+' sem telefone</span>':' · <span style="color:var(--green)">☎ todos com telefone</span>');
+      rows.map(r=>`<tr><td>${r.cliente}${bkFone(r.tel).ok?'':' <span class="badge ba" style="opacity:.7">'+bkFone(r.tel).aviso+'</span>'}${bkJaCobrado(r.nf)?' <span class="badge bg" style="opacity:.8">cobrado hoje</span>':''}</td><td>${r.nf}</td><td>${prazo(r)}</td><td style="text-align:right">${brl(r.valor)}</td><td style="text-align:right"><button class="mb" onclick="bkCobrar(${r.nf})">Cobrar</button></td></tr>`).join('')+`</tbody>`;
+    const tt=document.getElementById('bk-tot'); if(tt) tt.textContent=rows.length+' · '+brl(rows.reduce((a,r)=>a+(Number(r.valor)||0),0));
   }
   // telefone -> {ok, e164, aviso}. Celular BR = DDD + 9 dígitos.
   function bkFone(t){
@@ -9592,13 +9900,6 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
     if(d.length===11 && d[2]==='9') return {ok:true,e164:'55'+d,aviso:''};
     if(d.length===10) return {ok:false,e164:'55'+d,aviso:'telefone antigo (8 díg.)'};
     return {ok:false,e164:'55'+d,aviso:'telefone suspeito'};
-  }
-  // ☎ ao lado do nome: verde = celular válido no cadastro · vermelho = falta ou está errado
-  function bkIcone(tel){
-    const f=bkFone(tel);
-    return f.ok
-      ? '<span title="celular no cadastro" style="color:var(--green)">☎</span>'
-      : '<span title="'+(f.aviso||'sem telefone')+' — cadastrar no OMIE" style="color:var(--red)">☎</span>';
   }
   function bkJaCobrado(nf){
     try{ return localStorage.getItem('bk_cob_'+_bkB+'_'+nf)===new Date().toISOString().slice(0,10); }catch(e){ return false; }
@@ -9681,7 +9982,7 @@ import { getFirestore, doc, getDoc } from './firebase/firebase-firestore.js';
   }
   window.renderBancos=renderBancos; window.bkTab=bkTab; window.bkCobrar=bkCobrar; window.bkBanco=bkBanco; window.bkLink=bkLink;
   document.addEventListener('input',function(e){ if(e.target && (e.target.id==='bk-m-tel'||e.target.id==='bk-m-msg')) bkLink(); });
-  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort; window.bkTabConc=bkTabConc; window.bkIcone=bkIcone;
+  window.bkFechar=bkFechar; window.bkEnviar=bkEnviar; window.bkFone=bkFone; window.bkJaCobrado=bkJaCobrado; window.bkSort=bkSort; window.bkTabConc=bkTabConc;
   // 4) wrap setView p/ tratar 'bancos'
   function install(){
     if(typeof window.setView!=='function'){ return setTimeout(install,300); }
