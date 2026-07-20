@@ -638,8 +638,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <div class="ct" style="margin-bottom:0">Por produto <span id="rent-prod-period-label" style="color:#378ADD"></span></div>
           <div style="display:flex;gap:6px">
-            <button class="mb on" id="pg-familia" onclick="_setRentProdView('familia')" style="font-size:11px;padding:3px 9px">Família</button>
-            <button class="mb"    id="pg-sku"     onclick="_setRentProdView('sku')"    style="font-size:11px;padding:3px 9px">SKU</button>
+            <button class="mb on" id="pg-familia"  onclick="_setRentProdView('familia')"  style="font-size:11px;padding:3px 9px">Família</button>
+            <button class="mb"    id="pg-sku"      onclick="_setRentProdView('sku')"     style="font-size:11px;padding:3px 9px">SKU</button>
+            <button class="mb"    id="pg-prodrede" onclick="_setRentProdView('prodrede')" style="font-size:11px;padding:3px 9px">Prod × Rede</button>
           </div>
         </div>
         <div style="overflow-x:auto">
@@ -648,9 +649,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
             <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">R$/kg bruto</th>
             <th style="text-align:right">Dev R$</th>
             <th style="text-align:right">% Dev</th><th style="text-align:right">Desc. Pond.</th>
-            <th style="text-align:right">Receita Real</th><th style="text-align:right">R$/kg real</th><th style="text-align:right">R$/bja real</th><th></th>
+            <th style="text-align:right">Receita Real</th><th style="text-align:right">R$/kg real</th><th style="text-align:right">R$/bja real</th>
+            <th style="text-align:right;color:#b0c4de">Custo R$/kg</th>
+            <th style="text-align:right;color:#90ee90">Margem R$/kg</th>
+            <th style="text-align:right;color:#90ee90">Margem %</th>
+            <th></th>
           </tr></thead>
           <tbody id="rent-prod-tbody"></tbody><tfoot id="rent-prod-tfoot"></tfoot></table>
+        </div>
+        <div id="rent-prodrede-view" style="display:none;overflow-x:auto;margin-top:6px"></div>
+        <div id="rent-scatter-wrap" style="display:none;margin-top:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Quadrante estratégico — volume vs margem</div>
+          <canvas id="rent-scatter-chart" height="280"></canvas>
         </div>
       </div>
       <!-- Granel x Caixa comparison (SKU view only) -->
@@ -668,16 +678,30 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 
       <div class="cc" id="rent-familia-section" style="display:none;margin-top:10px">
         <div class="ct" style="display:flex;justify-content:space-between;align-items:center">
-          <span id="rent-familia-title">Família</span><button id="rent-btn-fechar-familia" class="mb">✕</button>
+          <span id="rent-familia-title">Família</span>
+          <div style="display:flex;gap:6px">
+            <button id="rent-btn-voltar-sku" class="mb" style="display:none;font-size:11px;padding:3px 9px">← SKUs</button>
+            <button id="rent-btn-fechar-familia" class="mb">✕</button>
+          </div>
         </div>
-        <div style="overflow-x:auto">
+        <div id="rent-familia-sku-view" style="overflow-x:auto">
+          <table class="it"><thead><tr>
+            <th>SKU</th><th style="text-align:right">Kg</th>
+            <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">R$/kg bruto</th>
+            <th style="text-align:right">% Dev</th><th style="text-align:right">R$/kg real</th>
+            <th style="text-align:right;color:#b0c4de">Custo R$/kg</th>
+            <th style="text-align:right;color:#90ee90">Margem R$/kg</th>
+            <th style="text-align:right;color:#90ee90">Margem %</th>
+          </tr></thead><tbody id="rent-familia-tbody"></tbody></table>
+        </div>
+        <div id="rent-sku-rede-view" style="display:none;overflow-x:auto;margin-top:8px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:5px" id="rent-sku-rede-label"></div>
           <table class="it"><thead><tr>
             <th>Rede</th><th style="text-align:right">Kg</th><th style="text-align:right">Fat. Bruto</th>
-            <th style="text-align:right">R$/kg bruto</th><th style="text-align:right">R$/bja bruto</th>
-            <th style="text-align:right">% Dev</th><th style="text-align:right">Receita Real</th>
-            <th style="text-align:right">R$/kg líq</th><th style="text-align:right">R$/bja líq</th>
+            <th style="text-align:right">R$/kg bruto</th><th style="text-align:right">% Dev</th>
+            <th style="text-align:right">Receita Real</th><th style="text-align:right">R$/kg líq</th>
             <th style="text-align:right">Lojas</th>
-          </tr></thead><tbody id="rent-familia-tbody"></tbody></table>
+          </tr></thead><tbody id="rent-sku-rede-tbody"></tbody></table>
         </div>
       </div>
     </div>
@@ -4685,6 +4709,7 @@ const rentFmtR2 = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractio
 let _rentPeriodo='acum', _rentSort='receita', _rentFatC={}, _rentDevC={}, _rentPplC={}, _rentDreC={}, _rentDados=[], _rentRedeIdx=null, _rentOutrosC=[];
 let _rentSubView='rede', _rentFamIdx=null, _rentLojaIdx=null;
 let _rentProdGranView='familia';
+let _rentFamSKUs=[];
 let _rentLojaFiltroRede='Todas', _rentLojaFiltroVendedor='Todos';
 let _rentLojasDados=[], _rentFamDados=[];
 
@@ -4793,6 +4818,44 @@ function rentNormalizeSKU(prod,unid){
   const parts=[esp,canal||null,emb!=='UN'?emb:null].filter(Boolean);
   return{label:parts.join(' '),especie:esp,canal,emb,pesoUnit};
 }
+// Custo R$/kg por SKU — hardcoded até integração com compras_revenda
+// Labels gerados por rentNormalizeSKU: [especie] [canal?] [emb se != UN]
+const CUSTO_SKU_KG = {
+  'Paris CX':                      32.04, // Kentisa
+  'Paris':                         32.04, // UN
+  'Paris KG':                      27.60, // Granel
+  'Portobello CX':                 32.04,
+  'Portobello':                    32.04,
+  'Shiitake CX':                   25.00,
+  'Shiitake':                      25.00,
+  'Shimeji Branco CX':             15.74,
+  'Shimeji Branco':                15.74,
+  'Shimeji Preto CX':              24.16, // "Shimeji CX" do usuário = Preto
+  'Shimeji Preto':                 24.16,
+  'Shimeji Salmao CX':             24.16,
+  'Shimeji Salmao':                24.16,
+  'Paris Qualita CX':              32.04,
+  'Portobello Qualita CX':         32.04,
+  'Shimeji Branco Qualita CX':     15.74,
+  'Shimeji Branco Members Mark CX':15.74,
+  'Shimeji Preto Members Mark CX': 24.16,
+};
+
+const _FAM_ESP_KEY = {
+  'Paris':'paris','Portobello':'portobello','Shiitake':'shitake',
+  'Shimeji Branco':'shimeji_branco','Shimeji Preto':'shimeji_preto','Shimeji Salmão':'shimeji_salmao',
+};
+function getCustoEspecie(nomeFamilia){
+  const key=_FAM_ESP_KEY[nomeFamilia];
+  if(!key) return null;
+  const ep=ESPECIES_PROD[key];
+  if(!ep) return null;
+  const custo_compra=ep.custo_compra_revenda||null;
+  const insumo=prodCustoInsumoKg(ep.meta_rend,ep);
+  const custo_producao=(insumo!=null)?+(insumo+CUSTO_COMPARTILHADO_KG).toFixed(2):null;
+  return{custo_producao,custo_compra,especie:ep.nome};
+}
+
 function rentGetVendedor(rede){if(['GPA',"SAM'S",'SONDA'].includes(rede))return'Anderson';if(['CARREFOUR','MAMBO','HIROTA'].includes(rede))return'Lucas';if(['ZONA SUL','DIA','RESTAURANTES'].includes(rede))return'Julia';return'—';}
 
 async function rentLoadDre(ps){
@@ -4874,7 +4937,7 @@ function rentAgregar(periods){
 
 function rentAgregarPorFamilia(periods){
   const fams={};
-  const gf=f=>{if(!fams[f])fams[f]={familia:f,fat_bruto:0,valor_dev:0,kg:0,qtd_bja:0,por_rede:{}};return fams[f];};
+  const gf=f=>{if(!fams[f])fams[f]={familia:f,fat_bruto:0,valor_dev:0,kg:0,qtd_bja:0,por_rede:{},_skuKg:{}};return fams[f];};
   for(const p of periods){
     for(const row of(_rentPplC[p]||[])){
       const cn14=rentNormCNPJ(row.cliente_cnpj);
@@ -4888,24 +4951,33 @@ function rentAgregarPorFamilia(periods){
       const unid=(row.unidade||'').toUpperCase();
       const qtd=row.quantidade_vendida||0;
       const bja=unid==='CX'?qtd*6:unid==='KG'?0:qtd;
-      const f=gf(fam);
-      f.fat_bruto+=val; f.valor_dev+=dev; f.kg+=kg; f.qtd_bja+=bja;
-      if(!f.por_rede[rede])f.por_rede[rede]={rede,fat_bruto:0,valor_dev:0,kg:0,qtd_bja:0,lojas:new Set()};
-      f.por_rede[rede].fat_bruto+=val; f.por_rede[rede].valor_dev+=dev; f.por_rede[rede].kg+=kg; f.por_rede[rede].qtd_bja+=bja; f.por_rede[rede].lojas.add(cn14);
+      const fd=gf(fam);
+      fd.fat_bruto+=val; fd.valor_dev+=dev; fd.kg+=kg; fd.qtd_bja+=bja;
+      if(!fd.por_rede[rede])fd.por_rede[rede]={rede,fat_bruto:0,valor_dev:0,kg:0,qtd_bja:0,lojas:new Set()};
+      fd.por_rede[rede].fat_bruto+=val; fd.por_rede[rede].valor_dev+=dev; fd.por_rede[rede].kg+=kg; fd.por_rede[rede].qtd_bja+=bja; fd.por_rede[rede].lojas.add(cn14);
+      const skuLbl=rentNormalizeSKU(row.produto,row.unidade).label;
+      fd._skuKg[skuLbl]=(fd._skuKg[skuLbl]||0)+kg;
     }
   }
-  return Object.values(fams).map(f=>{
-    const descP=f.fat_bruto>0?Object.values(f.por_rede).reduce((s,r)=>s+r.fat_bruto*rentGetDesconto(r.rede),0)/f.fat_bruto:0;
-    const fat_liq=Math.max(0,f.fat_bruto-f.valor_dev);
+  return Object.values(fams).map(fd=>{
+    const descP=fd.fat_bruto>0?Object.values(fd.por_rede).reduce((s,r)=>s+r.fat_bruto*rentGetDesconto(r.rede),0)/fd.fat_bruto:0;
+    const fat_liq=Math.max(0,fd.fat_bruto-fd.valor_dev);
     const receita=fat_liq*(1-descP);
-    const margem=f.fat_bruto>0?receita/f.fat_bruto:0;
-    const por_rede=Object.values(f.por_rede).map(r=>{
+    const margem=fd.fat_bruto>0?receita/fd.fat_bruto:0;
+    const por_rede=Object.values(fd.por_rede).map(r=>{
       const fl=Math.max(0,r.fat_bruto-r.valor_dev),rc=fl*(1-rentGetDesconto(r.rede));
       return{rede:r.rede,fat_bruto:r.fat_bruto,valor_dev:r.valor_dev,kg:r.kg,qtd_bja:r.qtd_bja,receita:rc,num_lojas:r.lojas.size};
     }).sort((a,b)=>(a.rede||'').localeCompare(b.rede||'','pt-BR'));
-    const rkg_bruto=f.kg>0?f.fat_bruto/f.kg:0;
-    const rbja_bruto=f.qtd_bja>0?f.fat_bruto/f.qtd_bja:null;
-    return{...f,fat_liq,receita,margem,rkg:rkg_bruto*(1-descP),rkg_bruto,rbja:rbja_bruto,rbja_real:rbja_bruto!=null?rbja_bruto*(1-descP):null,desc_ponderado:descP,por_rede};
+    const rkg_bruto=fd.kg>0?fd.fat_bruto/fd.kg:0;
+    const rbja_bruto=fd.qtd_bja>0?fd.fat_bruto/fd.qtd_bja:null;
+    const rkgReal=rkg_bruto*(1-descP);
+    // Custo ponderado por kg usando CUSTO_SKU_KG
+    let wC=0,wKg=0;
+    for(const[lbl,kg] of Object.entries(fd._skuKg)){const c=CUSTO_SKU_KG[lbl];if(c!=null){wC+=c*kg;wKg+=kg;}}
+    const custoKg=wKg>0?wC/wKg:null;
+    const margemKg=custoKg!=null?rkgReal-custoKg:null;
+    const margemPct=margemKg!=null&&rkgReal>0?margemKg/rkgReal:null;
+    return{...fd,fat_liq,receita,margem,rkg:rkgReal,rkg_bruto,rbja:rbja_bruto,rbja_real:rbja_bruto!=null?rbja_bruto*(1-descP):null,desc_ponderado:descP,por_rede,custoKg,margemKg,margemPct};
   }).sort((a,b)=>b.fat_bruto-a.fat_bruto);
 }
 
@@ -5087,13 +5159,103 @@ async function renderRentabilidade(){
 
 function _setRentProdView(v){
   _rentProdGranView=v;
-  ['familia','sku'].forEach(k=>{const b=document.getElementById('pg-'+k);if(b)b.classList.toggle('on',k===v);});
+  ['familia','sku','prodrede'].forEach(k=>{const b=document.getElementById('pg-'+k);if(b)b.classList.toggle('on',k===v);});
   const gxc=document.getElementById('rent-granelcx-card');
   if(gxc)gxc.style.display=(v==='sku'?'':'none');
+  const prv=document.getElementById('rent-prodrede-view');
+  const scv=document.getElementById('rent-scatter-wrap');
+  if(prv)prv.style.display=(v==='prodrede'?'':'none');
   if(_rentSubView==='produto'){
     const lbl=(document.getElementById('rent-prod-period-label').textContent||'').replace(/^[—\s]+/,'');
-    if(v==='sku') renderRentPorSKU(lbl); else renderRentPorProduto(lbl);
+    if(v==='sku') renderRentPorSKU(lbl);
+    else if(v==='prodrede') renderRentProdRede(lbl);
+    else renderRentPorProduto(lbl);
   }
+}
+
+function renderRentProdRede(lbl){
+  document.getElementById('rent-prod-period-label').textContent='— '+lbl;
+  const fams=rentAgregarPorFamilia(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo]);
+  if(!fams.length){document.getElementById('rent-prodrede-view').innerHTML='<div style="color:var(--muted);padding:10px">Sem dados</div>';return;}
+  const redes=[...new Set(fams.flatMap(f=>Object.keys(f.por_rede)))].sort();
+  const hdr='<table class="it" style="font-size:11px"><thead><tr><th>Família</th>'+redes.map(r=>`<th style="text-align:right;font-size:10px">${r}</th>`).join('')+'<th style="text-align:right">Total</th></tr></thead><tbody>';
+  const rows=fams.map(f=>{
+    const cells=redes.map(r=>{
+      const pr=f.por_rede[r];
+      if(!pr)return'<td style="text-align:right;color:var(--muted)">—</td>';
+      const fl=Math.max(0,pr.fat_bruto-pr.valor_dev),rc=fl*(1-rentGetDesconto(r));
+      return`<td style="text-align:right">${rentFmtR(rc)}</td>`;
+    });
+    return`<tr><td style="font-weight:500">${f.familia}</td>${cells.join('')}<td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(f.receita)}</td></tr>`;
+  });
+  const totRede=redes.map(r=>{
+    const tot=fams.reduce((s,f)=>{const pr=f.por_rede[r];if(!pr)return s;return s+Math.max(0,pr.fat_bruto-pr.valor_dev)*(1-rentGetDesconto(r));},0);
+    return`<td style="text-align:right;font-weight:600;color:#b0afaa">${rentFmtR(tot)}</td>`;
+  });
+  const totAll=fams.reduce((s,f)=>s+f.receita,0);
+  const foot=`<tr style="border-top:2px solid var(--border2);font-weight:700"><td>TOTAL</td>${totRede.join('')}<td style="text-align:right;color:#1D9E75">${rentFmtR(totAll)}</td></tr>`;
+  document.getElementById('rent-prodrede-view').innerHTML=hdr+rows.join('')+'</tbody><tfoot>'+foot+'</tfoot></table>';
+}
+
+let _rentScatterChart=null;
+function renderRentScatter(fams){
+  const wrap=document.getElementById('rent-scatter-wrap');
+  if(!wrap)return;
+  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&getCustoEspecie(f.familia));
+  if(!dados.length){wrap.style.display='none';return;}
+  wrap.style.display='';
+  const pts=dados.map(f=>{
+    const ci=getCustoEspecie(f.familia);
+    const c=ci?Math.min(ci.custo_compra||Infinity,ci.custo_producao||Infinity):null;
+    const mPct=c&&isFinite(c)&&f.rkg>0?(f.rkg-c)/f.rkg*100:null;
+    return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:Math.max(4,Math.sqrt(f.receita/200)),label:f.familia,receita:f.receita};
+  }).filter(p=>p.y!=null);
+  if(!pts.length){wrap.style.display='none';return;}
+  const ctx=document.getElementById('rent-scatter-chart');
+  if(_rentScatterChart){_rentScatterChart.destroy();_rentScatterChart=null;}
+  _rentScatterChart=new Chart(ctx,{
+    type:'bubble',
+    data:{datasets:[{
+      data:pts,
+      backgroundColor:pts.map(p=>p.y>50?'rgba(29,158,117,.7)':p.y>20?'rgba(239,159,39,.7)':'rgba(226,75,74,.7)'),
+      borderColor:'rgba(255,255,255,.3)',borderWidth:1,
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:p=>{const d=pts[p.dataIndex];return[d.label,'Vol: '+d.x.toLocaleString('pt-BR')+' kg','Margem: '+d.y+'%','Receita: R$ '+Math.round(d.receita/1000)+'k'];}}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Volume (kg)',color:'#aaa',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#888',font:{size:10}}},
+        y:{title:{display:true,text:'Margem %',color:'#aaa',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#888',font:{size:10},callback:v=>v+'%'}},
+      },
+      animation:{duration:400},
+    },
+    plugins:[{
+      id:'labels',
+      afterDatasetsDraw(chart){
+        const ctx2=chart.ctx;
+        ctx2.save();ctx2.font='10px sans-serif';ctx2.fillStyle='#ddd';ctx2.textAlign='center';
+        pts.forEach((p,i)=>{
+          const meta=chart.getDatasetMeta(0).data[i];
+          if(meta)ctx2.fillText(p.label.split(' ')[0],meta.x,meta.y-meta.options.radius-4);
+        });
+        ctx2.restore();
+      }
+    },{
+      id:'reflines',
+      beforeDraw(chart){
+        const ctx2=chart.ctx,{chartArea:{left,right,top,bottom},scales:{x,y}}=chart;
+        ctx2.save();ctx2.strokeStyle='rgba(255,255,255,.15)';ctx2.setLineDash([4,4]);ctx2.lineWidth=1;
+        const yRef=y.getPixelForValue(30);
+        ctx2.beginPath();ctx2.moveTo(left,yRef);ctx2.lineTo(right,yRef);ctx2.stroke();
+        const xRef=x.getPixelForValue(1000);
+        if(xRef>left&&xRef<right){ctx2.beginPath();ctx2.moveTo(xRef,top);ctx2.lineTo(xRef,bottom);ctx2.stroke();}
+        ctx2.restore();
+      }
+    }],
+  });
 }
 
 function rentAbrirMix(idx){
@@ -5236,16 +5398,49 @@ function renderRentPorSKU(lbl){
   }));
 }
 
+function rentAgregarSKUParaFamilia(periods,famNome){
+  const skus={};
+  for(const p of periods){
+    for(const row of(_rentPplC[p]||[])){
+      const cn14=rentNormCNPJ(row.cliente_cnpj);
+      if(rentDeveExcluir(cn14,row.cliente_nome))continue;
+      if(rentClassifyFamilia(row.produto)!==famNome)continue;
+      const rede=rentGetRede(row.cliente_nome||'',cn14);
+      const kg=rentEstimKg(row.produto,row.quantidade_vendida||0,row.unidade);
+      const val=row.valor_vendido||0;
+      const pf=(row.pct_devolucao||0)/100;
+      const dev=row.valor_devolvido>0?row.valor_devolvido:val*pf;
+      const unid=(row.unidade||'').toUpperCase();
+      const qtd=row.quantidade_vendida||0;
+      const bja=unid==='CX'?qtd*6:unid==='KG'?0:qtd;
+      const lbl=rentNormalizeSKU(row.produto,row.unidade).label;
+      if(!skus[lbl])skus[lbl]={label:lbl,kg:0,fat_bruto:0,valor_dev:0,qtd_bja:0,por_rede:{}};
+      const s=skus[lbl];
+      s.kg+=kg; s.fat_bruto+=val; s.valor_dev+=dev; s.qtd_bja+=bja;
+      if(!s.por_rede[rede])s.por_rede[rede]={rede,kg:0,fat_bruto:0,valor_dev:0,qtd_bja:0,lojas:new Set()};
+      const r=s.por_rede[rede];
+      r.kg+=kg; r.fat_bruto+=val; r.valor_dev+=dev; r.qtd_bja+=bja; r.lojas.add(cn14);
+    }
+  }
+  return Object.values(skus).sort((a,b)=>b.fat_bruto-a.fat_bruto);
+}
+
 function renderRentPorProduto(lbl){
   document.getElementById('rent-prod-period-label').textContent='— '+lbl;
   _rentFamDados=rentAgregarPorFamilia(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo]);
   _rentFamDados.sort((a,b)=>b.fat_bruto-a.fat_bruto);
   const tb=document.getElementById('rent-prod-tbody');
-  if(!_rentFamDados.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
+  if(!_rentFamDados.length){tb.innerHTML='<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';document.getElementById('rent-scatter-wrap').style.display='none';return;}
   tb.innerHTML=_rentFamDados.map((f,i)=>{
     const pct_dev=f.fat_bruto>0?f.valor_dev/f.fat_bruto:0;
     const s=f.margem>=0.55?'🟢':f.margem>=0.35?'🟡':'🔴';
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
+    const ci=getCustoEspecie(f.familia);
+    const melhorC=ci?Math.min(ci.custo_compra!=null?ci.custo_compra:Infinity,ci.custo_producao!=null?ci.custo_producao:Infinity):null;
+    const melhorCFin=melhorC!=null&&isFinite(melhorC)?melhorC:null;
+    const mKg=melhorCFin!=null&&f.rkg>0?f.rkg-melhorCFin:null;
+    const mPct=mKg!=null&&f.rkg>0?mKg/f.rkg:null;
+    const mcol=mPct!=null?(mPct>0.5?'#1D9E75':mPct>0.2?'#EF9F27':'#E24B4A'):'var(--muted)';
     return`<tr style="cursor:pointer" data-rent-fam="${i}">
       <td style="font-weight:500">${f.familia}</td>
       <td style="text-align:right;color:var(--muted)">${Math.round(f.kg).toLocaleString('pt-BR')} kg</td>
@@ -5257,6 +5452,9 @@ function renderRentPorProduto(lbl){
       <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(f.receita)}</td>
       <td style="text-align:right;color:#f0f0ef;font-weight:500">${f.kg>0?rentFmtR2(f.rkg)+'/kg':'—'}</td>
       <td style="text-align:right;color:#f0f0ef;font-weight:500">${f.rbja_real!=null?rentFmtR2(f.rbja_real)+'/bja':'—'}</td>
+      <td style="text-align:right;color:#b0c4de">${melhorCFin!=null?rentFmtR2(melhorCFin)+'/kg':'—'}</td>
+      <td style="text-align:right;color:${mcol}">${mKg!=null?rentFmtR2(mKg)+'/kg':'—'}</td>
+      <td style="text-align:right;color:${mcol}">${mPct!=null?(mPct*100).toFixed(0)+'%':'—'}</td>
       <td style="text-align:center">${s}</td>
     </tr>`;
   }).join('');
@@ -5276,37 +5474,76 @@ function renderRentPorProduto(lbl){
     <td style="text-align:right;color:#1D9E75">${rentFmtR(t.rc)}</td>
     <td style="text-align:right;color:#f0f0ef;font-weight:500">${t_rkg_liq!==null?rentFmtR2(t_rkg_liq)+'/kg':'—'}</td>
     <td style="text-align:right;color:#f0f0ef;font-weight:500">${t_rbja_liq!==null?rentFmtR2(t_rbja_liq)+'/bja':'—'}</td>
-    <td></td>
+    <td></td><td></td><td></td><td></td>
   </tr>`;
+  renderRentScatter(_rentFamDados);
 }
 
 function rentAbrirFamilia(idx){
   _rentFamIdx=idx;
   const f=_rentFamDados[idx];
+  _rentFamSKUs=rentAgregarSKUParaFamilia(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo],f.familia);
+  document.getElementById('rent-familia-title').textContent=f.familia+' — SKUs';
+  document.getElementById('rent-btn-voltar-sku').style.display='none';
+  document.getElementById('rent-sku-rede-view').style.display='none';
+  const ci=getCustoEspecie(f.familia);
+  const melhorC=ci?Math.min(ci.custo_compra!=null?ci.custo_compra:Infinity,ci.custo_producao!=null?ci.custo_producao:Infinity):null;
+  const melhorCFin=melhorC!=null&&isFinite(melhorC)?melhorC:null;
+  document.getElementById('rent-familia-tbody').innerHTML=_rentFamSKUs.map((s,i)=>{
+    const pct_dev=s.fat_bruto>0?s.valor_dev/s.fat_bruto:0;
+    const rkg_bruto=s.kg>0?s.fat_bruto/s.kg:null;
+    const rkg_real=rkg_bruto!=null?rkg_bruto*(1-f.desc_ponderado):null;
+    const mKg=melhorCFin!=null&&rkg_real!=null?rkg_real-melhorCFin:null;
+    const mPct=mKg!=null&&rkg_real>0?mKg/rkg_real:null;
+    const mcol=mPct!=null?(mPct>0.5?'#1D9E75':mPct>0.2?'#EF9F27':'#E24B4A'):'var(--muted)';
+    return`<tr style="cursor:pointer" data-rent-sku="${i}">
+      <td style="font-weight:500">${s.label||'—'}</td>
+      <td style="text-align:right;color:var(--muted)">${Math.round(s.kg).toLocaleString('pt-BR')} kg</td>
+      <td style="text-align:right">${rentFmtR(s.fat_bruto)}</td>
+      <td style="text-align:right;color:#b0afaa">${rkg_bruto!=null?rentFmtR2(rkg_bruto)+'/kg':'—'}</td>
+      <td style="text-align:right">${(pct_dev*100).toFixed(1)}%</td>
+      <td style="text-align:right;color:#f0f0ef;font-weight:500">${rkg_real!=null?rentFmtR2(rkg_real)+'/kg':'—'}</td>
+      <td style="text-align:right;color:#b0c4de">${melhorCFin!=null?rentFmtR2(melhorCFin)+'/kg':'—'}</td>
+      <td style="text-align:right;color:${mcol}">${mKg!=null?rentFmtR2(mKg)+'/kg':'—'}</td>
+      <td style="text-align:right;color:${mcol}">${mPct!=null?(mPct*100).toFixed(0)+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#rent-familia-tbody tr[data-rent-sku]').forEach(tr=>
+    tr.addEventListener('click',()=>rentAbrirSKURede(_rentFamIdx,parseInt(tr.dataset.rentSku)))
+  );
   const sec=document.getElementById('rent-familia-section');
-  document.getElementById('rent-familia-title').textContent=f.familia+' — redes';
-  document.getElementById('rent-familia-tbody').innerHTML=f.por_rede.map(r=>{
+  sec.style.display=''; sec.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function rentAbrirSKURede(famIdx,skuIdx){
+  const f=_rentFamDados[famIdx];
+  const s=_rentFamSKUs[skuIdx];
+  document.getElementById('rent-sku-rede-label').textContent=f.familia+' › '+s.label+' — por rede';
+  document.getElementById('rent-btn-voltar-sku').style.display='';
+  document.getElementById('rent-sku-rede-tbody').innerHTML=Object.values(s.por_rede).sort((a,b)=>b.fat_bruto-a.fat_bruto).map(r=>{
     const pct_dev=r.fat_bruto>0?r.valor_dev/r.fat_bruto:0;
-    const rc_r=Math.max(0,r.fat_bruto-r.valor_dev)*(1-rentGetDesconto(r.rede));
-    const rkg_r=r.kg>0?r.fat_bruto/r.kg:null;
-    const rbja_r=r.qtd_bja>0?r.fat_bruto/r.qtd_bja:null;
-    const desc_r=rentGetDesconto(r.rede);
-    const rkg_liq=rkg_r!==null?rkg_r*(1-desc_r):null;
-    const rbja_liq=rbja_r!==null?rbja_r*(1-desc_r):null;
+    const fat_liq=Math.max(0,r.fat_bruto-r.valor_dev);
+    const desc=rentGetDesconto(r.rede);
+    const rkg_bruto=r.kg>0?r.fat_bruto/r.kg:null;
+    const rkg_liq=rkg_bruto!=null?rkg_bruto*(1-desc):null;
     return`<tr>
       <td style="font-weight:500;color:${RENT_CORES[r.rede]||'var(--text)'}">${r.rede}</td>
       <td style="text-align:right;color:var(--muted)">${Math.round(r.kg).toLocaleString('pt-BR')} kg</td>
       <td style="text-align:right">${rentFmtR(r.fat_bruto)}</td>
-      <td style="text-align:right;color:#b0afaa">${rkg_r!==null?rentFmtR2(rkg_r)+'/kg':'—'}</td>
-      <td style="text-align:right;color:#b0afaa">${rbja_r!==null?rentFmtR2(rbja_r)+'/bja':'—'}</td>
+      <td style="text-align:right;color:#b0afaa">${rkg_bruto!=null?rentFmtR2(rkg_bruto)+'/kg':'—'}</td>
       <td style="text-align:right">${(pct_dev*100).toFixed(1)}%</td>
-      <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(rc_r)}</td>
-      <td style="text-align:right;color:#f0f0ef;font-weight:500">${rkg_liq!==null?rentFmtR2(rkg_liq)+'/kg':'—'}</td>
-      <td style="text-align:right;color:#f0f0ef;font-weight:500">${rbja_liq!==null?rentFmtR2(rbja_liq)+'/bja':'—'}</td>
-      <td style="text-align:right;color:var(--muted)">${r.num_lojas}</td>
+      <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(fat_liq*(1-desc))}</td>
+      <td style="text-align:right;color:#f0f0ef;font-weight:500">${rkg_liq!=null?rentFmtR2(rkg_liq)+'/kg':'—'}</td>
+      <td style="text-align:right;color:var(--muted)">${r.lojas.size}</td>
     </tr>`;
   }).join('');
-  sec.style.display=''; sec.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('rent-sku-rede-view').style.display='';
+  document.getElementById('rent-sku-rede-view').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function rentVoltarSKU(){
+  document.getElementById('rent-sku-rede-view').style.display='none';
+  document.getElementById('rent-btn-voltar-sku').style.display='none';
 }
 
 const SONDA_ACOES = {
@@ -5416,6 +5653,7 @@ function rentAbrirLojaMix(idx,dados){
 document.getElementById('rent-btn-fechar-mix').addEventListener('click',()=>{ _rentRedeIdx=null; document.getElementById('rent-mix-section').style.display='none'; });
 document.getElementById('rent-btn-fechar-outros').addEventListener('click',()=>{ document.getElementById('rent-outros-section').style.display='none'; });
 document.getElementById('rent-btn-fechar-familia').addEventListener('click',()=>{ _rentFamIdx=null; document.getElementById('rent-familia-section').style.display='none'; });
+document.getElementById('rent-btn-voltar-sku').addEventListener('click',()=>rentVoltarSKU());
 document.getElementById('rent-btn-fechar-loja-mix').addEventListener('click',()=>{ _rentLojaIdx=null; document.getElementById('rent-loja-mix-section').style.display='none'; });
 
 // Botões subview
