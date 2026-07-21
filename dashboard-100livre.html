@@ -132,6 +132,14 @@ th.sort-asc::after{content:' ↑';color:#4ade80;font-size:10px}
 .csb{background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
 .csb:hover{border-color:#378ADD;color:var(--text)}
 .csb.active{background:#378ADD;border-color:#378ADD;color:#fff;font-weight:600}
+/* Semáforo CSS (dots) */
+.sdot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;flex-shrink:0}
+.sdot-v{background:#22c55e}.sdot-a{background:#eab308}.sdot-l{background:#f97316}.sdot-r{background:#ef4444}
+/* Sticky primeira coluna em tabelas densas */
+.it td:first-child,.it th:first-child{position:sticky;left:0;z-index:2;background:var(--bg2)}
+.it tr:hover td:first-child{background:var(--bg3)}
+/* Skeleton loading row */
+.skel-row td{padding:5px 8px}.skel-cell{height:14px;border-radius:3px;animation:shimmer 1.4s infinite;background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%}
 .ccr{display:grid;grid-template-columns:155px 1fr 90px 72px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
 .ccbar{height:7px;border-radius:4px;background:var(--border);overflow:hidden}
 .ccbar-f{height:100%;border-radius:4px;transition:width .4s}
@@ -209,7 +217,7 @@ th.sort-asc::after{content:' ↑';color:#4ade80;font-size:10px}
     </div>
   </div>
   <div class="mbar" id="mbar">
-    <button class="mb active" onclick="setMes('total')">Jan–Jun</button>
+    <button class="mb active" onclick="setMes('total')">Jan–Jul</button>
     <button class="mb" onclick="setMes('Jan')">Jan/26</button>
     <button class="mb" onclick="setMes('Fev')">Fev/26</button>
     <button class="mb" onclick="setMes('Mar')">Mar/26</button>
@@ -569,7 +577,7 @@ th.sort-asc::after{content:' ↑';color:#4ade80;font-size:10px}
 
   <div id="view-rentabilidade" style="display:none">
     <div id="rent-log" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:#5DCAA5;margin-bottom:16px;white-space:pre-wrap;max-height:100px;overflow-y:auto">Rentabilidade — aguardando...</div>
-    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap" id="rent-period-btns"></div>
+    <div style="display:none" id="rent-period-btns"></div><!-- período controlado pelo mbar global -->
     <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap" id="rent-subview-btns"></div>
     <div class="note">
       Descontos: GPA 21% · Carrefour 9% · Sonda 7% · Zona Sul 5% · Sam's 10% · Mambo 10% · Hirota 10% · Einstein 0%<br>
@@ -2619,10 +2627,19 @@ function render() {
 // ── Navigation ─────────────────────────────────────────────────────
 function setMes(m) {
   curMes = m;
-  document.querySelectorAll('.mb').forEach(b =>
-    b.classList.toggle('active', b.textContent === (m==='total'?'Jan–Jun':m+'/26'))
+  // Sync período global → todas as views
+  const pStr = m === 'total' ? null : M2P[m]; // e.g. '2026-05'
+  _rentPeriodo = pStr || 'acum';
+  _rentFatC={}; _rentDevC={}; _rentPplC={}; _rentDreC={}; // força refetch rent
+  comercialPeriod = pStr || 'acum';
+  _logMes = pStr || PERIODOS[PERIODOS.length-1];
+  document.querySelectorAll('#mbar .mb').forEach(b =>
+    b.classList.toggle('active', b.textContent === (m==='total'?'Jan–Jul':m+'/26'))
   );
-  render();
+  if (curView==='rentabilidade') renderRentabilidade();
+  else if (curView==='logistica') renderLogistica();
+  else if (curView==='comercial') renderComercial();
+  else render();
 }
 
 function setView(v) {
@@ -2637,7 +2654,8 @@ function setView(v) {
   document.getElementById('view-experimentos').style.display    = v==='experimentos'    ? '' : 'none';
   document.getElementById('view-nicotina').style.display       = v==='nicotina'       ? '' : 'none';
   if (v === 'nicotina') { const f = document.getElementById('nicotina-iframe'); if (!f.src || f.src === window.location.href) f.src = './nicotina.html?v=' + Date.now(); }
-  document.getElementById('mbar').style.display = (v==='comercial'||v==='logistica'||v==='rentabilidade'||v==='producao'||v==='custos'||v==='experimentos'||v==='nicotina') ? 'none' : '';
+  document.getElementById('mbar').style.display = ''; // sempre visível — período global
+  try { history.replaceState(null,'','#'+v); } catch(e) {}
   document.querySelectorAll('.nav-item').forEach(b => {
     if (b.onclick && b.onclick.toString().includes('setView'))
       b.classList.toggle('active', b.textContent.trim().toLowerCase().startsWith(v.slice(0,3)));
@@ -3661,29 +3679,36 @@ const VENDEDOR_SHORT = {
 // Overrides manuais: CNPJ prefix → vendedor curto (prevalece sobre Omie)
 const VENDEDOR_PREFIX_OVERRIDE = {
   "01937635": "Anderson", // SONDA → Anderson (Omie registra Alex)
-  "33381286": "Julia",    // Zona Sul → Julia
   "45543915": "Lucas",    // Carrefour → Lucas (Omie registra Alex)
+  "56527062": "Anderson", // Hirota → Anderson (era Lucas)
+  "33381286": "Lucas",    // Zona Sul → Lucas (era Julia)
+  "03476811": "Anderson", // DIA → Anderson (era Julia)
 };
 
 // Fallback heurístico (usado quando _vendedorPrefixMap não tem o CNPJ)
+// Regra geral: fora de SP → Lucas (exceto Muffato → Anderson); Julia: só food service
 const VENDEDORES = [
   {
     nome: "Anderson",
-    cnpj_prefixos: ["47508411","55950609","76430438","22019796","01937635","00063960"],
-    redes: ["GPA","SONDA","SAM'S CLUB","MEMBERS MARK"],
+    cnpj_prefixos: ["47508411","01937635","56527062","03476811"],
+    redes: ["GPA","SONDA","HIROTA","MUFFATO","DIA","SAM'S CLUB","MEMBERS MARK"],
   },
   {
     nome: "Lucas",
-    cnpj_prefixos: ["45543915","71676316","71891410","60765823","60442290","56527062"],
-    redes: ["CARREFOUR","MAMBO","HIROTA","MUFFATO","5M COMERCIO","ALL KOSHER"],
+    cnpj_prefixos: ["45543915","71676316","71891410","60765823","60442290","55950609","76430438","22019796","00063960","33381286","23510112"],
+    redes: ["CARREFOUR","MAMBO","ZONA SUL","EINSTEIN","5M COMERCIO","ALL KOSHER","BEM BARATO"],
+  },
+  {
+    nome: "Diego",
+    cnpj_prefixos: [],
+    redes: ["SOUZA CRUZ"],
   },
   {
     nome: "Julia",
-    cnpj_prefixos: ["33381286","03476811","23510112","27390925","27772085","35291206","39895390"],
-    redes: ["ZONA SUL","DIA","BEM BARATO","RESTAURANTE","HAMBURGUERIA",
-            "PIZZARIA","LANCHONETE","BAR","CAFE","DONAVILLA","RDC","LE JAZZ",
-            "LE MELLOW","MILL BURGUER","ARTES BURGUER","CAIQUE","BRENDA",
-            "CLAUDIA","JARDIM SAO PAULO"],
+    cnpj_prefixos: ["27390925","27772085","35291206","39895390"],
+    redes: ["RESTAURANTE","HAMBURGUERIA","PIZZARIA","LANCHONETE","BAR","CAFE",
+            "DONAVILLA","RDC","LE JAZZ","LE MELLOW","MILL BURGUER","ARTES BURGUER",
+            "CAIQUE","BRENDA","CLAUDIA","JARDIM SAO PAULO"],
   },
   {
     nome: "Alex",
@@ -4910,7 +4935,13 @@ function _famCustoFromSKUs(skuKgMap){
 // Compat scatter
 function getCustoEspecie(f){const ci=_famCustoFromSKUs(f._skuKg||{});return ci?{custo_producao:ci.custo_total_producao,custo_compra:ci.custo_total_compra}:null;}
 
-function rentGetVendedor(rede){if(['GPA',"SAM'S",'SONDA'].includes(rede))return'Anderson';if(['CARREFOUR','MAMBO','HIROTA'].includes(rede))return'Lucas';if(['ZONA SUL','DIA','RESTAURANTES'].includes(rede))return'Julia';return'—';}
+function rentGetVendedor(rede){
+  if(['GPA',"SAM'S CLUB","SAM'S",'SONDA','HIROTA','MUFFATO','DIA'].includes(rede))return'Anderson';
+  if(['CARREFOUR','MAMBO','ZONA SUL','EINSTEIN','BEM BARATO'].includes(rede))return'Lucas';
+  if(['SOUZA CRUZ'].includes(rede))return'Diego';
+  if(['RESTAURANTES'].includes(rede))return'Julia';
+  return'—';
+}
 
 async function rentLoadDre(ps){
   for(const p of ps.filter(x=>!_rentDreC[x])){
@@ -5164,7 +5195,7 @@ async function renderRentabilidade(){
 
     const tb=document.getElementById('rent-tbody');
     tb.innerHTML=_rentDados.map((r,i)=>{
-      const s=r.margem>=0.55?'🟢':r.margem>=0.35?'🟡':'🔴';
+      const s=r.margem>=0.40?'<span class="sdot sdot-v" title="Margem >40%"></span>':r.margem>=0.20?'<span class="sdot sdot-a" title="Margem 20-40%"></span>':'<span class="sdot sdot-l" title="Margem <20%"></span>';
       const dc2=r.pct_dev>0.20?'#E24B4A':r.pct_dev>0.10?'#EF9F27':'#1D9E75';
       const nc=r.rede==='OUTROS'?' <span style="font-size:10px;color:var(--muted)">('+Object.keys(r.clientes).length+')</span>':'';
       const isPropria=r.rede==='EINSTEIN'||r.rede==='RESTAURANTES';
@@ -5172,8 +5203,10 @@ async function renderRentabilidade(){
       const mcRede=r.receita-cmvRede, mcPctRede=r.receita>0?mcRede/r.receita:0;
       const mcCol=mcPctRede>=0.40?'#1D9E75':mcPctRede>=0.20?'#EF9F27':'#E24B4A';
       const cmvNote=isPropria?'<span style="font-size:9px;color:var(--muted)"> (prod. própria)</span>':'';
+      const _vend=rentGetVendedor(r.rede);
+      const _navLink=_vend!=='—'?`<span onclick="event.stopPropagation();setView('comercial')" title="Ver em Inteligência (${_vend})" style="margin-left:5px;cursor:pointer;font-size:10px;color:var(--muted);opacity:.7">↗</span>`:'';
       return`<tr style="cursor:pointer" data-rent-i="${i}">
-        <td style="font-weight:500;color:${RENT_CORES[r.rede]||'var(--text)'}">${r.rede}${nc}</td>
+        <td style="font-weight:500;color:${RENT_CORES[r.rede]||'var(--text)'}">${r.rede}${nc}${_navLink}</td>
         <td style="text-align:right">${rentFmtR(r.fat_bruto)}</td>
         <td style="text-align:right;color:#E24B4A">${r.devolucoes>0?rentFmtR(r.devolucoes):'—'}</td>
         <td style="text-align:right;color:${dc2}">${(r.pct_dev*100).toFixed(1)}%</td>
@@ -5257,14 +5290,13 @@ let _rentScatterChart=null;
 function renderRentScatter(fams){
   const wrap=document.getElementById('rent-scatter-wrap');
   if(!wrap)return;
-  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&f.margemPct!=null&&_famCustoFromSKUs(f._skuKg));
+  // Usa margemPct já computado por rentAgregarPorFamilia (CUSTO_SKU_KG — cobre todas as famílias)
+  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&f.margemPct!=null);
   if(!dados.length){wrap.style.display='none';return;}
   wrap.style.display='';
   const pts=dados.map(f=>{
-    const ci=_famCustoFromSKUs(f._skuKg);
-    const c=ci?.melhor_custo_total??null;
-    const mPct=c!=null&&c>0&&isFinite(c)&&f.rkg>0?(f.rkg-c)/f.rkg*100:null;
-    return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:f.receita>0?Math.max(4,Math.sqrt(f.receita/1000)):4,label:f.familia||'?',receita:f.receita};
+    const mPct=+(f.margemPct*100).toFixed(1);
+    return{x:Math.round(f.kg),y:mPct,r:f.receita>0?Math.max(4,Math.sqrt(f.receita/1000)):4,label:f.familia||'?',receita:f.receita};
   }).filter(p=>p.y!=null);
   if(!pts.length){wrap.style.display='none';return;}
   const ctx=document.getElementById('rent-scatter-chart');
@@ -5535,13 +5567,14 @@ function renderRentPorProduto(lbl){
   if(!_rentFamDados.length){tb.innerHTML='<tr><td colspan="15" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';document.getElementById('rent-scatter-wrap').style.display='none';return;}
   tb.innerHTML=_rentFamDados.map((f,i)=>{
     const pct_dev=f.fat_bruto>0?f.valor_dev/f.fat_bruto:0;
-    const s=f.margem>=0.55?'🟢':f.margem>=0.35?'🟡':'🔴';
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
     const ci=_famCustoFromSKUs(f._skuKg);
     const cc=ci?.custo_total_compra,cp=ci?.custo_total_producao,mo=ci?.melhor_opcao,mc=ci?.melhor_custo_total;
     const mKg=mc!=null&&f.rkg>0?+(f.rkg-mc).toFixed(2):null;
     const mPct=mKg!=null&&f.rkg>0?mKg/f.rkg:null;
     const isLoss=mc!=null&&f.rkg>0&&f.rkg<mc;
+    const s=isLoss?'<span class="sdot sdot-r" title="Prejuízo"></span>':f.margem>=0.40?'<span class="sdot sdot-v"></span>':f.margem>=0.20?'<span class="sdot sdot-a"></span>':'<span class="sdot sdot-l"></span>';
+    const _prodNav=`<span onclick="event.stopPropagation();setView('producao')" title="Ver Prod×Terc" style="margin-left:4px;cursor:pointer;font-size:11px;opacity:.7">🍄</span>`;
     const rowBg=isLoss?'background:#3d0000;':'';
     const mcol=mPct!=null?(mPct>0.3?'#1D9E75':mPct>0.1?'#EF9F27':'#E24B4A'):'var(--muted)';
     const warnTip=mPct!=null&&mPct<0.15&&!isLoss?' title="Margem abaixo de 15% — considerar reajuste de preço ou redução de custo"':'';
@@ -5551,7 +5584,7 @@ function renderRentPorProduto(lbl){
       :mPct!=null?`<span style="color:${mcol}">${rentFmtR2(mKg)}/kg · ${(mPct*100).toFixed(0)}%${warnIcon}</span>`:'—';
     const badgeMo=mo==='PROD'?'<span style="background:rgba(29,158,117,.2);color:#1D9E75;border-radius:3px;padding:1px 5px;font-size:10px">PROD</span>':mo==='COMPRA'?'<span style="background:rgba(55,138,221,.2);color:#378ADD;border-radius:3px;padding:1px 5px;font-size:10px">COMPRA</span>':'—';
     return`<tr style="cursor:pointer;${rowBg}" data-rent-fam="${i}">
-      <td style="font-weight:500">${f.familia}</td>
+      <td style="font-weight:500">${f.familia}${_prodNav}</td>
       <td style="text-align:right;color:var(--muted)">${Math.round(f.kg).toLocaleString('pt-BR')} kg</td>
       <td style="text-align:right">${rentFmtR(f.fat_bruto)}</td>
       <td style="text-align:right;color:#b0afaa">${f.kg>0?rentFmtR2(f.rkg_bruto)+'/kg':'—'}</td>
@@ -5687,7 +5720,7 @@ function renderRentPorLoja(lbl){
   const tb=document.getElementById('rent-loja-tbody');
   if(!dados.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
   tb.innerHTML=dados.map((l,i)=>{
-    const s=l.margem>=0.55?'🟢':l.margem>=0.35?'🟡':'🔴';
+    const s=l.margem>=0.40?'<span class="sdot sdot-v"></span>':l.margem>=0.20?'<span class="sdot sdot-a"></span>':'<span class="sdot sdot-l"></span>';
     const dcol=l.pct_dev>0.20?'#E24B4A':l.pct_dev>0.10?'#EF9F27':'#1D9E75';
     const nome=getNomeLoja(l.cnpj, l.nome||l.cnpj);
     const mamboProblema=l.cnpj==='71676316002602';
@@ -5696,8 +5729,9 @@ function renderRentPorLoja(lbl){
     const sondaBadge = sondaAcao
       ? `<span title="Dev% Abr-Jun: ${sondaAcao.dev_rec}% — ${sondaAcao.motivo}" style="font-size:9px;white-space:nowrap">${sondaAcao.acao}</span>`
       : '';
+    const _logNav=l.pct_dev>0.10?`<span onclick="event.stopPropagation();setView('logistica')" title="Ver em Logística" style="margin-left:4px;cursor:pointer;font-size:11px">🚚</span>`:'';
     return`<tr style="cursor:pointer${mamboProblema?';background:rgba(239,68,68,.05)':''}" data-rent-loja="${i}">
-      <td style="font-weight:500;font-size:12px" title="${l.cnpj}">${nome.length>30?nome.slice(0,28)+'…':nome}${badgeMambo}</td>
+      <td style="font-weight:500;font-size:12px" title="${l.cnpj}">${nome.length>30?nome.slice(0,28)+'…':nome}${badgeMambo}${_logNav}</td>
       <td style="font-weight:500;color:${RENT_CORES[l.rede]||'var(--text)'};">${l.rede}</td>
       <td style="text-align:right">${rentFmtR(l.fat_bruto)}</td>
       <td style="text-align:right;color:#E24B4A">${l.valor_dev>0?rentFmtR(l.valor_dev):'—'}</td>
@@ -5781,6 +5815,12 @@ document.getElementById('rent-btn-fechar-loja-mix').addEventListener('click',()=
     document.querySelectorAll('#rent-subview-btns .mb').forEach(x=>x.classList.remove('on')); b.classList.add('on');
     document.getElementById('rent-familia-section').style.display='none';
     document.getElementById('rent-loja-mix-section').style.display='none';
+    // Limpa tbodies das subviews inativas para não sobrar "carregando..."
+    ['rent-tbody','rent-prod-tbody','rent-loja-tbody'].forEach(id=>{
+      if((v==='rede'&&id!=='rent-tbody')||(v==='produto'&&id!=='rent-prod-tbody')||(v==='loja'&&id!=='rent-loja-tbody'))
+        { const el=document.getElementById(id); if(el)el.innerHTML=''; }
+    });
+    try { history.replaceState(null,'','#rentabilidade/'+v); } catch(e) {}
     renderRentabilidade();
   });
   document.getElementById('rent-subview-btns').appendChild(b);
@@ -9343,8 +9383,33 @@ window.setLalamovePeriodo = setLalamovePeriodo;
 
 // ── Bootstrap ──────────────────────────────────────────────────────
 window._dashLoaded = true;  // sinaliza ao fallback que o módulo carregou
+
+// Refresh silencioso — re-renderiza a view ativa sem recarregar a página
+window._silentRefresh = function() {
+  try {
+    if (curView==='rentabilidade') { _rentFatC={}; _rentDevC={}; _rentPplC={}; _rentDreC={}; renderRentabilidade(); }
+    else if (curView==='logistica') renderLogistica();
+    else if (curView==='comercial') renderComercial();
+    else render();
+  } catch(e) { console.warn('[silentRefresh]', e); }
+};
+
 try {
   startListeners();
+  // Navega para a view guardada no hash ao carregar (ex: #rentabilidade/produto)
+  const _h = location.hash.replace('#','');
+  if (_h) {
+    const [_hv, _hs] = _h.split('/');
+    try {
+      setView(_hv || 'gerencial');
+      if (_hs && _hv === 'rentabilidade') {
+        _rentSubView = _hs;
+        document.querySelectorAll('#rent-subview-btns .mb').forEach(b =>
+          b.classList.toggle('on', b.dataset.sv === _hs));
+        renderRentabilidade();
+      }
+    } catch(e2) { console.warn('[hash-nav]', e2); }
+  }
 } catch(e) {
   showError('Erro ao inicializar: ' + e.message);
   console.error('[dashboard] startListeners falhou:', e);
@@ -10127,17 +10192,12 @@ try {
 })();
 </script>
 
-<!-- cache-busting_100livre : auto-atualizacao 06h/20h -->
+<!-- refresh silencioso a cada 5 min — sem location.reload() -->
 <script>
 (function(){
-  var REFRESH_MS=60*60*1000;
-  var SLOTS=[6,20];
-  var loadedAt=Date.now();
-  var lastSlot="";
-  function hardReload(){try{var u=new URL(window.location.href);u.searchParams.set("v",Date.now());window.location.replace(u.toString());}catch(e){window.location.reload();}}
-  setInterval(function(){if(Date.now()-loadedAt>=REFRESH_MS&&document.hidden)hardReload();},60*1000);
-  document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-loadedAt>REFRESH_MS)hardReload();});
-  setInterval(function(){var n=new Date();if(SLOTS.indexOf(n.getHours())===-1)return;var key=n.toDateString()+"-"+n.getHours();if(key!==lastSlot){lastSlot=key;hardReload();}},60*1000);
+  setInterval(function(){
+    if(typeof window._silentRefresh==='function') window._silentRefresh();
+  }, 5*60*1000);
 })();
 </script>
 <!-- ===== ABA BANCOS (robô Inter) — instalada por append ===== -->
