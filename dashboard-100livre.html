@@ -5200,7 +5200,7 @@ async function renderRentabilidade(){
 
     const tb=document.getElementById('rent-tbody');
     tb.innerHTML=_rentDados.map((r,i)=>{
-      const s=r.margem>=0.40?'<span class="sdot sdot-v" title="Margem >40%"></span>':r.margem>=0.20?'<span class="sdot sdot-a" title="Margem 20-40%"></span>':'<span class="sdot sdot-l" title="Margem <20%"></span>';
+      const s=`<span class="${_sdotClass(r.margem*100)}" title="${(r.margem*100).toFixed(1)}%"></span>`;
       const dc2=r.pct_dev>0.20?'#E24B4A':r.pct_dev>0.10?'#EF9F27':'#1D9E75';
       const nc=r.rede==='OUTROS'?' <span style="font-size:10px;color:var(--muted)">('+Object.keys(r.clientes).length+')</span>':'';
       const isPropria=r.rede==='EINSTEIN'||r.rede==='RESTAURANTES';
@@ -5590,6 +5590,7 @@ function renderRentPorProduto(lbl){
     f.margemPct=mKg!=null&&f.rkg>0?mKg/f.rkg*100:null; // % (0-100), inclui fixos+emb+energia+frete
     f.receitaReal=f.receita;
   });
+  console.table(_rentFamDados.map(f=>({familia:f.familia,margemPct:f.margemPct!=null?+f.margemPct.toFixed(1):null,dot:_sdotClass(f.margemPct)})));
   tb.innerHTML=_rentFamDados.map((f,i)=>{
     const pct_dev=f.fat_bruto>0?f.valor_dev/f.fat_bruto:0;
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
@@ -5745,7 +5746,7 @@ function renderRentPorLoja(lbl){
   const tb=document.getElementById('rent-loja-tbody');
   if(!dados.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
   tb.innerHTML=dados.map((l,i)=>{
-    const s=l.margem>=0.40?'<span class="sdot sdot-v"></span>':l.margem>=0.20?'<span class="sdot sdot-a"></span>':'<span class="sdot sdot-l"></span>';
+    const s=`<span class="${_sdotClass(l.margem*100)}"></span>`;
     const dcol=l.pct_dev>0.20?'#E24B4A':l.pct_dev>0.10?'#EF9F27':'#1D9E75';
     const nome=getNomeLoja(l.cnpj, l.nome||l.cnpj);
     const mamboProblema=l.cnpj==='71676316002602';
