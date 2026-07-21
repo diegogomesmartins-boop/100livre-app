@@ -708,8 +708,11 @@ tr:hover .rent-nav-icon{opacity:.6}
         <label style="display:flex;gap:5px;align-items:center;cursor:pointer;font-size:12px"><input type="checkbox" onchange="rentAbaixoFiltroMudar()" value="INTERNO"> Interno</label>
         <label style="display:flex;gap:5px;align-items:center;cursor:pointer;font-size:12px"><input type="checkbox" onchange="rentAbaixoFiltroMudar()" value="LOGISTICA"> Logística</label>
       </div>
-      <!-- Granularidade + Config -->
+      <!-- Granularidade + Janela + Config -->
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+        <button id="rent-ab-jan-vig" class="mb" onclick="rentAbaixoSetJanela('vigente')" style="font-size:11px;padding:3px 10px">Vigente (último mês)</button>
+        <button id="rent-ab-jan-acu" class="mb" onclick="rentAbaixoSetJanela('acumulado')" style="font-size:11px;padding:3px 10px;opacity:0.5">Acumulado</button>
+        <span style="color:var(--border2);font-size:12px">|</span>
         <button id="rent-ab-gran-neg" class="mb" onclick="rentAbaixoSetGran('negociacao')" style="font-size:11px;padding:3px 10px">Por Negociação</button>
         <button id="rent-ab-gran-loja" class="mb" onclick="rentAbaixoSetGran('loja')" style="font-size:11px;padding:3px 10px;opacity:0.5">Por Loja</button>
         <button class="mb" onclick="this.closest('div').nextElementSibling.style.display=this.closest('div').nextElementSibling.style.display==='none'?'':'none'" style="font-size:11px;padding:3px 10px;opacity:0.6">⚙ Regras de preço</button>
@@ -735,7 +738,7 @@ tr:hover .rent-nav-icon{opacity:.6}
           <button id="rent-abaixo-csv" class="mb" style="font-size:11px;padding:3px 9px">Exportar CSV</button>
         </div>
         <div style="overflow-x:auto">
-          <table class="it" id="rent-abaixo-table"><thead><tr>
+          <table class="it" id="rent-abaixo-table"><thead id="rent-abaixo-thead"><tr>
             <th>Cliente</th><th>Produto</th><th style="text-align:right">Kg</th>
             <th style="text-align:right">R$/kg líq</th><th style="text-align:right;color:#b0c4de">Custo</th>
             <th style="text-align:right;color:#E24B4A">Gap R$/kg</th>
@@ -6363,7 +6366,8 @@ let _rentAbaixoExcluidosDet = [];
 let _rentAbaixoExclShowDetail = false;
 let _rentAbaixoIsoladoData = [];
 let _rentAbaixoMatExcluidos = [];
-let _rentAbaixoGran = 'negociacao'; // 'negociacao' | 'loja'
+let _rentAbaixoGran    = 'negociacao'; // 'negociacao' | 'loja'
+let _rentAbaixoJanela  = 'vigente';    // 'vigente' | 'acumulado'
 
 function rentAbaixoSetGran(g) {
   _rentAbaixoGran = g;
@@ -6374,6 +6378,16 @@ function rentAbaixoSetGran(g) {
   renderRentAbaixoCusto(_rentAbaixoLbl || '');
 }
 window.rentAbaixoSetGran = rentAbaixoSetGran;
+
+function rentAbaixoSetJanela(j) {
+  _rentAbaixoJanela = j;
+  const vig = document.getElementById('rent-ab-jan-vig');
+  const acu = document.getElementById('rent-ab-jan-acu');
+  if (vig) vig.style.opacity = j === 'vigente'   ? '1' : '0.5';
+  if (acu) acu.style.opacity = j === 'acumulado' ? '1' : '0.5';
+  renderRentAbaixoCusto(_rentAbaixoLbl || '');
+}
+window.rentAbaixoSetJanela = rentAbaixoSetJanela;
 
 function rentAbaixoToggleExcluidos() {
   _rentAbaixoExclShowDetail = !_rentAbaixoExclShowDetail;
@@ -6410,14 +6424,17 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
         cnpj: cn14, rede, desc, label: sku.label, tipoOp, tipoCliente,
         embKg: _embalemKgFromPeso(sku.pesoUnit),
         kg: 0, fat_bruto: 0, valor_dev: 0, n_nfs: 0, meses_set: new Set(), max_nf_kg: 0,
-        sum_rkg2_kg: 0, lojas: {}
+        sum_rkg2_kg: 0, lojas: {}, byPeriod: {}
       };
       const acc = byProd[key];
+      const periodo = row.periodo || p;
       acc.kg += kg; acc.fat_bruto += val; acc.valor_dev += dev;
       acc.n_nfs++;
-      acc.meses_set.add(row.periodo || p);
+      acc.meses_set.add(periodo);
       if (kg > acc.max_nf_kg) acc.max_nf_kg = kg;
       if (kg > 0) acc.sum_rkg2_kg += rkg_row * rkg_row * kg;
+      if (!acc.byPeriod[periodo]) acc.byPeriod[periodo] = {kg: 0, fat_bruto: 0, valor_dev: 0};
+      acc.byPeriod[periodo].kg += kg; acc.byPeriod[periodo].fat_bruto += val; acc.byPeriod[periodo].valor_dev += dev;
       if (!acc.lojas[cn14]) acc.lojas[cn14] = {nome: row.cliente_nome || '', kg: 0, fat_bruto: 0, valor_dev: 0, n_nfs: 0};
       const lj = acc.lojas[cn14];
       lj.kg += kg; lj.fat_bruto += val; lj.valor_dev += dev; lj.n_nfs++;
@@ -6463,6 +6480,22 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
     const precosL = lojaList.map(lj => Math.max(0, lj.fat_bruto - lj.valor_dev) * (1 - s.desc) / lj.kg);
     const spread_bruto   = _calcSpread(precosB);
     const spread_liquido = _calcSpread(precosL);
+    // Preço vigente: última período com dados para este SKU/grupo
+    const periodosOrdenados = Object.keys(s.byPeriod).sort();
+    const ultimoPeriodo = periodosOrdenados[periodosOrdenados.length - 1];
+    const dpVig = s.byPeriod[ultimoPeriodo] || {kg: s.kg, fat_bruto: s.fat_bruto, valor_dev: s.valor_dev};
+    const fat_liq_vig = Math.max(0, dpVig.fat_bruto - dpVig.valor_dev);
+    const preco_vigente = dpVig.kg > 0 ? fat_liq_vig * (1 - s.desc) / dpVig.kg : rkg_liq;
+    const vol_mensal = n_meses > 0 ? s.kg / n_meses : s.kg;
+    // Variação vs 3 meses anteriores
+    const ant3 = periodosOrdenados.slice(-4, -1);
+    let ant_fat = 0, ant_kg = 0;
+    for (const ap of ant3) { const d=s.byPeriod[ap]; ant_fat += Math.max(0,d.fat_bruto-d.valor_dev)*(1-s.desc); ant_kg += d.kg; }
+    const preco_3m_anterior = ant_kg > 0 ? ant_fat / ant_kg : null;
+    const variacao_preco_pct = preco_3m_anterior ? (preco_vigente / preco_3m_anterior - 1) * 100 : null;
+    // Runrate: gap × volume mensal
+    const gap_vigente = preco_vigente - custo;
+    const perda_runrate = gap_vigente < 0 ? Math.abs(gap_vigente) * vol_mensal : 0;
     // Hard materialidade (vol + perda): required to appear anywhere
     const passaHard = matAll || (s.kg >= matVol && perda_total >= matPerda);
     // Recurrence (n_nfs + n_meses): failure → evento_isolado
@@ -6476,6 +6509,8 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
       lojas: s.lojas,
       fat_liq, receita, rkg_liq, rkg_bruto, custo, deficit_kg, perda_total,
       breakeven_bruto, reajuste_pct, spread_bruto, spread_liquido,
+      preco_vigente, gap_vigente, vol_mensal, perda_runrate, ultimoPeriodo,
+      variacao_preco_pct,
       evento_isolado, conc_maxnf: +conc.toFixed(2), cv_preco: +cv.toFixed(2)
     };
     if (!passaHard) { excMat.push(item); continue; }
@@ -6501,11 +6536,48 @@ function _spreadBadge(pct) {
   return '<span style="color:var(--muted);font-size:10px">—</span>';
 }
 
+function _periodLabel(p) {
+  if (!p) return '';
+  const [y, m] = p.split('-');
+  const nm = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return nm[(+m)-1] + '/' + y.slice(2);
+}
+function _variacaoBadge(pct) {
+  if (pct == null) return '';
+  if (pct >= 5)  return `<span style="color:#4caf50;font-size:10px">🟢 +${pct.toFixed(1)}%</span>`;
+  if (pct <= -5) return `<span style="color:#E24B4A;font-size:10px">🔴 ${pct.toFixed(1)}%</span>`;
+  return '';
+}
 function _renderAbaixoRow(it, idx) {
-  const urgente = it.deficit_kg / it.custo > 0.20;
-  const badge = urgente ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>';
   const drillId = `abaixo-drill-${idx}`;
   const drillToggle = `var el=document.getElementById('${drillId}');if(el)el.style.display=el.style.display==='none'?'table-row':'none'`;
+  if (_rentAbaixoJanela === 'vigente') {
+    // Modo vigente: usa preco_vigente + runrate
+    const vig_rkg = it.preco_vigente;
+    const vig_gap = vig_rkg - it.custo;
+    const vig_urgente = vig_gap < 0 && Math.abs(vig_gap) / it.custo > 0.20;
+    const vig_badge = vig_urgente ? '<span class="badge br">URGENTE</span>' : (vig_gap < 0 ? '<span class="badge ba">REVISAR</span>' : '<span style="color:#4caf50;font-size:10px">OK</span>');
+    const be_vig = it.desc < 1 ? it.custo / (1 - it.desc) : it.custo;
+    const vig_bruto = it.lojas ? Object.values(it.lojas).reduce((s,lj)=>s+lj.fat_bruto,0) / Math.max(1, Object.values(it.lojas).reduce((s,lj)=>s+lj.kg,0)) : it.rkg_bruto;
+    const reaj_vig = vig_bruto > 0 ? (be_vig / vig_bruto - 1) * 100 : null;
+    return `<tr>
+      <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
+      <td style="text-align:right;color:var(--muted)">${Math.round(it.vol_mensal).toLocaleString('pt-BR')}</td>
+      <td style="text-align:right;color:#E24B4A;font-weight:500">${rentFmtR2(vig_rkg)}/kg</td>
+      <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
+      <td style="text-align:right;color:${vig_gap<0?'#E24B4A':'#4caf50'};font-weight:600">${vig_gap<0?'−':'+'} ${rentFmtR2(Math.abs(vig_gap))}/kg</td>
+      <td style="text-align:right;color:#E24B4A;font-weight:700">${vig_gap<0?rentFmtR(it.perda_runrate):'—'}</td>
+      <td style="text-align:right;color:#EF9F27">${rentFmtR2(be_vig)}/kg</td>
+      <td style="text-align:right;color:#EF9F27">${reaj_vig == null ? '—' : reaj_vig <= 0 ? '<span style="color:#4caf50">OK</span>' : '+' + reaj_vig.toFixed(1) + '%'}</td>
+      <td style="text-align:right;color:var(--muted);font-size:11px">${rentFmtR(it.perda_total)}</td>
+      <td style="text-align:right;cursor:pointer" onclick="${drillToggle}">${_variacaoBadge(it.variacao_preco_pct)}</td>
+      <td>${vig_badge}</td>
+    </tr>`;
+  }
+  // Modo acumulado
+  const urgente = it.deficit_kg / it.custo > 0.20;
+  const badge = urgente ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>';
   return `<tr>
     <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
     <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
@@ -6527,8 +6599,30 @@ function _spreadBadgeLiq(bruto, liq) {
     return `<span style="color:var(--muted);font-size:10px">${liq.toFixed(1)}%*</span>`;
   return _spreadBadge(liq);
 }
+// Detecta distribuição bimodal de preço entre lojas
+function _detectClusters(lojas, desc) {
+  const sorted = lojas.filter(l => l.kg > 0 && l.fat_bruto > 0)
+    .map(l => ({...l, rkg_b: l.fat_bruto / l.kg}))
+    .sort((a,b) => a.rkg_b - b.rkg_b);
+  if (sorted.length < 3) return null;
+  const mean = sorted.reduce((s,l) => s + l.rkg_b, 0) / sorted.length;
+  let maxGap = 0, gapIdx = -1;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const gap = sorted[i+1].rkg_b - sorted[i].rkg_b;
+    if (gap > maxGap) { maxGap = gap; gapIdx = i; }
+  }
+  if (maxGap / mean < 0.10) return null; // gap < 10% da média → unimodal
+  const A = sorted.slice(0, gapIdx + 1);
+  const B = sorted.slice(gapIdx + 1);
+  const medA = A.reduce((s,l) => s + l.rkg_b, 0) / A.length;
+  const medB = B.reduce((s,l) => s + l.rkg_b, 0) / B.length;
+  const kgA  = A.reduce((s,l) => s + l.kg, 0);
+  const kgB  = B.reduce((s,l) => s + l.kg, 0);
+  return { A: {lojas: A, med: medA, kg: kgA}, B: {lojas: B, med: medB, kg: kgB} };
+}
+
 function _renderAbaixoDrill(it, idx) {
-  const lojas = Object.entries(it.lojas || {})
+  const lojaArr = Object.entries(it.lojas || {})
     .filter(([,lj]) => lj.kg > 0)
     .map(([cn14, lj]) => {
       const rkg_b = lj.fat_bruto / lj.kg;
@@ -6536,32 +6630,43 @@ function _renderAbaixoDrill(it, idx) {
       const rkg_l = fat_l / lj.kg;
       return {cn14, nome: lj.nome, kg: lj.kg, n_nfs: lj.n_nfs, rkg_b, rkg_l, dev_r: lj.valor_dev};
     });
-  const rgls = lojas.map(l => l.rkg_l).filter(v => v > 0).sort((a,b) => a-b);
+  const rgls = lojaArr.map(l => l.rkg_l).filter(v => v > 0).sort((a,b) => a-b);
   const med = rgls.length ? rgls[Math.floor(rgls.length / 2)] : 0;
-  lojas.sort((a,b) => Math.abs(b.rkg_l - med) - Math.abs(a.rkg_l - med));
-  const rows = lojas.map(l => {
+  lojaArr.sort((a,b) => Math.abs(b.rkg_l - med) - Math.abs(a.rkg_l - med));
+
+  // Cluster detection on raw loja data
+  const clusters = _detectClusters(Object.values(it.lojas || {}), it.desc);
+  const clusterBadge = clusters
+    ? `<div style="padding:4px 24px 2px;font-size:10px;color:#EF9F27">⚠ 2 tabelas de preço detectadas — Cluster A: ${Math.round(clusters.A.kg)}kg @ R$${clusters.A.med.toFixed(2)}/kg bruto · Cluster B: ${Math.round(clusters.B.kg)}kg @ R$${clusters.B.med.toFixed(2)}/kg bruto (gap ${((clusters.B.med/clusters.A.med-1)*100).toFixed(1)}%)</div>`
+    : '';
+
+  // CSS grid — sem tabela aninhada para não poluir o thead
+  const G = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 2fr;font-size:11px';
+  const hdr = `<div style="${G};opacity:0.55;border-bottom:1px solid rgba(255,255,255,0.08);padding:3px 0">
+    <div style="padding:3px 8px 3px 24px">Loja</div>
+    <div style="padding:3px 4px;text-align:right">Kg</div>
+    <div style="padding:3px 4px;text-align:right">R$/kg bruto</div>
+    <div style="padding:3px 4px;text-align:right">Dev R$</div>
+    <div style="padding:3px 4px;text-align:right">R$/kg líq</div>
+    <div style="padding:3px 4px">Δ mediana</div>
+  </div>`;
+  const rows = lojaArr.map(l => {
     const dev_pct = med > 0 ? (l.rkg_l - med) / med * 100 : 0;
-    const dc = Math.abs(dev_pct) > 15 ? '#E24B4A' : Math.abs(dev_pct) > 5 ? '#EF9F27' : 'var(--muted)';
-    return `<tr style="background:rgba(255,255,255,0.03)">
-      <td colspan="2" style="padding-left:24px;font-size:11px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.cn14}">${l.nome||l.cn14}</td>
-      <td style="text-align:right;font-size:11px;color:var(--muted)">${Math.round(l.kg)}</td>
-      <td style="text-align:right;font-size:11px">${rentFmtR2(l.rkg_b)}</td>
-      <td style="text-align:right;font-size:11px;color:var(--muted)">${l.dev_r > 0 ? '−'+rentFmtR(l.dev_r) : '—'}</td>
-      <td style="text-align:right;font-size:11px">${rentFmtR2(l.rkg_l)}</td>
-      <td colspan="6" style="font-size:11px;color:${dc}">${dev_pct>=0?'+':''}${dev_pct.toFixed(1)}% vs mediana</td>
-    </tr>`;
+    const dc = Math.abs(dev_pct) > 15 ? '#E24B4A' : Math.abs(dev_pct) > 5 ? '#EF9F27' : 'var(--muted2)';
+    const clTag = clusters ? (clusters.A.lojas.find(x=>x.cn14===l.cn14) ? ' style="color:#6ab0f5"' : '') : '';
+    return `<div style="${G};background:rgba(255,255,255,0.02)">
+      <div style="padding:2px 8px 2px 24px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.cn14}"${clTag}>${l.nome||l.cn14}</div>
+      <div style="padding:2px 4px;text-align:right;color:var(--muted)">${Math.round(l.kg)}</div>
+      <div style="padding:2px 4px;text-align:right">${rentFmtR2(l.rkg_b)}</div>
+      <div style="padding:2px 4px;text-align:right;color:var(--muted)">${l.dev_r > 0 ? '−'+rentFmtR(l.dev_r) : '—'}</div>
+      <div style="padding:2px 4px;text-align:right">${rentFmtR2(l.rkg_l)}</div>
+      <div style="padding:2px 4px;color:${dc}">${dev_pct>=0?'+':''}${dev_pct.toFixed(1)}% vs med</div>
+    </div>`;
   }).join('');
+
   return `<tr id="abaixo-drill-${idx}" style="display:none">
-    <td colspan="12" style="padding:0;background:rgba(0,0,0,0.25)">
-      <table style="width:100%;border-collapse:collapse">
-        <tr style="opacity:0.55"><th colspan="2" style="padding:3px 24px;font-size:10px;text-align:left">Loja</th>
-          <th style="text-align:right;font-size:10px;padding:3px 4px">Kg</th>
-          <th style="text-align:right;font-size:10px;padding:3px 4px">R$/kg bruto</th>
-          <th style="text-align:right;font-size:10px;padding:3px 4px">Dev R$</th>
-          <th style="text-align:right;font-size:10px;padding:3px 4px">R$/kg líq</th>
-          <th colspan="6" style="font-size:10px;padding:3px 4px">Δ mediana</th></tr>
-        ${rows}
-      </table>
+    <td colspan="12" style="padding:0;background:rgba(0,0,0,0.3)">
+      ${clusterBadge}${hdr}${rows}
     </td>
   </tr>`;
 }
@@ -6601,12 +6706,49 @@ function _renderAbaixoLojaRows(it) {
 function renderRentAbaixoCusto(lbl) {
   _rentAbaixoLbl = lbl;
   const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
-  const modoEl = document.getElementById('rent-abaixo-modo');
-  if (modoEl) modoEl.textContent = '(' + lbl + ' · custo: ' + (_rentCustoModo === 'direto' ? 'direto' : 'pleno') + ')';
   const {tipos, clientes, matCfg} = _rentAbaixoGetFiltros();
   const agg = rentAgregarAbaixoCusto(periods, tipos, clientes, matCfg);
-  _rentAbaixoData = agg.result;
+  // Ordenar: vigente → runrate desc; acumulado → perda_total desc
+  const sortFn = _rentAbaixoJanela === 'vigente'
+    ? (a,b) => b.perda_runrate - a.perda_runrate
+    : (a,b) => b.perda_total   - a.perda_total;
+  _rentAbaixoData = agg.result.sort(sortFn);
   _rentAbaixoIsoladoData = agg.resultIsolado;
+  // Rótulo do período vigente (último período com dados em qualquer item)
+  const vigPeriodos = _rentAbaixoData.map(it=>it.ultimoPeriodo).filter(Boolean).sort();
+  const vigLabel = vigPeriodos.length ? _periodLabel(vigPeriodos[vigPeriodos.length-1]) : '';
+  const modoEl = document.getElementById('rent-abaixo-modo');
+  const janelaStr = _rentAbaixoJanela === 'vigente' ? `vigente ${vigLabel}` : 'acumulado';
+  if (modoEl) modoEl.textContent = '(' + lbl + ' · custo: ' + (_rentCustoModo === 'direto' ? 'direto' : 'pleno') + ' · ' + janelaStr + ')';
+  // Atualizar cabeçalho conforme janela
+  const thead = document.getElementById('rent-abaixo-thead');
+  if (thead) {
+    if (_rentAbaixoJanela === 'vigente') {
+      thead.innerHTML = `<tr>
+        <th>Cliente</th><th>Produto</th><th style="text-align:right">Kg/mês</th>
+        <th style="text-align:right">R$/kg ${vigLabel||'vigente'}</th><th style="text-align:right;color:#b0c4de">Custo</th>
+        <th style="text-align:right;color:#E24B4A">Gap</th>
+        <th style="text-align:right;color:#E24B4A">Perda/mês</th>
+        <th style="text-align:right">Break-even</th>
+        <th style="text-align:right">Reajuste %</th>
+        <th style="text-align:right;color:var(--muted)">Perda acum</th>
+        <th style="text-align:right">Δ preço</th>
+        <th>Ação</th>
+      </tr>`;
+    } else {
+      thead.innerHTML = `<tr>
+        <th>Cliente</th><th>Produto</th><th style="text-align:right">Kg</th>
+        <th style="text-align:right">R$/kg líq</th><th style="text-align:right;color:#b0c4de">Custo</th>
+        <th style="text-align:right;color:#E24B4A">Gap R$/kg</th>
+        <th style="text-align:right;color:#E24B4A">Perda Total</th>
+        <th style="text-align:right">Break-even</th>
+        <th style="text-align:right">Reajuste %</th>
+        <th style="text-align:right" title="Spread R$/kg bruto entre lojas">Sp.↑</th>
+        <th style="text-align:right" title="Spread R$/kg líquido entre lojas">Sp.↓</th>
+        <th>Ação</th>
+      </tr>`;
+    }
+  }
 
   // Materialidade exclusion counter
   const matExcEl = document.getElementById('rent-abaixo-mat-excl');
@@ -6635,15 +6777,26 @@ function renderRentAbaixoCusto(lbl) {
       (_rentAbaixoExcluidosDet.length > 30 ? `<div>…e mais ${_rentAbaixoExcluidosDet.length - 30}</div>` : '');
   }
 
-  const totKg = _rentAbaixoData.reduce((s, it) => s + it.kg, 0);
-  const totPerda = _rentAbaixoData.reduce((s, it) => s + it.perda_total, 0);
   const totNeg = new Set(_rentAbaixoData.map(it => it.chaveLabel)).size;
   const totLojas = new Set(_rentAbaixoData.flatMap(it => Object.keys(it.lojas || {}))).size;
-  document.getElementById('rent-abaixo-kpis').innerHTML = `
-    <div class="kpi-card"><div class="kpi-val">${_rentAbaixoData.length}</div><div class="kpi-lbl">Itens c/ prejuízo</div></div>
-    <div class="kpi-card"><div class="kpi-val">${totNeg}</div><div class="kpi-lbl">Negociações</div><div style="font-size:10px;color:var(--muted)">${totLojas} lojas</div></div>
-    <div class="kpi-card"><div class="kpi-val">${Math.round(totKg).toLocaleString('pt-BR')} kg</div><div class="kpi-lbl">Volume afetado</div></div>
-    <div class="kpi-card" style="border-color:#E24B4A55"><div class="kpi-val" style="color:#E24B4A">${rentFmtR(totPerda)}</div><div class="kpi-lbl">Perda estimada</div></div>`;
+  if (_rentAbaixoJanela === 'vigente') {
+    const totRunrate = _rentAbaixoData.reduce((s, it) => s + it.perda_runrate, 0);
+    const totVolMes  = _rentAbaixoData.reduce((s, it) => s + it.vol_mensal, 0);
+    const totAcum    = _rentAbaixoData.reduce((s, it) => s + it.perda_total, 0);
+    document.getElementById('rent-abaixo-kpis').innerHTML = `
+      <div class="kpi-card"><div class="kpi-val">${_rentAbaixoData.length}</div><div class="kpi-lbl">Itens c/ prejuízo</div></div>
+      <div class="kpi-card"><div class="kpi-val">${totNeg}</div><div class="kpi-lbl">Negociações</div><div style="font-size:10px;color:var(--muted)">${totLojas} lojas</div></div>
+      <div class="kpi-card"><div class="kpi-val">${Math.round(totVolMes).toLocaleString('pt-BR')} kg/mês</div><div class="kpi-lbl">Volume afetado</div></div>
+      <div class="kpi-card" style="border-color:#E24B4A55"><div class="kpi-val" style="color:#E24B4A">${rentFmtR(totRunrate)}/mês</div><div class="kpi-lbl">Perda run-rate</div><div style="font-size:10px;color:var(--muted)">acum: ${rentFmtR(totAcum)}</div></div>`;
+  } else {
+    const totKg = _rentAbaixoData.reduce((s, it) => s + it.kg, 0);
+    const totPerda = _rentAbaixoData.reduce((s, it) => s + it.perda_total, 0);
+    document.getElementById('rent-abaixo-kpis').innerHTML = `
+      <div class="kpi-card"><div class="kpi-val">${_rentAbaixoData.length}</div><div class="kpi-lbl">Itens c/ prejuízo</div></div>
+      <div class="kpi-card"><div class="kpi-val">${totNeg}</div><div class="kpi-lbl">Negociações</div><div style="font-size:10px;color:var(--muted)">${totLojas} lojas</div></div>
+      <div class="kpi-card"><div class="kpi-val">${Math.round(totKg).toLocaleString('pt-BR')} kg</div><div class="kpi-lbl">Volume afetado</div></div>
+      <div class="kpi-card" style="border-color:#E24B4A55"><div class="kpi-val" style="color:#E24B4A">${rentFmtR(totPerda)}</div><div class="kpi-lbl">Perda estimada</div></div>`;
+  }
 
   // Render config panel
   const cfgEl = document.getElementById('rent-abaixo-cfg-body');
