@@ -710,9 +710,6 @@ tr:hover .rent-nav-icon{opacity:.6}
       </div>
       <!-- Granularidade + Janela + Config -->
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-        <button id="rent-ab-jan-vig" class="mb" onclick="rentAbaixoSetJanela('vigente')" style="font-size:11px;padding:3px 10px">Vigente (último mês)</button>
-        <button id="rent-ab-jan-acu" class="mb" onclick="rentAbaixoSetJanela('acumulado')" style="font-size:11px;padding:3px 10px;opacity:0.5">Acumulado</button>
-        <span style="color:var(--border2);font-size:12px">|</span>
         <button id="rent-ab-gran-neg" class="mb" onclick="rentAbaixoSetGran('negociacao')" style="font-size:11px;padding:3px 10px">Por Negociação</button>
         <button id="rent-ab-gran-loja" class="mb" onclick="rentAbaixoSetGran('loja')" style="font-size:11px;padding:3px 10px;opacity:0.5">Por Loja</button>
         <button class="mb" onclick="this.closest('div').nextElementSibling.style.display=this.closest('div').nextElementSibling.style.display==='none'?'':'none'" style="font-size:11px;padding:3px 10px;opacity:0.6">⚙ Regras de preço</button>
@@ -777,6 +774,7 @@ tr:hover .rent-nav-icon{opacity:.6}
           <div style="display:flex;gap:8px">
             <select id="rent-audit-tipo-filtro" class="mb" style="font-size:11px;padding:3px 6px" onchange="rentAuditFiltrar()">
               <option value="">Todos os tipos</option>
+              <option value="PRECO_ALTO">Preço alto (&gt;250% mediana — erro de unidade?)</option>
               <option value="PRECO_BAIXO">Preço baixo (&lt;50% mediana)</option>
               <option value="REAJUSTE_RECENTE">Reajuste recente (suprimido)</option>
               <option value="NF_OUTROS">CFOP não classificado</option>
@@ -1605,6 +1603,45 @@ setTimeout(function() {
 
 <!-- Firebase Modular SDK -->
 <script type="module">
+/* ═══════════════════════════════════════════════════════════════════
+   PREMISSAS DE ANÁLISE — 100% LIVRE
+   Regras de negócio que valem para TODAS as views.
+   Alterar aqui, nunca em views individuais.
+   ═══════════════════════════════════════════════════════════════════
+
+   1. PREÇO DE REFERÊNCIA = ÚLTIMOS 30 DIAS (mês fechado mais recente)
+      por default (_rentJanela='vigente'). O toggle Vigente/Acum. deixa
+      o usuário ver a média histórica, mas a premissa é vigente.
+      Motivo: reajustes já aplicados (GPA +13,7%, Einstein Acelga
+      +33%, 5M +12,7%) contaminam a média e geram decisão errada.
+
+   2. VOLUME e PERDA ACUMULADA seguem o período do #mbar.
+      Preço e volume são dimensões independentes.
+
+   3. DECISÃO DE PREÇO usa run-rate mensal (gap vigente ×
+      volume/mês), não perda acumulada.
+
+   4. NEGOCIAÇÃO = rede + região. Nunca por loja.
+      GPA → por UF · CARREFOUR/SAM'S/DIA/5M → SP vs FORA
+
+   5. CX = 6 unidades para todos os clientes, sempre.
+      Bandeja 200g (CX=1,2kg), exceto Paris em KENTISA e
+      TAKOISH = bandeja 500g (CX=3,0kg).
+
+   6. CUSTO PLENO = direto + rateio de fixos (R$5,96/kg).
+      Produção própria usa pleno. Revenda pura (Moyashi)
+      avaliar também no direto.
+
+   7. MATERIALIDADE: vol≥50kg · NFs≥3 · meses≥2 · perda≥R$500,
+      avaliada na chave de negociação (não por loja).
+      Fora do critério → seção Evento Isolado.
+
+   8. EXCLUÍDOS de toda análise comercial:
+      traders (KENTISA/TAKOISH/URAKAMI/CHAMPETIT/COGUS),
+      internos (INDATABRASIL/HOCHIMIX/DIEGO), logística
+      (HB POOLING/IFCO), MARIZA DIVINO.
+   ═══════════════════════════════════════════════════════════════════ */
+
 import { initializeApp }                    from './firebase/firebase-app.js';
 import { getFirestore, collection, onSnapshot, query, where, getDocs, getDoc, doc } from './firebase/firebase-firestore.js';
 
@@ -6541,12 +6578,13 @@ window.rentAbaixoSetGran = rentAbaixoSetGran;
 
 function rentAbaixoSetJanela(j) {
   _rentJanela = j;
-  // Update all janela toggle buttons (Abaixo do Custo local + global)
   ['rent-ab-jan-vig','rent-jan-global-vig'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.style.opacity = j === 'vigente' ? '1' : '0.5';
+    const el = document.getElementById(id);
+    if (el) { el.classList.toggle('on', j === 'vigente'); el.style.opacity = j === 'vigente' ? '1' : '0.5'; }
   });
   ['rent-ab-jan-acu','rent-jan-global-acu'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.style.opacity = j === 'acumulado' ? '1' : '0.5';
+    const el = document.getElementById(id);
+    if (el) { el.classList.toggle('on', j === 'acumulado'); el.style.opacity = j === 'acumulado' ? '1' : '0.5'; }
   });
   try {const u=new URL(location.href);u.searchParams.set('j',j);history.replaceState(null,'',u.toString());}catch(e){}
   renderRentabilidade();
@@ -7010,7 +7048,8 @@ function renderRentAbaixoCusto(lbl) {
 // ── RANKING POR FAIXA DE MARGEM ────────────────────────────────────────────
 
 let _rentFiltroTabaco = false; // false = excluir tabaco/B2B das análises de varejo por default
-let _rentMatrizFiltro = false; // false = mostrar todos os SKUs na Matriz
+let _rentMatrizFiltro  = false; // false = mostrar todos os SKUs na Matriz
+let _rentMatriz2Redes  = true;  // true = só SKUs vendidos para 2+ redes (default ON)
 let _rentMargemData = [];
 let _rentMargemMeta = 30; // meta de margem % padrão
 
@@ -7064,14 +7103,22 @@ function rentAgregarRanking(periods, filtroTipos, filtroClientes) {
     const ultimoPeriodo = periodosOrdenados[periodosOrdenados.length - 1];
     const dpVig = s.byPeriod[ultimoPeriodo] || {kg: s.kg, fat_bruto: s.fat_bruto, valor_dev: s.valor_dev};
     const fat_liq_vig = Math.max(0, dpVig.fat_bruto - dpVig.valor_dev);
-    const preco_vigente = dpVig.kg > 0 ? fat_liq_vig * (1 - s.desc) / dpVig.kg : 0;
-    const preco_bruto_vigente = dpVig.kg > 0 ? dpVig.fat_bruto / dpVig.kg : 0;
+    const fat_liq_total = Math.max(0, s.fat_bruto - s.valor_dev);
+    // Preço vigente = last period; acumulado = weighted avg across all periods
+    const preco_vigente = _rentJanela === 'acumulado'
+      ? (s.kg > 0 ? fat_liq_total * (1 - s.desc) / s.kg : 0)
+      : (dpVig.kg > 0 ? fat_liq_vig * (1 - s.desc) / dpVig.kg : 0);
+    const preco_bruto_vigente = _rentJanela === 'acumulado'
+      ? (s.kg > 0 ? s.fat_bruto / s.kg : 0)
+      : (dpVig.kg > 0 ? dpVig.fat_bruto / dpVig.kg : 0);
     const vol_mensal = s.meses_set.size > 0 ? s.kg / s.meses_set.size : s.kg;
     const ant3 = periodosOrdenados.slice(-4, -1);
     let ant_fat = 0, ant_kg = 0;
     for (const ap of ant3) { const d=s.byPeriod[ap]; ant_fat += Math.max(0,d.fat_bruto-d.valor_dev)*(1-s.desc); ant_kg += d.kg; }
     const preco_3m_anterior = ant_kg > 0 ? ant_fat / ant_kg : null;
-    const variacao_preco_pct = preco_3m_anterior ? (preco_vigente / preco_3m_anterior - 1) * 100 : null;
+    // variacao_preco_pct always references last-period vs previous 3 months (not affected by janela)
+    const preco_vig_fixo = dpVig.kg > 0 ? fat_liq_vig * (1 - s.desc) / dpVig.kg : 0;
+    const variacao_preco_pct = preco_3m_anterior ? (preco_vig_fixo / preco_3m_anterior - 1) * 100 : null;
     const _esp = _skuToEspecie(s.label);
     const _e = CUSTOS_ESPECIE[_esp];
     const sem_custo = !_e || _e.sem_custo || _e.custo_compra === null;
@@ -7277,13 +7324,36 @@ function renderRentMatriz(lbl) {
   const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
   let {rows, redes, skuVol} = rentAgregarMatriz(periods);
 
+  // Filter: só margem < 20%
   if (_rentMatrizFiltro) {
     rows = rows.filter(r => Object.values(r.redes).some(c => c.margem_pct != null && c.margem_pct < 20));
   }
 
-  // Footer: weighted avg margem_pct per rede
+  // Pré-calcular Δ por linha (necessário para sort e exibição)
+  const maxRedes = 18;
+  const redesShow = redes.slice(0, maxRedes);
+  const withDelta = rows.map(row => {
+    const withData = redesShow.filter(r => row.redes[r]?.margem_pct != null && (row.redes[r]?.vol_mensal||0) > 0);
+    const best  = withData.length ? withData.reduce((a,r) => row.redes[r].margem_pct > row.redes[a].margem_pct ? r : a) : null;
+    const worst = withData.length ? withData.reduce((a,r) => row.redes[r].margem_pct < row.redes[a].margem_pct ? r : a) : null;
+    const delta = (best && worst && best !== worst) ? row.redes[best].preco_vigente - row.redes[worst].preco_vigente : null;
+    return {...row, _best: best, _worst: worst, _delta: delta, _nRedes: withData.length};
+  });
+
+  // Filter: 2+ redes default ON
+  const rowsFiltered = _rentMatriz2Redes ? withDelta.filter(r => r._nRedes >= 2) : withDelta;
+
+  // Sort by Δ desc (SKUs com uma rede ficam no fim)
+  rowsFiltered.sort((a, b) => {
+    if (a._delta == null && b._delta == null) return (skuVol[b.label]||0) - (skuVol[a.label]||0);
+    if (a._delta == null) return 1;
+    if (b._delta == null) return -1;
+    return Math.abs(b._delta) - Math.abs(a._delta);
+  });
+
+  // Footer: weighted avg margem_pct per rede (usando rowsFiltered)
   const redeKg = {}, redeW = {};
-  for (const row of rows) {
+  for (const row of rowsFiltered) {
     for (const [ch, cell] of Object.entries(row.redes)) {
       if (cell.margem_pct != null && cell.vol_mensal > 0) {
         redeKg[ch] = (redeKg[ch]||0) + cell.vol_mensal;
@@ -7292,20 +7362,21 @@ function renderRentMatriz(lbl) {
     }
   }
 
-  const maxRedes = 12;
-  const redesShow = redes.slice(0, maxRedes);
-  const redeLabel = r => r;
+  const vigLabel = PERIODOS.filter(p=>p<=(_rentPeriodo==='acum'?'9999':_rentPeriodo)).slice(-1)[0]||'';
+  const vigMes = vigLabel ? vigLabel.replace(/^(\d{4})-(\d{2})$/, (_, a, m) => `${['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+m]}/${a.slice(2)}`) : '';
+  const janelaNote = _rentJanela === 'vigente'
+    ? `Preços: último mês (${vigMes})` : `Preços: média ${PERIODOS[0].replace(/^(\d{4})-(\d{2})$/,'$2/$1')}–${vigMes}`;
 
   const thead = `<tr style="font-size:10px">
     <th style="position:sticky;left:0;background:var(--bg);z-index:2;min-width:140px;text-align:left">SKU</th>
     <th style="text-align:right;min-width:60px;color:var(--muted)">Kg/mês</th>
-    ${redesShow.map(r=>`<th style="text-align:center;min-width:85px;max-width:85px;overflow:hidden;white-space:nowrap;font-size:10px" title="${r}">${redeLabel(r)}</th>`).join('')}
+    ${redesShow.map(r=>`<th style="text-align:center;min-width:80px;max-width:80px;overflow:hidden;white-space:nowrap;font-size:9px;padding:3px 2px" title="${r}">${r}</th>`).join('')}
     <th style="text-align:center;min-width:70px;color:#1D9E75;font-size:10px">Melhor</th>
     <th style="text-align:center;min-width:70px;color:#E24B4A;font-size:10px">Pior</th>
-    <th style="text-align:right;min-width:65px;font-size:10px">Δ R$/kg</th>
+    <th style="text-align:right;min-width:65px;font-size:10px">Δ R$/kg ↓</th>
   </tr>`;
 
-  const trows = rows.map(row => {
+  const trows = rowsFiltered.map(row => {
     const vol = (skuVol[row.label]||0) / Math.max(1, periods.length);
     const cells = redesShow.map(r => {
       const c = row.redes[r];
@@ -7316,25 +7387,20 @@ function renderRentMatriz(lbl) {
       const varB = c.variacao_preco_pct != null && Math.abs(c.variacao_preco_pct) >= 5
         ? `<div style="font-size:8px;color:${c.variacao_preco_pct>0?'#4caf50':'#E24B4A'}">${c.variacao_preco_pct>0?'↑':'↓'}${Math.abs(c.variacao_preco_pct).toFixed(0)}%</div>`
         : '';
-      return `<td style="text-align:center;background:${bg};padding:3px 4px">
+      return `<td style="text-align:center;background:${bg};padding:3px 2px">
         <div style="font-size:10px;font-weight:500">${rentFmtR2(c.preco_vigente)}</div>
         <div style="font-size:9px;color:${tc}">${m}</div>
         ${varB}
       </td>`;
     });
-
-    const withData = redesShow.filter(r => row.redes[r]?.margem_pct != null && (row.redes[r]?.vol_mensal||0) > 0);
-    const best  = withData.length ? withData.reduce((a,r) => row.redes[r].margem_pct > row.redes[a].margem_pct ? r : a) : null;
-    const worst = withData.length ? withData.reduce((a,r) => row.redes[r].margem_pct < row.redes[a].margem_pct ? r : a) : null;
-    const delta = best && worst ? row.redes[best].preco_vigente - row.redes[worst].preco_vigente : null;
-
+    const deltaFmt = row._delta != null ? rentFmtR2(Math.abs(row._delta)) : '—';
     return `<tr>
       <td style="font-weight:500;position:sticky;left:0;background:var(--bg);z-index:1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${row.label}</td>
       <td style="text-align:right;color:var(--muted);font-size:10px">${Math.round(vol).toLocaleString('pt-BR')}</td>
       ${cells.join('')}
-      <td style="text-align:center;font-size:10px;color:#1D9E75">${best ? redeLabel(best) : '—'}</td>
-      <td style="text-align:center;font-size:10px;color:#E24B4A">${worst ? redeLabel(worst) : '—'}</td>
-      <td style="text-align:right;font-size:11px">${delta != null ? rentFmtR2(delta) : '—'}</td>
+      <td style="text-align:center;font-size:10px;color:#1D9E75">${row._best || '—'}</td>
+      <td style="text-align:center;font-size:10px;color:#E24B4A">${row._worst || '—'}</td>
+      <td style="text-align:right;font-size:11px;font-weight:600">${deltaFmt}</td>
     </tr>`;
   }).join('');
 
@@ -7349,10 +7415,13 @@ function renderRentMatriz(lbl) {
   </tr>`;
 
   el.innerHTML = `
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
       <button class="mb${_rentMatrizFiltro?' on':''}" style="font-size:11px;padding:3px 9px" onclick="window.rentMatrizToggle()">Só SKUs c/ rede &lt;20%</button>
-      <span style="font-size:10px;color:var(--muted)">Heatmap: <span style="color:#E24B4A">■</span> &lt;0% <span style="color:#EF9F27">■</span> &lt;10% <span style="color:#F2C94C">■</span> &lt;20% <span style="color:#378ADD">■</span> &lt;30% <span style="color:#1D9E75">■</span> ≥30%</span>
-      ${redes.length > maxRedes ? `<span style="font-size:10px;color:var(--muted)">Exibindo ${maxRedes} de ${redes.length} redes (por volume)</span>` : ''}
+      <button class="mb${_rentMatriz2Redes?' on':''}" style="font-size:11px;padding:3px 9px" onclick="window.rentMatriz2RedesToggle()">Só 2+ redes</button>
+      <span style="font-size:10px;color:var(--muted2)">${janelaNote}</span>
+      <span style="font-size:10px;color:var(--muted)">Heatmap: <span style="color:#E24B4A">■</span>&lt;0% <span style="color:#EF9F27">■</span>&lt;10% <span style="color:#F2C94C">■</span>&lt;20% <span style="color:#378ADD">■</span>&lt;30% <span style="color:#1D9E75">■</span>≥30%</span>
+      ${redes.length > maxRedes ? `<span style="font-size:10px;color:var(--muted)">Top ${maxRedes} de ${redes.length} redes</span>` : ''}
+      <span style="font-size:10px;color:var(--muted)">${rowsFiltered.length} SKUs</span>
     </div>
     <div style="overflow-x:auto">
       <table class="it" style="font-size:11px;border-collapse:collapse">
@@ -7364,6 +7433,10 @@ function renderRentMatriz(lbl) {
 }
 window.renderRentMatriz = renderRentMatriz;
 
+window.rentMatriz2RedesToggle = function() {
+  _rentMatriz2Redes = !_rentMatriz2Redes;
+  renderRentMatriz();
+};
 window.rentMatrizToggle = function() {
   _rentMatrizFiltro = !_rentMatrizFiltro;
   renderRentMatriz();
@@ -7409,8 +7482,9 @@ function _renderRentAuditTb() {
     const desvioColor = desvioPct != null && desvioPct < -30 ? '#E24B4A' : desvioPct != null && desvioPct < -10 ? '#EF9F27' : 'var(--muted)';
     const deltaTxt = r.variacao_pct != null ? _variacaoBadge(r.variacao_pct) : '—';
     const isReajuste = r.anomalia === 'REAJUSTE_RECENTE';
-    const badgeClass = r.anomalia === 'PRECO_BAIXO' ? 'br' : isReajuste ? '' : 'ba';
-    const badgeStyle = isReajuste ? 'font-size:9px;color:#4caf50' : 'font-size:9px';
+    const isAlto = r.anomalia === 'PRECO_ALTO';
+    const badgeClass = r.anomalia === 'PRECO_BAIXO' ? 'br' : isAlto ? 'ba' : isReajuste ? '' : 'ba';
+    const badgeStyle = isAlto ? 'font-size:9px;color:#EF9F27' : isReajuste ? 'font-size:9px;color:#4caf50' : 'font-size:9px';
     return `<tr style="${isReajuste ? 'opacity:0.55' : ''}">
       <td style="color:var(--muted);font-size:11px">${r.data || '—'}</td>
       <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.cliente}">${r.cliente}</td>
@@ -7499,7 +7573,11 @@ function renderRentAuditoria(lbl) {
       if (tipoOp === 'OUTROS_REVISAR') {
         anomalias.push({data: row.periodo, cliente: row.cliente_nome || '', cnpj: cn14, cfop: row.cfop || '', natureza: row.natureza_operacao || '', sku: row.produto, qtd: row.quantidade_vendida || 0, preco_un: precoUn, mediana, variacao_pct, anomalia: 'NF_OUTROS', tipo_cliente: tipoCliente});
       }
-      // 2. Preço baixo (<50% mediana) — suprimir se reajuste recente (Δ ≥ 5%)
+      // 2a. Preço alto (>250% mediana) — provável erro de unidade (ex: CX lançado como KG)
+      else if (mediana > 0 && precoUn > 0 && precoUn > mediana * 2.5) {
+        anomalias.push({data: row.periodo, cliente: row.cliente_nome || '', cnpj: cn14, cfop: row.cfop || '', natureza: row.natureza_operacao || '', sku: row.produto, qtd: row.quantidade_vendida || 0, preco_un: precoUn, mediana, variacao_pct, anomalia: 'PRECO_ALTO', tipo_cliente: tipoCliente});
+      }
+      // 2b. Preço baixo (<50% mediana) — suprimir se reajuste recente (Δ ≥ 5%)
       else if (mediana > 0 && precoUn > 0 && precoUn < mediana * 0.5) {
         const isReajuste = variacao_pct != null && variacao_pct >= 5;
         anomalias.push({data: row.periodo, cliente: row.cliente_nome || '', cnpj: cn14, cfop: row.cfop || '', natureza: row.natureza_operacao || '', sku: row.produto, qtd: row.quantidade_vendida || 0, preco_un: precoUn, mediana, variacao_pct, anomalia: isReajuste ? 'REAJUSTE_RECENTE' : 'PRECO_BAIXO', tipo_cliente: tipoCliente});
@@ -7540,7 +7618,7 @@ function renderRentAuditoria(lbl) {
   }
 
   _rentAuditData = anomalias.sort((a, b) => {
-    const ord = {PRECO_BAIXO:0, VALOR_ZERO:1, NF_OUTROS:2, CLIENTE_NAO_CLASS:3, REAJUSTE_RECENTE:8};
+    const ord = {PRECO_ALTO:-1, PRECO_BAIXO:0, VALOR_ZERO:1, NF_OUTROS:2, CLIENTE_NAO_CLASS:3, REAJUSTE_RECENTE:8};
     return (ord[a.anomalia] ?? 9) - (ord[b.anomalia] ?? 9);
   });
 
