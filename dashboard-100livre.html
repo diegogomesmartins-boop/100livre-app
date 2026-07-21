@@ -796,6 +796,27 @@ tr:hover .rent-nav-icon{opacity:.6}
       </div>
     </div>
 
+    <!-- Sub-view: Ranking por Faixa de Margem -->
+    <div id="rent-view-margem" style="display:none">
+      <div id="rent-marg-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px"></div>
+      <!-- Meta toggle + filtros -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Meta:</span>
+        <button id="marg-meta-20" class="mb" onclick="rentMargemSetMeta(20)" style="font-size:11px;padding:3px 10px;opacity:0.5">20%</button>
+        <button id="marg-meta-25" class="mb" onclick="rentMargemSetMeta(25)" style="font-size:11px;padding:3px 10px;opacity:0.5">25%</button>
+        <button id="marg-meta-30" class="mb" onclick="rentMargemSetMeta(30)" style="font-size:11px;padding:3px 10px">30%</button>
+        <span style="color:var(--border2);font-size:12px">|</span>
+        <button id="rent-marg-csv" class="mb" onclick="exportCSV_margem()" style="font-size:11px;padding:3px 9px">Exportar CSV</button>
+      </div>
+      <!-- Blocos por tier -->
+      <div id="marg-bloco-prejuizo"  style="margin-bottom:12px"></div>
+      <div id="marg-bloco-critico"   style="margin-bottom:12px"></div>
+      <div id="marg-bloco-atencao"   style="margin-bottom:12px"></div>
+      <div id="marg-bloco-aceitavel" style="margin-bottom:12px"></div>
+      <div id="marg-bloco-saudavel"  style="margin-bottom:12px"></div>
+      <div id="marg-bloco-sem_custo" style="margin-bottom:12px"></div>
+    </div>
+
     <!-- Sub-view: Por Produto -->
     <div id="rent-view-produto" style="display:none">
       <div class="cc">
@@ -5050,6 +5071,12 @@ function rentNormalizeSKU(prod,unid){
   else if(p.includes('MORANGO')||p.includes('STRAWBERRY'))esp='Morango';
   else if(p.includes('TABACO')||p.includes('TOBACCO'))esp='Tabaco';
   else if(p.includes('MOYASHI')||p.includes('MOASHI')||p.includes('BROTO'))esp='Moyashi';
+  else if(p.includes('MICROGREENS')||p.includes('MICRO GREENS')||p.includes('MICRO GREEN'))esp='Microgreens';
+  else if(p.includes('MANJERICAO')||p.includes('MANJERICÃO')||p.includes('BASIL'))esp='Manjericao';
+  else if(p.includes('ALFACE')||p.includes('ACELGA')||p.includes('ESCAROLA')||p.includes('COUVE')
+       ||p.includes('MOSTARDA')||p.includes('FRISEE')||p.includes('MIMOSA')||p.includes('ROMANA')
+       ||p.includes('AMERICANA')||p.includes('MIX DE SALADA')||p.includes('MIX DE FOLHA')
+       ||p.includes('RUCULA')||p.includes('RÚCULA')||p.includes('AGRIAO')||p.includes('AGRIÃO'))esp='Folha';
   let canal='';
   if(p.includes('QUALITA')||p.includes('QUALITA'))canal='Qualita';
   else if(p.includes('MEMBERS MARK')||p.includes('MEMBER'))canal='Members Mark';
@@ -5104,6 +5131,10 @@ const CUSTOS_ESPECIE = {
   shimeji_branco: {custo_compra:15.74, custo_prod:null,  fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
   shimeji_salmao: {custo_compra:24.16, custo_prod:null,  fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
   moyashi:        {custo_compra:12.00, custo_prod:null,  fixos:5.96, embalagem:1.63, energia:1.75, frete:5.47},
+  // Folhas — custo não mapeado: sem_custo:true sinaliza "custo não mapeado" na view
+  folha:          {custo_compra:null, custo_prod:null, fixos:5.96, embalagem:1.00, energia:1.75, frete:5.47, sem_custo:true},
+  manjericao:     {custo_compra:null, custo_prod:null, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47, sem_custo:true},
+  microgreens:    {custo_compra:null, custo_prod:null, fixos:5.96, embalagem:4.00, energia:1.75, frete:5.47, sem_custo:true},
 };
 function getCustoTotal(especieKey){
   const e=CUSTOS_ESPECIE[especieKey];
@@ -5125,6 +5156,11 @@ function _skuToEspecie(lbl){
   if(u.includes('PRETO')) return 'shimeji_preto';
   if(u.includes('SHIMEJI')||u.includes('BRANCO')) return 'shimeji_branco';
   if(u.includes('MOYASHI')||u.includes('MOASHI')||u.startsWith('BROTO')) return 'moyashi';
+  if(u.startsWith('MICROGREENS')||u.startsWith('MICRO GREEN')) return 'microgreens';
+  if(u.startsWith('MANJERICAO')||u.startsWith('MANJERICÃO')) return 'manjericao';
+  if(u.startsWith('FOLHA')||u.includes('ALFACE')||u.includes('ACELGA')||u.includes('ESCAROLA')
+   ||u.includes('FRISEE')||u.includes('ROMANA')||u.includes('AMERICANA')
+   ||u.includes('RUCULA')||u.includes('AGRIAO')) return 'folha';
   return null;
 }
 // Custo de embalagem por formato de SKU (label normalizado ou nome do produto)
@@ -5356,7 +5392,7 @@ function rentAgregarPorLoja(periods){
 }
 
 async function renderRentabilidade(){
-  ['rede','produto','loja','abaixo','auditoria'].forEach(v=>{const el=document.getElementById('rent-view-'+v);if(el)el.style.display=v===_rentSubView?'':'none';});
+  ['rede','produto','loja','abaixo','auditoria','margem'].forEach(v=>{const el=document.getElementById('rent-view-'+v);if(el)el.style.display=v===_rentSubView?'':'none';});
   const _lt=_rentSubView==='produto'?'rent-prod-tbody':_rentSubView==='loja'?'rent-loja-tbody':'rent-tbody';
   document.getElementById(_lt).innerHTML='<tr><td colspan="20" style="text-align:center;color:var(--muted);padding:20px">carregando...</td></tr>';
   document.getElementById('rent-kpis').innerHTML='';
@@ -5496,6 +5532,8 @@ async function renderRentabilidade(){
     renderRentAbaixoCusto(lbl);
   } else if(_rentSubView==='auditoria'){
     renderRentAuditoria(lbl);
+  } else if(_rentSubView==='margem'){
+    renderRentMargem(lbl);
   }
 }
 
@@ -6081,7 +6119,7 @@ document.getElementById('rent-btn-fechar-loja-mix').addEventListener('click',()=
 document.getElementById('rent-btn-fechar-client-list').addEventListener('click',()=>{ document.getElementById('rent-client-list-section').style.display='none'; });
 
 // Botões subview
-[['rede','Por Rede'],['produto','Por Produto'],['loja','Por Loja'],['abaixo','⚠️ Abaixo do Custo'],['auditoria','🔍 Auditoria']].forEach(([v,l])=>{
+[['rede','Por Rede'],['produto','Por Produto'],['loja','Por Loja'],['abaixo','⚠️ Abaixo do Custo'],['auditoria','🔍 Auditoria'],['margem','📊 Ranking Margem']].forEach(([v,l])=>{
   const b=document.createElement('button'); b.className='mb'+(v==='rede'?' on':''); b.textContent=l;
   b.setAttribute('data-sv',v);
   b.addEventListener('click',()=>{
@@ -6296,8 +6334,12 @@ function rentSimAtualizar(label, val) {
   const mEl = document.getElementById('sim-nova-margem-' + safeId);
   const dEl = document.getElementById('sim-delta-' + safeId);
   if (mEl) {
-    mEl.style.color = nova_margem != null ? (nova_margem < 0 ? '#E24B4A' : nova_margem < 0.15 ? '#EF9F27' : '#1D9E75') : 'var(--muted)';
-    mEl.textContent = nova_margem != null ? (nova_margem * 100).toFixed(1) + '%' : '—';
+    const mc = nova_margem != null ? (nova_margem < 0 ? '#E24B4A' : nova_margem < 0.15 ? '#EF9F27' : '#1D9E75') : 'var(--muted)';
+    const mTxt = nova_margem != null ? (nova_margem * 100).toFixed(1) + '%' : '—';
+    const prejBadge = nova_margem != null && nova_margem < 0
+      ? ' <span style="color:#E24B4A;font-size:10px">🔴 ainda no prejuízo</span>' : '';
+    mEl.style.color = mc;
+    mEl.innerHTML = mTxt + prejBadge;
   }
   if (dEl) {
     if (delta != null) {
@@ -6456,7 +6498,7 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
     const rkg_liq = receita / s.kg;
     const _esp = _skuToEspecie(s.label);
     const _e = CUSTOS_ESPECIE[_esp];
-    if (!_e) continue;
+    if (!_e || _e.sem_custo || _e.custo_compra === null) continue;
     const _emb = s.embKg; // gramatura real via pesoUnit, não via label
     const _pleno = _rentCustoModo !== 'direto';
     const _fixos = _pleno ? _e.fixos : 0;
@@ -6841,6 +6883,218 @@ function renderRentAbaixoCusto(lbl) {
     }).join('');
   }
 }
+
+// ── RANKING POR FAIXA DE MARGEM ────────────────────────────────────────────
+
+let _rentMargemData = [];
+let _rentMargemMeta = 30; // meta de margem % padrão
+
+const _TIER_CFG = {
+  prejuizo:  {label:'🔴 PREJUÍZO',     cor:'#E24B4A', range:'< 0%',     ordem:0},
+  critico:   {label:'🟠 CRÍTICO',      cor:'#EF9F27', range:'0% – 10%', ordem:1},
+  atencao:   {label:'🟡 ATENÇÃO',      cor:'#F2C94C', range:'10% – 20%',ordem:2},
+  aceitavel: {label:'🔵 ACEITÁVEL',    cor:'#378ADD', range:'20% – 30%',ordem:3},
+  saudavel:  {label:'🟢 SAUDÁVEL',     cor:'#1D9E75', range:'> 30%',    ordem:4},
+  sem_custo: {label:'⚪ SEM CUSTO',    cor:'var(--muted2)', range:'—',  ordem:5},
+};
+
+function rentAgregarRanking(periods, filtroTipos, filtroClientes) {
+  const byProd = {};
+  for (const p of periods) {
+    for (const row of (_rentPplC[p] || [])) {
+      const cn14 = rentNormCNPJ(row.cliente_cnpj);
+      if (!cn14 || rentDeveExcluir(cn14, row.cliente_nome)) continue;
+      const tipoOp = row.tipo_operacao || 'VENDA';
+      if (filtroTipos && !filtroTipos.has(tipoOp)) continue;
+      const tipoCliente = rentGetTipoCliente(row.cliente_nome || '', cn14);
+      if (filtroClientes && !filtroClientes.has(tipoCliente)) continue;
+      const chave = _chaveNegociacao(cn14, row.cliente_nome || '');
+      const rede = rentGetRede(row.cliente_nome || '', cn14);
+      const desc = rentGetDesconto(rede);
+      const sku = rentNormalizeSKU(row.produto, row.unidade);
+      const kg = rentEstimKg(row.produto, row.quantidade_vendida || 0, row.unidade);
+      const val = row.valor_vendido || 0;
+      const pf = (row.pct_devolucao || 0) / 100;
+      const dev = row.valor_devolvido > 0 ? row.valor_devolvido : val * pf;
+      const key = chave.label + '|' + sku.label + '|' + tipoOp;
+      if (!byProd[key]) byProd[key] = {
+        cliente: chave.label, grupo: chave.grupo, uf: chave.uf, chaveLabel: chave.label,
+        cnpj: cn14, rede, desc, label: sku.label, tipoOp, tipoCliente,
+        embKg: _embalemKgFromPeso(sku.pesoUnit),
+        kg: 0, fat_bruto: 0, valor_dev: 0, n_nfs: 0, meses_set: new Set(), byPeriod: {}
+      };
+      const acc = byProd[key];
+      const periodo = row.periodo || p;
+      acc.kg += kg; acc.fat_bruto += val; acc.valor_dev += dev; acc.n_nfs++;
+      acc.meses_set.add(periodo);
+      if (!acc.byPeriod[periodo]) acc.byPeriod[periodo] = {kg:0, fat_bruto:0, valor_dev:0};
+      acc.byPeriod[periodo].kg += kg; acc.byPeriod[periodo].fat_bruto += val; acc.byPeriod[periodo].valor_dev += dev;
+    }
+  }
+  const items = [];
+  for (const s of Object.values(byProd)) {
+    if (s.kg <= 0) continue;
+    const periodosOrdenados = Object.keys(s.byPeriod).sort();
+    const ultimoPeriodo = periodosOrdenados[periodosOrdenados.length - 1];
+    const dpVig = s.byPeriod[ultimoPeriodo] || {kg: s.kg, fat_bruto: s.fat_bruto, valor_dev: s.valor_dev};
+    const fat_liq_vig = Math.max(0, dpVig.fat_bruto - dpVig.valor_dev);
+    const preco_vigente = dpVig.kg > 0 ? fat_liq_vig * (1 - s.desc) / dpVig.kg : 0;
+    const preco_bruto_vigente = dpVig.kg > 0 ? dpVig.fat_bruto / dpVig.kg : 0;
+    const vol_mensal = s.meses_set.size > 0 ? s.kg / s.meses_set.size : s.kg;
+    const ant3 = periodosOrdenados.slice(-4, -1);
+    let ant_fat = 0, ant_kg = 0;
+    for (const ap of ant3) { const d=s.byPeriod[ap]; ant_fat += Math.max(0,d.fat_bruto-d.valor_dev)*(1-s.desc); ant_kg += d.kg; }
+    const preco_3m_anterior = ant_kg > 0 ? ant_fat / ant_kg : null;
+    const variacao_preco_pct = preco_3m_anterior ? (preco_vigente / preco_3m_anterior - 1) * 100 : null;
+    const _esp = _skuToEspecie(s.label);
+    const _e = CUSTOS_ESPECIE[_esp];
+    const sem_custo = !_e || _e.sem_custo || _e.custo_compra === null;
+    let custo = null;
+    if (!sem_custo) {
+      const _emb = s.embKg;
+      const _pleno = _rentCustoModo !== 'direto';
+      const _fixos = _pleno ? _e.fixos : 0;
+      const _cc = +(_e.custo_compra + _emb + _e.energia + _e.frete + _fixos).toFixed(2);
+      const _cp = _e.custo_prod != null ? +(_e.custo_prod + _emb + _e.energia + _e.frete + _fixos).toFixed(2) : null;
+      custo = _cp != null ? Math.min(_cc, _cp) : _cc;
+    }
+    const margem_r = custo != null && preco_vigente > 0 ? preco_vigente - custo : null;
+    const margem_pct = custo != null && preco_vigente > 0 ? (preco_vigente - custo) / preco_vigente * 100 : null;
+    let tier;
+    if (sem_custo) tier = 'sem_custo';
+    else if (margem_pct === null || preco_vigente <= 0) tier = 'sem_custo';
+    else if (margem_pct < 0)  tier = 'prejuizo';
+    else if (margem_pct < 10) tier = 'critico';
+    else if (margem_pct < 20) tier = 'atencao';
+    else if (margem_pct < 30) tier = 'aceitavel';
+    else                      tier = 'saudavel';
+    items.push({
+      cliente: s.cliente, grupo: s.grupo, uf: s.uf, chaveLabel: s.chaveLabel,
+      cnpj: s.cnpj, rede: s.rede, desc: s.desc, label: s.label,
+      tipoOp: s.tipoOp, tipoCliente: s.tipoCliente, kg: s.kg, vol_mensal,
+      ultimoPeriodo, preco_vigente, preco_bruto_vigente, custo, margem_r, margem_pct,
+      variacao_preco_pct, tier, sem_custo, n_nfs: s.n_nfs
+    });
+  }
+  return items.sort((a,b) => b.vol_mensal - a.vol_mensal);
+}
+
+function rentMargemSetMeta(m) {
+  _rentMargemMeta = m;
+  ['20','25','30'].forEach(x => {
+    const el = document.getElementById('marg-meta-' + x);
+    if (el) el.style.opacity = +x === m ? '1' : '0.5';
+  });
+  _renderRentMargemBlocos();
+}
+window.rentMargemSetMeta = rentMargemSetMeta;
+
+function _margPrecoAlvo(custo, desc, meta) {
+  return desc < 1 ? custo / (1 - meta / 100) / (1 - desc) : custo / (1 - meta / 100);
+}
+
+function _renderRentMargemBlocos() {
+  const meta = _rentMargemMeta;
+  const tiered = {};
+  for (const t of Object.keys(_TIER_CFG)) tiered[t] = [];
+  for (const it of _rentMargemData) tiered[it.tier].push(it);
+
+  // KPIs
+  const kgPrej = _rentMargemData.filter(it=>it.tier==='prejuizo').reduce((s,it)=>s+it.vol_mensal,0);
+  const kg20   = _rentMargemData.filter(it=>it.margem_pct!=null&&it.margem_pct<20).reduce((s,it)=>s+it.vol_mensal,0);
+  const kg30   = _rentMargemData.filter(it=>it.margem_pct!=null&&it.margem_pct<30).reduce((s,it)=>s+it.vol_mensal,0);
+  const ganhoMeta = _rentMargemData
+    .filter(it=>it.custo&&it.margem_pct!=null&&it.margem_pct<meta)
+    .reduce((s,it)=>{const alvo=it.custo/(1-meta/100); return s+Math.max(0,alvo-it.preco_vigente)*it.vol_mensal;},0);
+  document.getElementById('rent-marg-kpis').innerHTML = `
+    <div class="kpi-card" style="border-color:#E24B4A55"><div class="kpi-val" style="color:#E24B4A">${Math.round(kgPrej).toLocaleString('pt-BR')} kg/mês</div><div class="kpi-lbl">Em prejuízo</div></div>
+    <div class="kpi-card" style="border-color:#EF9F2755"><div class="kpi-val" style="color:#EF9F27">${Math.round(kg20).toLocaleString('pt-BR')} kg/mês</div><div class="kpi-lbl">Abaixo de 20%</div></div>
+    <div class="kpi-card" style="border-color:#F2C94C55"><div class="kpi-val" style="color:#F2C94C">${Math.round(kg30).toLocaleString('pt-BR')} kg/mês</div><div class="kpi-lbl">Abaixo de 30%</div></div>
+    <div class="kpi-card" style="border-color:#1D9E7555"><div class="kpi-val" style="color:#1D9E75">${rentFmtR(ganhoMeta)}/mês</div><div class="kpi-lbl">Ganho potencial (meta ${meta}%)</div></div>`;
+
+  for (const [tier, cfg] of Object.entries(_TIER_CFG).sort((a,b)=>a[1].ordem-b[1].ordem)) {
+    const el = document.getElementById('marg-bloco-' + tier);
+    if (!el) continue;
+    const rows = tiered[tier] || [];
+    if (!rows.length) { el.innerHTML = ''; continue; }
+    const collapsed = tier === 'saudavel';
+    const tbodyId = 'marg-tb-' + tier;
+    const bodyId  = 'marg-body-' + tier;
+    const toggleFn = `var b=document.getElementById('${bodyId}');b.style.display=b.style.display==='none'?'':'none'`;
+    const totKg = rows.reduce((s,it)=>s+it.vol_mensal,0);
+    const tHead = tier === 'sem_custo'
+      ? `<tr><th>Negociação</th><th>SKU</th><th style="text-align:right">Kg/mês</th><th style="text-align:right">R$/kg vigente</th><th style="text-align:right">Δ preço</th><th>Status</th></tr>`
+      : `<tr><th>Negociação</th><th>SKU</th><th style="text-align:right">Kg/mês</th><th style="text-align:right">R$/kg vig</th><th style="text-align:right;color:#b0c4de">Custo</th><th style="text-align:right">Margem R$</th><th style="text-align:right">Margem %</th><th style="text-align:right">Δ preço</th><th style="text-align:right">Preço p/ ${meta}%</th><th style="text-align:right;color:#EF9F27">Reaj. nec.</th></tr>`;
+    const tRows = rows.map(it => {
+      if (tier === 'sem_custo') {
+        return `<tr>
+          <td style="font-weight:500;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.cliente}</td>
+          <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
+          <td style="text-align:right;color:var(--muted)">${Math.round(it.vol_mensal).toLocaleString('pt-BR')}</td>
+          <td style="text-align:right">${rentFmtR2(it.preco_vigente)}/kg</td>
+          <td style="text-align:right">${_variacaoBadge(it.variacao_preco_pct)}</td>
+          <td><span style="color:var(--muted2);font-size:10px">custo não mapeado</span></td>
+        </tr>`;
+      }
+      const preco_alvo = _margPrecoAlvo(it.custo, it.desc, meta);
+      const reaj_nec = it.preco_bruto_vigente > 0 ? (preco_alvo / it.preco_bruto_vigente - 1) * 100 : null;
+      const mrgColor = it.margem_pct < 0 ? '#E24B4A' : it.margem_pct < 10 ? '#EF9F27' : it.margem_pct < 20 ? '#F2C94C' : it.margem_pct < 30 ? '#378ADD' : '#1D9E75';
+      return `<tr>
+        <td style="font-weight:500;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.cliente}</td>
+        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
+        <td style="text-align:right;color:var(--muted)">${Math.round(it.vol_mensal).toLocaleString('pt-BR')}</td>
+        <td style="text-align:right">${rentFmtR2(it.preco_vigente)}/kg</td>
+        <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
+        <td style="text-align:right;color:${mrgColor}">${it.margem_r != null ? (it.margem_r >= 0 ? '+' : '') + rentFmtR2(it.margem_r) + '/kg' : '—'}</td>
+        <td style="text-align:right;font-weight:600;color:${mrgColor}">${it.margem_pct != null ? it.margem_pct.toFixed(1) + '%' : '—'}</td>
+        <td style="text-align:right">${_variacaoBadge(it.variacao_preco_pct)}</td>
+        <td style="text-align:right;color:#EF9F27">${rentFmtR2(preco_alvo)}/kg</td>
+        <td style="text-align:right;color:${reaj_nec != null && reaj_nec > 0 ? '#EF9F27' : '#4caf50'}">${reaj_nec == null ? '—' : reaj_nec <= 0 ? 'OK' : '+' + reaj_nec.toFixed(1) + '%'}</td>
+      </tr>`;
+    }).join('');
+    el.innerHTML = `<div class="cc">
+      <div class="ct" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="${toggleFn}">
+        <span style="color:${cfg.cor}">${cfg.label} <span style="color:var(--muted);font-size:11px">${cfg.range}</span></span>
+        <span style="font-size:11px;color:var(--muted)">${rows.length} linhas · ${Math.round(totKg).toLocaleString('pt-BR')} kg/mês</span>
+      </div>
+      <div id="${bodyId}" style="${collapsed ? 'display:none' : ''}">
+        <div style="overflow-x:auto">
+          <table class="it"><thead>${tHead}</thead><tbody id="${tbodyId}">${tRows}</tbody></table>
+        </div>
+      </div>
+    </div>`;
+  }
+}
+
+function renderRentMargem(lbl) {
+  const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
+  const {tipos, clientes} = _rentAbaixoGetFiltros();
+  _rentMargemData = rentAgregarRanking(periods, tipos, clientes);
+  _renderRentMargemBlocos();
+}
+window.renderRentMargem = renderRentMargem;
+
+function exportCSV_margem() {
+  const hdr = ['Tier','Negociacao','CNPJ','SKU','Tipo_Op','Kg_mes','R$/kg_vigente','Custo/kg','Margem_R$','Margem_%','Variacao_%','Preco_alvo_R$','Reajuste_nec_%','Periodo_vigente'];
+  const rows = [hdr];
+  for (const it of _rentMargemData) {
+    const preco_alvo = it.custo ? _margPrecoAlvo(it.custo, it.desc, _rentMargemMeta) : null;
+    const reaj = preco_alvo && it.preco_bruto_vigente > 0 ? (preco_alvo / it.preco_bruto_vigente - 1) * 100 : null;
+    rows.push([it.tier, it.chaveLabel||it.cliente, it.cnpj, it.label, it.tipoOp||'',
+      Math.round(it.vol_mensal), it.preco_vigente.toFixed(2),
+      it.custo != null ? it.custo.toFixed(2) : '',
+      it.margem_r != null ? it.margem_r.toFixed(2) : '',
+      it.margem_pct != null ? it.margem_pct.toFixed(1) : '',
+      it.variacao_preco_pct != null ? it.variacao_preco_pct.toFixed(1) : '',
+      preco_alvo != null ? preco_alvo.toFixed(2) : '',
+      reaj != null ? reaj.toFixed(1) : '',
+      it.ultimoPeriodo || '']);
+  }
+  const csv = rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'ranking-margem.csv'; a.click();
+}
+window.exportCSV_margem = exportCSV_margem;
 
 function exportCSV_abaixo() {
   const hdr = ['Secao','Negociacao','CNPJ','Produto','Tipo_Op','Tipo_Cliente','Kg','NFs','Meses','R$/kg_liq','Custo/kg','Deficit/kg','Perda_Total_R$','Breakeven_bruto','Reajuste_%','Spread_Bruto_%','Spread_Liq_%','Status'];
