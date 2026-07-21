@@ -742,7 +742,8 @@ tr:hover .rent-nav-icon{opacity:.6}
             <th style="text-align:right;color:#E24B4A">Perda Total</th>
             <th style="text-align:right">Break-even</th>
             <th style="text-align:right">Reajuste %</th>
-            <th style="text-align:right">Spread</th>
+            <th style="text-align:right" title="Spread R$/kg bruto entre lojas">Sp.↑</th>
+            <th style="text-align:right" title="Spread R$/kg líquido entre lojas">Sp.↓</th>
             <th>Ação</th>
           </tr></thead><tbody id="rent-abaixo-tbody"></tbody></table>
         </div>
@@ -5133,6 +5134,22 @@ function _embalemKg(lbl){
   if(u.includes('30G')) return 13.60;
   return 2.04;
 }
+// Embalagem por peso unitário real (evita perder a gramatura após normalização de label)
+function _embalemKgFromPeso(p){
+  if(p<=0.04) return 13.60;                        // 30g
+  if(p>=0.24&&p<=0.27) return 1.63;               // 250g / Moyashi
+  if(p>=0.48&&p<=0.52) return 0.82;               // 500g
+  if(p>=0.58&&p<=0.62) return 0.68;               // 600g
+  if(p>=0.99) return 0.40;                         // KG / Granel
+  return 2.04;                                      // 200g default
+}
+// Spread entre lojas: (max−min)/média × 100
+function _calcSpread(precos){
+  const v=precos.filter(x=>x>0);
+  if(v.length<2) return 0;
+  const mx=Math.max(...v),mn=Math.min(...v),med=v.reduce((a,b)=>a+b,0)/v.length;
+  return med>0?+((mx-mn)/med*100).toFixed(1):0;
+}
 // Custo ponderado da família — suporta modo 'pleno' (default) ou 'direto' (sem fixos)
 function _famCustoFromSKUs(skuKgMap, modo){
   const pleno=modo!=='direto';
@@ -6387,13 +6404,13 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
       const fat_liq_row = val - dev;
       const receita_row = fat_liq_row * (1 - desc);
       const rkg_row = kg > 0 ? receita_row / kg : 0;
-      const preco_bruto_row = kg > 0 ? val / kg : 0; // raw price for spread
       const key = chave.label + '|' + sku.label + '|' + tipoOp;
       if (!byProd[key]) byProd[key] = {
         cliente: chave.label, grupo: chave.grupo, uf: chave.uf, chaveLabel: chave.label,
         cnpj: cn14, rede, desc, label: sku.label, tipoOp, tipoCliente,
+        embKg: _embalemKgFromPeso(sku.pesoUnit),
         kg: 0, fat_bruto: 0, valor_dev: 0, n_nfs: 0, meses_set: new Set(), max_nf_kg: 0,
-        sum_rkg2_kg: 0, min_preco: Infinity, max_preco: -Infinity, lojas: {}
+        sum_rkg2_kg: 0, lojas: {}
       };
       const acc = byProd[key];
       acc.kg += kg; acc.fat_bruto += val; acc.valor_dev += dev;
@@ -6401,10 +6418,6 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
       acc.meses_set.add(row.periodo || p);
       if (kg > acc.max_nf_kg) acc.max_nf_kg = kg;
       if (kg > 0) acc.sum_rkg2_kg += rkg_row * rkg_row * kg;
-      if (preco_bruto_row > 0) {
-        if (preco_bruto_row < acc.min_preco) acc.min_preco = preco_bruto_row;
-        if (preco_bruto_row > acc.max_preco) acc.max_preco = preco_bruto_row;
-      }
       if (!acc.lojas[cn14]) acc.lojas[cn14] = {nome: row.cliente_nome || '', kg: 0, fat_bruto: 0, valor_dev: 0, n_nfs: 0};
       const lj = acc.lojas[cn14];
       lj.kg += kg; lj.fat_bruto += val; lj.valor_dev += dev; lj.n_nfs++;
@@ -6424,9 +6437,15 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
     const fat_liq = Math.max(0, s.fat_bruto - s.valor_dev);
     const receita = fat_liq * (1 - s.desc);
     const rkg_liq = receita / s.kg;
-    const _ci = _famCustoFromSKUs({[s.label]: 1}, _rentCustoModo);
-    if (!_ci) continue;
-    const custo = _ci.melhor_custo_total;
+    const _esp = _skuToEspecie(s.label);
+    const _e = CUSTOS_ESPECIE[_esp];
+    if (!_e) continue;
+    const _emb = s.embKg; // gramatura real via pesoUnit, não via label
+    const _pleno = _rentCustoModo !== 'direto';
+    const _fixos = _pleno ? _e.fixos : 0;
+    const _cc = +(_e.custo_compra + _emb + _e.energia + _e.frete + _fixos).toFixed(2);
+    const _cp = _e.custo_prod != null ? +(_e.custo_prod + _emb + _e.energia + _e.frete + _fixos).toFixed(2) : null;
+    const custo = _cp != null ? Math.min(_cc, _cp) : _cc;
     if (rkg_liq >= custo) continue;
     const deficit_kg = custo - rkg_liq;
     const perda_total = deficit_kg * s.kg;
@@ -6438,8 +6457,12 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
     const desvio = Math.sqrt(Math.max(0, variance));
     const cv = rkg_liq > 0 ? desvio / rkg_liq : 0;
     const conc = s.kg > 0 ? s.max_nf_kg / s.kg : 0;
-    const spread_pct = rkg_bruto > 0 && s.max_preco > s.min_preco && s.min_preco !== Infinity
-      ? (s.max_preco - s.min_preco) / rkg_bruto * 100 : 0;
+    // Spread por loja (não por NF — evita superestimação)
+    const lojaList = Object.values(s.lojas).filter(lj => lj.kg > 0);
+    const precosB = lojaList.map(lj => lj.fat_bruto / lj.kg);
+    const precosL = lojaList.map(lj => Math.max(0, lj.fat_bruto - lj.valor_dev) * (1 - s.desc) / lj.kg);
+    const spread_bruto   = _calcSpread(precosB);
+    const spread_liquido = _calcSpread(precosL);
     // Hard materialidade (vol + perda): required to appear anywhere
     const passaHard = matAll || (s.kg >= matVol && perda_total >= matPerda);
     // Recurrence (n_nfs + n_meses): failure → evento_isolado
@@ -6452,7 +6475,7 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
       valor_dev: s.valor_dev, n_nfs: s.n_nfs, n_meses, max_nf_kg: s.max_nf_kg,
       lojas: s.lojas,
       fat_liq, receita, rkg_liq, rkg_bruto, custo, deficit_kg, perda_total,
-      breakeven_bruto, reajuste_pct, spread_pct: +spread_pct.toFixed(1),
+      breakeven_bruto, reajuste_pct, spread_bruto, spread_liquido,
       evento_isolado, conc_maxnf: +conc.toFixed(2), cv_preco: +cv.toFixed(2)
     };
     if (!passaHard) { excMat.push(item); continue; }
@@ -6478,9 +6501,11 @@ function _spreadBadge(pct) {
   return '<span style="color:var(--muted);font-size:10px">—</span>';
 }
 
-function _renderAbaixoRow(it) {
+function _renderAbaixoRow(it, idx) {
   const urgente = it.deficit_kg / it.custo > 0.20;
   const badge = urgente ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>';
+  const drillId = `abaixo-drill-${idx}`;
+  const drillToggle = `var el=document.getElementById('${drillId}');if(el)el.style.display=el.style.display==='none'?'table-row':'none'`;
   return `<tr>
     <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
     <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
@@ -6491,8 +6516,53 @@ function _renderAbaixoRow(it) {
     <td style="text-align:right;color:#E24B4A;font-weight:700">${rentFmtR(it.perda_total)}</td>
     <td style="text-align:right;color:#EF9F27">${it.breakeven_bruto != null ? rentFmtR2(it.breakeven_bruto) + '/kg' : '—'}</td>
     <td style="text-align:right;color:#EF9F27">${it.reajuste_pct == null ? '—' : it.reajuste_pct <= 0 ? '<span style="color:#4caf50">OK</span>' : '+' + it.reajuste_pct.toFixed(1) + '%'}</td>
-    <td style="text-align:right">${_spreadBadge(it.spread_pct || 0)}</td>
+    <td style="text-align:right;cursor:pointer" title="Sp.bruto — clicar abre drill por loja" onclick="${drillToggle}">${_spreadBadge(it.spread_bruto || 0)}</td>
+    <td style="text-align:right;cursor:pointer" title="Sp.líquido (após dev+desc) — clicar abre drill por loja" onclick="${drillToggle}">${_spreadBadgeLiq(it.spread_bruto || 0, it.spread_liquido || 0)}</td>
     <td>${badge}</td>
+  </tr>`;
+}
+function _spreadBadgeLiq(bruto, liq) {
+  // Se spread_bruto ≈ 0 e liq > 0: é só rateio de devolução → cinza com asterisco
+  if (bruto < 2 && liq > 5)
+    return `<span style="color:var(--muted);font-size:10px">${liq.toFixed(1)}%*</span>`;
+  return _spreadBadge(liq);
+}
+function _renderAbaixoDrill(it, idx) {
+  const lojas = Object.entries(it.lojas || {})
+    .filter(([,lj]) => lj.kg > 0)
+    .map(([cn14, lj]) => {
+      const rkg_b = lj.fat_bruto / lj.kg;
+      const fat_l = Math.max(0, lj.fat_bruto - lj.valor_dev) * (1 - it.desc);
+      const rkg_l = fat_l / lj.kg;
+      return {cn14, nome: lj.nome, kg: lj.kg, n_nfs: lj.n_nfs, rkg_b, rkg_l, dev_r: lj.valor_dev};
+    });
+  const rgls = lojas.map(l => l.rkg_l).filter(v => v > 0).sort((a,b) => a-b);
+  const med = rgls.length ? rgls[Math.floor(rgls.length / 2)] : 0;
+  lojas.sort((a,b) => Math.abs(b.rkg_l - med) - Math.abs(a.rkg_l - med));
+  const rows = lojas.map(l => {
+    const dev_pct = med > 0 ? (l.rkg_l - med) / med * 100 : 0;
+    const dc = Math.abs(dev_pct) > 15 ? '#E24B4A' : Math.abs(dev_pct) > 5 ? '#EF9F27' : 'var(--muted)';
+    return `<tr style="background:rgba(255,255,255,0.03)">
+      <td colspan="2" style="padding-left:24px;font-size:11px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.cn14}">${l.nome||l.cn14}</td>
+      <td style="text-align:right;font-size:11px;color:var(--muted)">${Math.round(l.kg)}</td>
+      <td style="text-align:right;font-size:11px">${rentFmtR2(l.rkg_b)}</td>
+      <td style="text-align:right;font-size:11px;color:var(--muted)">${l.dev_r > 0 ? '−'+rentFmtR(l.dev_r) : '—'}</td>
+      <td style="text-align:right;font-size:11px">${rentFmtR2(l.rkg_l)}</td>
+      <td colspan="6" style="font-size:11px;color:${dc}">${dev_pct>=0?'+':''}${dev_pct.toFixed(1)}% vs mediana</td>
+    </tr>`;
+  }).join('');
+  return `<tr id="abaixo-drill-${idx}" style="display:none">
+    <td colspan="12" style="padding:0;background:rgba(0,0,0,0.25)">
+      <table style="width:100%;border-collapse:collapse">
+        <tr style="opacity:0.55"><th colspan="2" style="padding:3px 24px;font-size:10px;text-align:left">Loja</th>
+          <th style="text-align:right;font-size:10px;padding:3px 4px">Kg</th>
+          <th style="text-align:right;font-size:10px;padding:3px 4px">R$/kg bruto</th>
+          <th style="text-align:right;font-size:10px;padding:3px 4px">Dev R$</th>
+          <th style="text-align:right;font-size:10px;padding:3px 4px">R$/kg líq</th>
+          <th colspan="6" style="font-size:10px;padding:3px 4px">Δ mediana</th></tr>
+        ${rows}
+      </table>
+    </td>
   </tr>`;
 }
 
@@ -6520,6 +6590,7 @@ function _renderAbaixoLojaRows(it) {
       <td style="text-align:right;color:#E24B4A;font-weight:600">${rentFmtR(lj_perd)}</td>
       <td style="text-align:right;color:#EF9F27">${rentFmtR2(lj_be)}/kg</td>
       <td style="text-align:right;color:#EF9F27">${lj_reaj == null ? '—' : lj_reaj <= 0 ? '<span style="color:#4caf50">OK</span>' : '+' + lj_reaj.toFixed(1) + '%'}</td>
+      <td style="text-align:right">—</td>
       <td style="text-align:right">—</td>
       <td>${urg ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>'}</td>
     </tr>`);
@@ -6586,11 +6657,11 @@ function renderRentAbaixoCusto(lbl) {
 
   const tb = document.getElementById('rent-abaixo-tbody');
   if (!_rentAbaixoData.length) {
-    tb.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">Nenhum item abaixo do custo com os filtros ativos 🎉</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px">Nenhum item abaixo do custo com os filtros ativos 🎉</td></tr>`;
   } else if (_rentAbaixoGran === 'loja') {
-    tb.innerHTML = _rentAbaixoData.map(it => _renderAbaixoRow(it) + _renderAbaixoLojaRows(it)).join('');
+    tb.innerHTML = _rentAbaixoData.map((it, i) => _renderAbaixoRow(it, i) + _renderAbaixoDrill(it, i) + _renderAbaixoLojaRows(it)).join('');
   } else {
-    tb.innerHTML = _rentAbaixoData.map(_renderAbaixoRow).join('');
+    tb.innerHTML = _rentAbaixoData.map((it, i) => _renderAbaixoRow(it, i) + _renderAbaixoDrill(it, i)).join('');
   }
 
   // Evento isolado section
@@ -6619,14 +6690,15 @@ function renderRentAbaixoCusto(lbl) {
 }
 
 function exportCSV_abaixo() {
-  const hdr = ['Secao','Negociacao','CNPJ','Produto','Tipo_Op','Tipo_Cliente','Kg','NFs','Meses','R$/kg_liq','Custo/kg','Deficit/kg','Perda_Total_R$','Breakeven_bruto','Reajuste_%','Spread_%','Status'];
+  const hdr = ['Secao','Negociacao','CNPJ','Produto','Tipo_Op','Tipo_Cliente','Kg','NFs','Meses','R$/kg_liq','Custo/kg','Deficit/kg','Perda_Total_R$','Breakeven_bruto','Reajuste_%','Spread_Bruto_%','Spread_Liq_%','Status'];
   const rows = [hdr];
   const fmt = (it, secao) => [secao, it.chaveLabel || it.cliente, it.cnpj, it.label, it.tipoOp || '', it.tipoCliente || '',
     Math.round(it.kg), it.n_nfs || '', it.n_meses || '',
     it.rkg_liq.toFixed(2), it.custo.toFixed(2), it.deficit_kg.toFixed(2), it.perda_total.toFixed(2),
     it.breakeven_bruto != null ? it.breakeven_bruto.toFixed(2) : '',
     it.reajuste_pct != null ? it.reajuste_pct.toFixed(1) : '',
-    it.spread_pct != null ? it.spread_pct.toFixed(1) : '',
+    it.spread_bruto != null ? it.spread_bruto.toFixed(1) : '',
+    it.spread_liquido != null ? it.spread_liquido.toFixed(1) : '',
     it.deficit_kg / it.custo > 0.20 ? 'URGENTE' : 'REVISAR'];
   for (const it of _rentAbaixoData) rows.push(fmt(it, 'PRINCIPAL'));
   for (const it of _rentAbaixoIsoladoData) rows.push(fmt(it, 'EVENTO_ISOLADO'));
