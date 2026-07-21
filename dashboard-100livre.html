@@ -5076,7 +5076,7 @@ function rentAgregarPorLoja(periods){
 async function renderRentabilidade(){
   ['rede','produto','loja'].forEach(v=>{const el=document.getElementById('rent-view-'+v);if(el)el.style.display=v===_rentSubView?'':'none';});
   const _lt=_rentSubView==='produto'?'rent-prod-tbody':_rentSubView==='loja'?'rent-loja-tbody':'rent-tbody';
-  document.getElementById(_lt).innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">carregando...</td></tr>';
+  document.getElementById(_lt).innerHTML='<tr><td colspan="20" style="text-align:center;color:var(--muted);padding:20px">carregando...</td></tr>';
   document.getElementById('rent-kpis').innerHTML='';
   const ps=_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo];
   await Promise.all([rentLoadFat(ps),rentLoadDev(ps),rentLoadPPL(ps),rentLoadDre(ps)]);
@@ -5084,7 +5084,7 @@ async function renderRentabilidade(){
   const so={receita:(a,b)=>b.receita-a.receita,margem:(a,b)=>b.margem-a.margem,ticket:(a,b)=>b.ticket-a.ticket,fat:(a,b)=>b.fat_bruto-a.fat_bruto};
   _rentDados.sort(so[_rentSort]||so.receita);
 
-  if(!_rentDados.length){document.getElementById(_lt).innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
+  if(!_rentDados.length){document.getElementById(_lt).innerHTML='<tr><td colspan="20" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';return;}
 
   const t=_rentDados.reduce((a,r)=>({fb:a.fb+r.fat_bruto,dv:a.dv+r.devolucoes,dc:a.dc+r.desc_val,rc:a.rc+r.receita,nf:a.nf+r.nfs}),{fb:0,dv:0,dc:0,rc:0,nf:0});
   // CMV from dre_mensal — calculado depois de t para evitar TDZ
@@ -5257,14 +5257,15 @@ let _rentScatterChart=null;
 function renderRentScatter(fams){
   const wrap=document.getElementById('rent-scatter-wrap');
   if(!wrap)return;
-  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&_famCustoFromSKUs(f._skuKg));
+  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&f.margemPct!=null&&_famCustoFromSKUs(f._skuKg));
   if(!dados.length){wrap.style.display='none';return;}
   wrap.style.display='';
   const pts=dados.map(f=>{
     const ci=_famCustoFromSKUs(f._skuKg);
     const c=ci?.melhor_custo_total??null;
-    const mPct=c&&isFinite(c)&&f.rkg>0?(f.rkg-c)/f.rkg*100:null;
-    return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:Math.max(4,Math.sqrt(f.receita/200)),label:f.familia,receita:f.receita};
+    const mPct=c!=null&&c>0&&isFinite(c)&&f.rkg>0?(f.rkg-c)/f.rkg*100:null;
+    const rSafe=Math.sqrt(Math.max(0,f.receita)/200);
+    return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:Math.max(4,isFinite(rSafe)?rSafe:4),label:f.familia||'?',receita:f.receita};
   }).filter(p=>p.y!=null);
   if(!pts.length){wrap.style.display='none';return;}
   const ctx=document.getElementById('rent-scatter-chart');
