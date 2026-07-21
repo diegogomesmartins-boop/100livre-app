@@ -4980,10 +4980,18 @@ function _chaveNegociacao(cnpj, nome) {
   const uf = c.estado || 'ND';
   const raiz = cn.slice(0, 8);
   let grupo;
-  if (raiz === '47508411')                    grupo = 'GPA';
-  else if (/LE JAZZ|LE MELLOW/i.test(nome))  grupo = 'LE JAZZ';
-  else if (raiz === '00063960')               grupo = "SAM'S";
-  else if (raiz === '10250585')               grupo = '5M';
+  if      (raiz === '47508411') grupo = 'GPA';
+  else if (raiz === '45543915') grupo = 'CARREFOUR';
+  else if (raiz === '00063960') grupo = "SAM'S";
+  else if (raiz === '71676316') grupo = 'MAMBO';
+  else if (raiz === '33381286') grupo = 'ZONA SUL';
+  else if (raiz === '01937635') grupo = 'SONDA';
+  else if (raiz === '56527062') grupo = 'HIROTA';
+  else if (raiz === '03476811') grupo = 'DIA';
+  else if (raiz === '10250585') grupo = '5M';
+  else if (/LE JAZZ|LE MELLOW/i.test(nome))              grupo = 'LE JAZZ';
+  else if (/EINSTEIN/i.test(nome))                       grupo = 'EINSTEIN';
+  else if (/RESTAURANTE|PIZZAR|BISTR|GASTR|LANCHE/i.test(nome)) grupo = 'RESTAURANTES';
   else grupo = (c.nome_fantasia || nome || raiz).slice(0, 20);
   const regiao = _regiaoPreco(grupo, uf);
   return { grupo, uf, regiao, label: grupo + '-' + regiao };
@@ -5082,10 +5090,27 @@ function rentNormalizeSKU(prod,unid){
   else if(p.includes('MOYASHI')||p.includes('MOASHI')||p.includes('BROTO'))esp='Moyashi';
   else if(p.includes('MICROGREENS')||p.includes('MICRO GREENS')||p.includes('MICRO GREEN'))esp='Microgreens';
   else if(p.includes('MANJERICAO')||p.includes('MANJERICÃO')||p.includes('BASIL'))esp='Manjericao';
-  else if(p.includes('ALFACE')||p.includes('ACELGA')||p.includes('ESCAROLA')||p.includes('COUVE')
-       ||p.includes('MOSTARDA')||p.includes('FRISEE')||p.includes('MIMOSA')||p.includes('ROMANA')
-       ||p.includes('AMERICANA')||p.includes('MIX DE SALADA')||p.includes('MIX DE FOLHA')
-       ||p.includes('RUCULA')||p.includes('RÚCULA')||p.includes('AGRIAO')||p.includes('AGRIÃO'))esp='Folha';
+  else if(p.includes('ALFACE')){
+    if(p.includes('AMERICANA'))esp='Alface Americana';
+    else if(p.includes('CRESPA'))esp='Alface Crespa';
+    else if(p.includes('LISA'))esp='Alface Lisa';
+    else if(p.includes('MIMOSA'))esp='Alface Mimosa';
+    else if(p.includes('ROXA'))esp='Alface Roxa';
+    else if(p.includes('ROMANA'))esp='Alface Romana';
+    else esp='Alface';
+  }
+  else if(p.includes('MIX DE SALADA')||p.includes('MIX DE FOLHA'))esp='Mix de Folhas';
+  else if(p.includes('ACELGA'))esp='Acelga';
+  else if(p.includes('ESCAROLA'))esp='Escarola';
+  else if(p.includes('ALMEIRAO')||p.includes('ALMEIRÃO'))esp='Almeirao';
+  else if(p.includes('COUVE'))esp='Couve';
+  else if(p.includes('MOSTARDA'))esp='Mostarda';
+  else if(p.includes('FRISEE')||p.includes('FRISÉE'))esp='Frisee';
+  else if(p.includes('RUCULA')||p.includes('RÚCULA'))esp='Rucula';
+  else if(p.includes('AGRIAO')||p.includes('AGRIÃO'))esp='Agriao';
+  else if(p.includes('MIMOSA'))esp='Alface Mimosa';
+  else if(p.includes('ROMANA'))esp='Alface Romana';
+  else if(p.includes('AMERICANA'))esp='Alface Americana';
   let canal='';
   if(p.includes('QUALITA')||p.includes('QUALITA'))canal='Qualita';
   else if(p.includes('MEMBERS MARK')||p.includes('MEMBER'))canal='Members Mark';
@@ -5104,7 +5129,17 @@ function rentNormalizeSKU(prod,unid){
     else if(p.includes('30G'))pesoUnit=0.03;
     else if(p.includes('1KG')||p.includes('1 KG'))pesoUnit=1.0;
   }
-  const parts=[esp,canal||null,emb!=='UN'?emb:null].filter(Boolean);
+  let gramSuffix=null;
+  if(emb==='UN'){
+    if(pesoUnit===0.6)gramSuffix='600G';
+    else if(pesoUnit===0.5)gramSuffix='500G';
+    else if(pesoUnit===0.3)gramSuffix='300G';
+    else if(pesoUnit===0.25)gramSuffix='250G';
+    else if(pesoUnit===0.03)gramSuffix='30G';
+    else if(pesoUnit===1.0)gramSuffix='1KG';
+    // 0.2 = default, no suffix
+  }
+  const parts=[esp,canal||null,gramSuffix,emb!=='UN'?emb:null].filter(Boolean);
   return{label:parts.join(' '),especie:esp,canal,emb,pesoUnit};
 }
 // Custo R$/kg por SKU — hardcoded até integração com compras_revenda
@@ -5172,12 +5207,11 @@ function _skuToEspecie(lbl){
   if(u.startsWith('MANJERICAO')||u.startsWith('MANJERICÃO')) return 'manjericao';
   if(u.startsWith('TABACO')||u.startsWith('TOBACCO')||u.startsWith('BATZLOL')) return 'tabaco';
   if(u.startsWith('MORANGO')||u.startsWith('STRAWBERRY')) return 'morango';
-  if((u.startsWith('FOLHA')||u.includes('ALFACE')||u.includes('ACELGA')||u.includes('ESCAROLA')
-   ||u.includes('FRISEE')||u.includes('ROMANA')||u.includes('AMERICANA')
-   ||u.includes('RUCULA')||u.includes('AGRIAO'))&&u.includes('FATIADO')) return 'folha_fatiada';
-  if(u.startsWith('FOLHA')||u.includes('ALFACE')||u.includes('ACELGA')||u.includes('ESCAROLA')
-   ||u.includes('FRISEE')||u.includes('ROMANA')||u.includes('AMERICANA')
-   ||u.includes('RUCULA')||u.includes('AGRIAO')) return 'folha';
+  const FOLHA_WORDS=['ALFACE','ACELGA','ESCAROLA','ALMEIRAO','ALMEIRÃO','COUVE','MOSTARDA',
+    'FRISEE','FRISÉE','MIX DE FOLHA','MIX DE SALADA','RUCULA','RÚCULA','AGRIAO','AGRIÃO',
+    'MIMOSA','AMERICANA','CRESPA','ROMANA'];
+  const isFolha=u.startsWith('FOLHA')||FOLHA_WORDS.some(w=>u.includes(w));
+  if(isFolha) return u.includes('FATIADO') ? 'folha_fatiada' : 'folha';
   return null;
 }
 // Custo de embalagem por formato de SKU (label normalizado ou nome do produto)
@@ -7208,21 +7242,31 @@ function _matrizHeatTxt(pct) {
 }
 
 function rentAgregarMatriz(periods) {
-  const items = rentAgregarRanking(periods, null, null);
+  // Filter to CLIENTE only (excludes traders like KENTISA, TAKOISH)
+  const items = rentAgregarRanking(periods, null, new Set(['CLIENTE']));
   const bySkuRede = {}, redeVol = {}, skuVol = {};
+  // Accumulate totals per sku×rede (multiple tipoOp variants get merged)
+  const acc = {}; // key: skuLabel + '|' + chaveLabel
   for (const it of items) {
-    if (!bySkuRede[it.label]) bySkuRede[it.label] = {label: it.label, custo: it.custo, sem_custo: it.sem_custo, redes: {}};
-    const prev = bySkuRede[it.label].redes[it.chaveLabel];
-    if (!prev || it.vol_mensal > (prev.vol_mensal || 0)) {
-      bySkuRede[it.label].redes[it.chaveLabel] = {
-        preco_vigente: it.preco_vigente, margem_pct: it.margem_pct,
-        vol_mensal: it.vol_mensal, variacao_preco_pct: it.variacao_preco_pct
-      };
-    }
-    redeVol[it.chaveLabel] = (redeVol[it.chaveLabel] || 0) + it.vol_mensal;
-    skuVol[it.label] = (skuVol[it.label] || 0) + it.vol_mensal;
+    const k = it.label + '|' + it.chaveLabel;
+    if (!acc[k]) acc[k] = {skuLabel: it.label, chaveLabel: it.chaveLabel, custo: it.custo, sem_custo: it.sem_custo,
+      vol: 0, pv_wsum: 0, pv_wkg: 0, m_wsum: 0, m_wkg: 0, v_wsum: 0, v_wkg: 0};
+    const a = acc[k];
+    a.vol += it.vol_mensal;
+    if (it.preco_vigente > 0) { a.pv_wsum += it.preco_vigente * it.vol_mensal; a.pv_wkg += it.vol_mensal; }
+    if (it.margem_pct != null) { a.m_wsum += it.margem_pct * it.vol_mensal; a.m_wkg += it.vol_mensal; }
+    if (it.variacao_preco_pct != null) { a.v_wsum += it.variacao_preco_pct * it.vol_mensal; a.v_wkg += it.vol_mensal; }
   }
-  const rows = Object.values(bySkuRede).sort((a,b) => (skuVol[b.label]||0) - (skuVol[a.label]||0));
+  for (const a of Object.values(acc)) {
+    const preco_vigente = a.pv_wkg > 0 ? a.pv_wsum / a.pv_wkg : 0;
+    const margem_pct   = a.m_wkg  > 0 ? a.m_wsum  / a.m_wkg  : null;
+    const variacao_preco_pct = a.v_wkg > 0 ? a.v_wsum / a.v_wkg : null;
+    if (!bySkuRede[a.skuLabel]) bySkuRede[a.skuLabel] = {label: a.skuLabel, custo: a.custo, sem_custo: a.sem_custo, redes: {}};
+    bySkuRede[a.skuLabel].redes[a.chaveLabel] = {preco_vigente, margem_pct, vol_mensal: a.vol, variacao_preco_pct};
+    redeVol[a.chaveLabel] = (redeVol[a.chaveLabel] || 0) + a.vol;
+    skuVol[a.skuLabel]    = (skuVol[a.skuLabel]    || 0) + a.vol;
+  }
+  const rows  = Object.values(bySkuRede).sort((a,b) => (skuVol[b.label]||0) - (skuVol[a.label]||0));
   const redes = Object.keys(redeVol).sort((a,b) => (redeVol[b]||0) - (redeVol[a]||0));
   return {rows, redes, redeVol, skuVol};
 }
@@ -7250,7 +7294,7 @@ function renderRentMatriz(lbl) {
 
   const maxRedes = 12;
   const redesShow = redes.slice(0, maxRedes);
-  const redeLabel = r => r.replace(/^([^-]+)-.*$/, '$1').trim();
+  const redeLabel = r => r;
 
   const thead = `<tr style="font-size:10px">
     <th style="position:sticky;left:0;background:var(--bg);z-index:2;min-width:140px;text-align:left">SKU</th>
