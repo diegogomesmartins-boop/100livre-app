@@ -140,6 +140,11 @@ th.sort-asc::after{content:' ↑';color:#4ade80;font-size:10px}
 .it tr:hover td:first-child{background:var(--bg3)}
 /* Skeleton loading row */
 .skel-row td{padding:5px 8px}.skel-cell{height:14px;border-radius:3px;animation:shimmer 1.4s infinite;background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%}
+/* Ícones de nav cruzada — aparece só no hover da linha */
+.rent-nav-icon{opacity:0;transition:opacity .15s;margin-left:6px;cursor:pointer;font-size:11px;vertical-align:middle}
+tr:hover .rent-nav-icon{opacity:.6}
+/* sdot-n = sem dado (cinza) */
+.sdot-n{background:#4b5563}
 .ccr{display:grid;grid-template-columns:155px 1fr 90px 72px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
 .ccbar{height:7px;border-radius:4px;background:var(--border);overflow:hidden}
 .ccbar-f{height:100%;border-radius:4px;transition:width .4s}
@@ -5204,7 +5209,7 @@ async function renderRentabilidade(){
       const mcCol=mcPctRede>=0.40?'#1D9E75':mcPctRede>=0.20?'#EF9F27':'#E24B4A';
       const cmvNote=isPropria?'<span style="font-size:9px;color:var(--muted)"> (prod. própria)</span>':'';
       const _vend=rentGetVendedor(r.rede);
-      const _navLink=_vend!=='—'?`<span onclick="event.stopPropagation();setView('comercial')" title="Ver em Inteligência (${_vend})" style="margin-left:5px;cursor:pointer;font-size:10px;color:var(--muted);opacity:.7">↗</span>`:'';
+      const _navLink=_vend!=='—'?`<span class="rent-nav-icon" onclick="event.stopPropagation();setView('comercial')" title="Ver Inteligência — ${_vend}" style="font-size:10px;color:var(--muted)">↗</span>`:'';
       return`<tr style="cursor:pointer" data-rent-i="${i}">
         <td style="font-weight:500;color:${RENT_CORES[r.rede]||'var(--text)'}">${r.rede}${nc}${_navLink}</td>
         <td style="text-align:right">${rentFmtR(r.fat_bruto)}</td>
@@ -5290,14 +5295,17 @@ let _rentScatterChart=null;
 function renderRentScatter(fams){
   const wrap=document.getElementById('rent-scatter-wrap');
   if(!wrap)return;
-  // Usa margemPct já computado por rentAgregarPorFamilia (CUSTO_SKU_KG — cobre todas as famílias)
-  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&f.margemPct!=null);
+  // Lê margemPct (% 0-100, com overhead) e receitaReal pré-computados em renderRentPorProduto
+  const dados=fams.filter(f=>f.kg>0&&f.margemPct!=null&&!isNaN(f.margemPct));
   if(!dados.length){wrap.style.display='none';return;}
   wrap.style.display='';
-  const pts=dados.map(f=>{
-    const mPct=+(f.margemPct*100).toFixed(1);
-    return{x:Math.round(f.kg),y:mPct,r:f.receita>0?Math.max(4,Math.sqrt(f.receita/1000)):4,label:f.familia||'?',receita:f.receita};
-  }).filter(p=>p.y!=null);
+  const pts=dados.map(f=>({
+    x:Math.round(f.kg),
+    y:+f.margemPct.toFixed(1),
+    r:(f.receitaReal??f.receita)>0?Math.max(4,Math.sqrt((f.receitaReal??f.receita)/1000)):4,
+    label:f.familia||'?',
+    receita:f.receitaReal??f.receita,
+  })).filter(p=>p.y!=null);
   if(!pts.length){wrap.style.display='none';return;}
   const ctx=document.getElementById('rent-scatter-chart');
   const _existing=Chart.getChart(ctx);if(_existing)_existing.destroy();
@@ -5559,12 +5567,29 @@ function rentAgregarSKUParaFamilia(periods,famNome){
 function _rentCustoTooltipCC(ci){if(!ci)return'';return`MP: R$${ci.custo_compra_kg}/kg + emb R$${ci.custo_embalagem_kg} + fixos R$${ci.custo_fixos_kg} + energia R$${ci.custo_energia_kg} + frete R$${ci.custo_frete_kg}`;}
 function _rentCustoTooltipCP(ci){if(!ci)return'';return`Insumo: R$${ci.custo_insumo_kg}/kg + emb R$${ci.custo_embalagem_kg} + fixos R$${ci.custo_fixos_kg} + energia R$${ci.custo_energia_kg} + frete R$${ci.custo_frete_kg}`;}
 
+// Semáforo CSS: m em % (0-100). null/NaN → cinza.
+function _sdotClass(m){
+  if(m==null||isNaN(m)) return'sdot sdot-n';
+  if(m<0) return'sdot sdot-r';
+  if(m<20) return'sdot sdot-l';
+  if(m<40) return'sdot sdot-a';
+  return'sdot sdot-v';
+}
+
 function renderRentPorProduto(lbl){
   document.getElementById('rent-prod-period-label').textContent='— '+lbl;
   _rentFamDados=rentAgregarPorFamilia(_rentPeriodo==='acum'?PERIODOS:[_rentPeriodo]);
   _rentFamDados.sort((a,b)=>b.fat_bruto-a.fat_bruto);
   const tb=document.getElementById('rent-prod-tbody');
   if(!_rentFamDados.length){tb.innerHTML='<tr><td colspan="15" style="text-align:center;color:var(--muted);padding:20px">Sem dados</td></tr>';document.getElementById('rent-scatter-wrap').style.display='none';return;}
+  // Pré-computa margemPct com overhead (fonte única de verdade para tabela E scatter)
+  _rentFamDados.forEach(f=>{
+    const ci=_famCustoFromSKUs(f._skuKg);
+    const mc=ci?.melhor_custo_total??null;
+    const mKg=mc!=null&&f.rkg>0?+(f.rkg-mc).toFixed(2):null;
+    f.margemPct=mKg!=null&&f.rkg>0?mKg/f.rkg*100:null; // % (0-100), inclui fixos+emb+energia+frete
+    f.receitaReal=f.receita;
+  });
   tb.innerHTML=_rentFamDados.map((f,i)=>{
     const pct_dev=f.fat_bruto>0?f.valor_dev/f.fat_bruto:0;
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
@@ -5573,8 +5598,8 @@ function renderRentPorProduto(lbl){
     const mKg=mc!=null&&f.rkg>0?+(f.rkg-mc).toFixed(2):null;
     const mPct=mKg!=null&&f.rkg>0?mKg/f.rkg:null;
     const isLoss=mc!=null&&f.rkg>0&&f.rkg<mc;
-    const s=isLoss?'<span class="sdot sdot-r" title="Prejuízo"></span>':f.margem>=0.40?'<span class="sdot sdot-v"></span>':f.margem>=0.20?'<span class="sdot sdot-a"></span>':'<span class="sdot sdot-l"></span>';
-    const _prodNav=`<span onclick="event.stopPropagation();setView('producao')" title="Ver Prod×Terc" style="margin-left:4px;cursor:pointer;font-size:11px;opacity:.7">🍄</span>`;
+    const s=`<span class="${_sdotClass(f.margemPct)}" title="${f.margemPct!=null?f.margemPct.toFixed(1)+'%':'sem custo'}"></span>`;
+    const _prodNav=`<span class="rent-nav-icon" onclick="event.stopPropagation();setView('producao')" title="Ver Prod×Terc">🍄</span>`;
     const rowBg=isLoss?'background:#3d0000;':'';
     const mcol=mPct!=null?(mPct>0.3?'#1D9E75':mPct>0.1?'#EF9F27':'#E24B4A'):'var(--muted)';
     const warnTip=mPct!=null&&mPct<0.15&&!isLoss?' title="Margem abaixo de 15% — considerar reajuste de preço ou redução de custo"':'';
@@ -5729,7 +5754,7 @@ function renderRentPorLoja(lbl){
     const sondaBadge = sondaAcao
       ? `<span title="Dev% Abr-Jun: ${sondaAcao.dev_rec}% — ${sondaAcao.motivo}" style="font-size:9px;white-space:nowrap">${sondaAcao.acao}</span>`
       : '';
-    const _logNav=l.pct_dev>0.10?`<span onclick="event.stopPropagation();setView('logistica')" title="Ver em Logística" style="margin-left:4px;cursor:pointer;font-size:11px">🚚</span>`:'';
+    const _logNav=l.pct_dev>0.10?`<span class="rent-nav-icon" onclick="event.stopPropagation();setView('logistica')" title="Ver em Logística">🚚</span>`:'';
     return`<tr style="cursor:pointer${mamboProblema?';background:rgba(239,68,68,.05)':''}" data-rent-loja="${i}">
       <td style="font-weight:500;font-size:12px" title="${l.cnpj}">${nome.length>30?nome.slice(0,28)+'…':nome}${badgeMambo}${_logNav}</td>
       <td style="font-weight:500;color:${RENT_CORES[l.rede]||'var(--text)'};">${l.rede}</td>
