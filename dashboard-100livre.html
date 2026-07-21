@@ -1077,9 +1077,24 @@ tr:hover .rent-nav-icon{opacity:.6}
       <div id="prod-falhas-content" style="font-size:12px;color:var(--muted)">Carregando...</div>
     </div>
 
+    <!-- TAREFA 1+2: Composição do custo compartilhado -->
+    <div class="cc" id="prod-composicao-card" style="margin-bottom:12px">
+      <div class="ct">
+        Composição do custo compartilhado
+        <span style="font-size:10px;color:var(--muted);margin-left:8px">R$21,70/kg · base: volume embalado (próprio + revenda)</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <span style="font-size:11px;color:var(--muted2)">Rateio fixos:</span>
+        <button id="rateio-btn-kg"  class="mb on"  onclick="prodSetRateioMode('kg')">Por kg colhido</button>
+        <button id="rateio-btn-sub" class="mb"     onclick="prodSetRateioMode('substrato')">Por kg substrato</button>
+        <span id="rateio-desc-hint" style="font-size:10px;color:var(--muted);margin-left:4px">Fixos alocados igualmente por kg produzido</span>
+      </div>
+      <div id="prod-composicao-content" style="font-size:12px;color:var(--muted)">Carregando...</div>
+    </div>
+
     <!-- Comparativo geral por espécie -->
     <div class="cc" id="prod-comparativo-card">
-      <div class="ct">Comparativo por espécie — Produção própria vs Compra <span style="font-size:10px;color:var(--muted)">(custos compartilhados incluídos: emb R$${CUSTO_EMBALAGEM_KG} + struct R$${CUSTO_ESTRUTURA_KG} + frete R$${CUSTO_FRETE_KG})</span></div>
+      <div class="ct">Comparativo por espécie — Produção própria vs Compra <span id="prod-compartilhado-desc" style="font-size:10px;color:var(--muted)"></span></div>
       <div style="overflow-x:auto">
         <table class="it" style="width:100%">
           <thead><tr>
@@ -1092,11 +1107,18 @@ tr:hover .rent-nav-icon{opacity:.6}
             <th style="text-align:right">Preço venda/kg</th>
             <th style="text-align:right">Margem prod.</th>
             <th style="text-align:right">Margem compra</th>
+            <th style="text-align:right">Processamento</th>
             <th style="text-align:center">Veredicto</th>
           </tr></thead>
           <tbody id="prod-comparativo-tbody"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- TAREFA 4: Reconciliação com o DRE -->
+    <div class="cc" id="prod-dre-reconciliacao-card" style="margin-top:12px;margin-bottom:12px">
+      <div class="ct">Reconciliação com o DRE — Jan–Jun 2026 <span style="font-size:10px;color:var(--muted);margin-left:8px">custo indireto realizado vs premissas do modelo</span></div>
+      <div id="prod-dre-reconciliacao-content" style="font-size:12px;color:var(--muted)">Carregando...</div>
     </div>
 
     <!-- Folhas Einstein — Custo × Margem -->
@@ -8317,9 +8339,202 @@ function prodBuildFalhasAnalysis() {
     </table>`;
 }
 
+// TAREFA 1+2 — composição do custo compartilhado + toggle rateio
+let _rateioMode = 'kg'; // 'kg' | 'substrato'
+
+function prodSetRateioMode(m) {
+  _rateioMode = m;
+  ['kg','sub'].forEach(id => {
+    const b = document.getElementById('rateio-btn-' + id);
+    if (b) b.classList.toggle('on', (id === 'kg' && m === 'kg') || (id === 'sub' && m === 'substrato'));
+  });
+  const hint = document.getElementById('rateio-desc-hint');
+  if (hint) hint.textContent = m === 'kg'
+    ? 'Fixos alocados igualmente por kg produzido'
+    : 'Fixos alocados por substrato consumido — penaliza espécies de menor rendimento';
+  prodBuildComposicao();
+}
+
+function prodBuildComposicao() {
+  const el = document.getElementById('prod-composicao-content');
+  if (!el) return;
+
+  // Componentes do custo compartilhado
+  const FIXOS_ALUGUEL = 5.96;
+  const componentes = [
+    { nome:'Pessoal colheita (7 pess. Osasco)', valor:CUSTO_COLHEITA_KG, base:'kg próprio colhido/mês', fonte:'Folha Colheita ÷ kg médio mensal' },
+    { nome:'Aluguel + infra (CC cogumelos 80%)',  valor:FIXOS_ALUGUEL,    base:'todo volume embalado',   fonte:'DRE Aluguel rateio CC cogumelos' },
+    { nome:'Embalagem (8 pess. embalagem)',        valor:CUSTO_EMBALAGEM_KG, base:'todo volume embalado', fonte:'Folha Embalagem ÷ kg embalado/mês' },
+    { nome:'Energia (ENEL/CPFL CC cogumelos)',     valor:CUSTO_ENERGIA_KG,   base:'todo volume embalado', fonte:'DRE Tarifas rateio CC cogumelos' },
+    { nome:'Frete saída',                          valor:CUSTO_FRETE_KG,     base:'todo volume embalado', fonte:'DRE Frete ÷ kg entregue/mês' },
+  ];
+  const totalComp = componentes.reduce((s,c)=>s+c.valor, 0);
+  const compRows = componentes.map(c => {
+    const pct = totalComp > 0 ? (c.valor/totalComp*100).toFixed(1) : '0';
+    return `<tr>
+      <td>${c.nome}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#378ADD;font-weight:700">R$${fmt2(c.valor)}/kg</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace">${pct}%</td>
+      <td style="text-align:right;color:var(--muted);font-size:10px">${c.base}</td>
+      <td style="text-align:right;color:var(--muted);font-size:10px">${c.fonte}</td>
+    </tr>`;
+  }).join('');
+
+  // Rateio por espécie — dois métodos
+  const KEYS = ['paris','shitake','portobello','shimeji_branco','shimeji_preto','shimeji_salmao'];
+  const epStats = KEYS.map(key => {
+    const ep = ESPECIES_PROD[key];
+    const sub = ep.lotes.reduce((s,l)=>s+l.substrato, 0);
+    const col = ep.lotes.reduce((s,l)=>s+l.colhido, 0);
+    return { nome:ep.nome, sub, col };
+  });
+  const totalSub = epStats.reduce((s,e)=>s+e.sub, 0);
+  const totalCol = epStats.reduce((s,e)=>s+e.col, 0);
+  // custo pool de aluguel/infra alocável = FIXOS_ALUGUEL × totalCol
+  const pool = FIXOS_ALUGUEL * totalCol;
+  const rateSub = totalSub > 0 ? pool / totalSub : 0;  // R$ por kg de substrato
+
+  const espRows = epStats.map(e => {
+    const byKg  = FIXOS_ALUGUEL;
+    const bySub = e.col > 0 ? rateSub * e.sub / e.col : 0;
+    const ativo = _rateioMode === 'kg' ? byKg : bySub;
+    const alt   = _rateioMode === 'kg' ? bySub : byKg;
+    const delta = bySub - byKg;
+    const dc    = delta > 0.5 ? '#E24B4A' : delta < -0.5 ? '#1D9E75' : 'var(--muted)';
+    const rend  = e.sub > 0 ? (e.col/e.sub*100) : 0;
+    return `<tr>
+      <td style="font-weight:600">${e.nome}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${Math.round(e.sub).toLocaleString('pt-BR')} kg</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${fmt2(e.col)} kg</td>
+      <td style="text-align:right;font-size:10px"><span class="badge ${rend >= 15 ? 'bg' : rend >= 10 ? 'ba' : 'br'}">${fmtPct(rend)}</span></td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#378ADD">R$${fmt2(ativo)}/kg</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">R$${fmt2(alt)}/kg</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:${dc}">${delta >= 0 ? '+' : ''}R$${fmt2(delta)}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+    <div>
+      <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Composição — R$${fmt2(totalComp)}/kg total</div>
+      <table class="it" style="width:100%">
+        <thead><tr>
+          <th>Componente</th><th style="text-align:right">R$/kg</th><th style="text-align:right">%</th>
+          <th style="text-align:right">Base de rateio</th><th style="text-align:right">Fonte DRE</th>
+        </tr></thead>
+        <tbody>${compRows}</tbody>
+        <tfoot><tr style="font-weight:700;border-top:2px solid var(--border2)">
+          <td>TOTAL</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:#7F77DD">R$${fmt2(totalComp)}/kg</td>
+          <td style="text-align:right">100%</td>
+          <td colspan="2"></td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Rateio aluguel R$${fmt2(FIXOS_ALUGUEL)}/kg por espécie — método: <strong style="color:#7F77DD">${_rateioMode === 'kg' ? 'kg colhido' : 'kg substrato'}</strong></div>
+      <table class="it" style="width:100%;font-size:11px">
+        <thead><tr>
+          <th>Espécie</th>
+          <th style="text-align:right">Substrato</th>
+          <th style="text-align:right">Colhido</th>
+          <th style="text-align:right">Rend.</th>
+          <th style="text-align:right">Método ativo</th>
+          <th style="text-align:right">Alternativo</th>
+          <th style="text-align:right">Δ aluguel</th>
+        </tr></thead>
+        <tbody>${espRows}</tbody>
+      </table>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">
+        Δ positivo = mais caro pelo método substrato (baixo rendimento). Δ negativo = beneficiado (alto rendimento).<br>
+        Apenas o componente aluguel (R$${fmt2(FIXOS_ALUGUEL)}/kg) é redistribuído. Colheita, emb, energia e frete permanecem fixos para todas as espécies.
+      </div>
+    </div>
+  </div>`;
+}
+
+// TAREFA 4 — reconciliação com o DRE
+function prodBuildDREReconciliacao() {
+  const el = document.getElementById('prod-dre-reconciliacao-content');
+  if (!el) return;
+  const MESES = 6;
+  const KG_MES = KG_EMBALAGEM_MES;
+  // Modelo: o que cada componente implica em R$/mês
+  const modelo = [
+    { cat:'Pessoal colheita',  rkg:CUSTO_COLHEITA_KG,  base:'kg próprio', kgBase:KG_COLHEITA_MES },
+    { cat:'Aluguel + infra',   rkg:5.96,               base:'kg embalado', kgBase:KG_MES },
+    { cat:'Embalagem (MO)',    rkg:CUSTO_EMBALAGEM_KG, base:'kg embalado', kgBase:KG_MES },
+    { cat:'Energia',           rkg:CUSTO_ENERGIA_KG,   base:'kg embalado', kgBase:KG_MES },
+    { cat:'Frete saída',       rkg:CUSTO_FRETE_KG,     base:'kg embalado', kgBase:KG_MES },
+  ];
+  const totalModeloMes = modelo.reduce((s,m) => s + m.rkg * m.kgBase, 0);
+
+  // DRE real (6 meses) via dreData
+  const { d, fat, uy3, cora } = _custosAgg();
+  const dreMap = [
+    { cat:'Pessoal colheita',  dre: (d.folha||0) * 0.07 },  // ~7% folha total = colheita (9,3k / 134k)
+    { cat:'Aluguel + infra',   dre: (d.aluguel||0) * 0.80 }, // 80% CC cogumelos
+    { cat:'Embalagem (MO)',    dre: (d.folha||0) * 0.14 },   // ~14% folha = embalagem (18k/134k)
+    { cat:'Energia',           dre: (d.insumos||0) * 0.40 }, // estimativa — tarifas dentro de insumos
+    { cat:'Frete saída',       dre: d.frete||0 },
+  ];
+  const totalDRE6m = dreMap.reduce((s,m) => s + m.dre, 0);
+
+  const rows = modelo.map((m,i) => {
+    const modeloTotal6m = m.rkg * m.kgBase * MESES;
+    const dreVal = dreMap[i].dre;
+    const gap    = dreVal - modeloTotal6m;
+    const gapC   = Math.abs(gap) < modeloTotal6m * 0.15 ? '#1D9E75' : Math.abs(gap) < modeloTotal6m * 0.30 ? '#EF9F27' : '#E24B4A';
+    return `<tr>
+      <td>${m.cat}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#378ADD">R$${fmt2(m.rkg)}/kg × ${m.kgBase.toLocaleString('pt-BR')} kg/mês</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace">R$${Math.round(modeloTotal6m/1000)}k</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--muted)">R$${Math.round(dreVal/1000)}k</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${gapC}">${gap >= 0 ? '+' : ''}R$${Math.round(gap/1000)}k</td>
+      <td style="text-align:right;font-size:10px;color:var(--muted)">${dreMap[i].dre > 0 ? (dreVal > 0 ? 'estimado' : '—') : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<div style="overflow-x:auto">
+    <table class="it" style="width:100%">
+      <thead><tr>
+        <th>Componente</th>
+        <th style="text-align:right">Premissa modelo</th>
+        <th style="text-align:right">Modelo Jan–Jun</th>
+        <th style="text-align:right">DRE Jan–Jun</th>
+        <th style="text-align:right">Gap</th>
+        <th style="text-align:right">Nota</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr style="font-weight:700;border-top:2px solid var(--border2)">
+        <td>TOTAL</td>
+        <td></td>
+        <td style="text-align:right;font-family:'DM Mono',monospace">R$${Math.round(totalModeloMes*MESES/1000)}k</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--muted)">R$${Math.round(totalDRE6m/1000)}k <span style="font-size:9px;font-weight:400">(est.)</span></td>
+        <td></td><td></td>
+      </tr></tfoot>
+    </table>
+    <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6;background:rgba(55,138,221,.06);border:1px solid rgba(55,138,221,.2);border-radius:6px;padding:8px 12px">
+      ⚠ DRE estimado — "Pessoal colheita" e "Embalagem" usam proporção da folha total (não reclassificado por cargo no Omie). "Energia" estimada dentro de Insumos. Usar <strong>relatorioCustoProprio</strong> via Cloud Function para valores exatos.
+    </div>
+  </div>`;
+}
+
+// TAREFA 3 — custo de processamento por tipo de preparo
+// granel/inteiro: embalagem automática em linha — custo na MO embalagem (CUSTO_EMBALAGEM_KG)
+// fatiado/desfiado: labor de corte — a confirmar com produção (deixar null = campo editável)
+const LABOR_PROCESSAMENTO = {
+  inteiro:  0,    // R$/kg — sem processamento adicional
+  fatiado:  null, // R$/kg — labor corte a confirmar
+  desfiado: null, // R$/kg — labor shimeji desfiado a confirmar (canal Hirota)
+  bandeja:  0,    // R$/kg — tray pré-formada inclusa no CUSTO_EMBALAGEM_KG
+};
+
 function prodBuildComparativo() {
   const tbody = document.getElementById('prod-comparativo-tbody');
   if (!tbody) return;
+  // BUG 1 fix — preencher span que era template literal no HTML estático
+  const descEl = document.getElementById('prod-compartilhado-desc');
+  if (descEl) descEl.textContent = `(custos compartilhados: colheita R$${fmt2(CUSTO_COLHEITA_KG)} + aluguel R$${fmt2(5.96)} + emb R$${fmt2(CUSTO_EMBALAGEM_KG)} + energia R$${fmt2(CUSTO_ENERGIA_KG)} + frete R$${fmt2(CUSTO_FRETE_KG)} = R$${fmt2(CUSTO_COLHEITA_KG+5.96+CUSTO_EMBALAGEM_KG+CUSTO_ENERGIA_KG+CUSTO_FRETE_KG)}/kg)`;
   let rows = '';
   ['paris','shitake','portobello','shimeji_branco','shimeji_preto','shimeji_salmao'].forEach(key => {
     const ep   = ESPECIES_PROD[key];
@@ -8358,6 +8573,14 @@ function prodBuildComparativo() {
     else { vd='Custo a definir'; vc='#EF9F27'; }
     const esp_custo = CUSTO_TOTAL_ESPECIE.find(e => e.especie.toLowerCase().startsWith(ep.nome.toLowerCase().slice(0,4)));
     const alertaStr = esp_custo?.alerta ? `<div style="font-size:9px;color:#EF9F27;margin-top:2px">${esp_custo.alerta}</div>` : '';
+    // TAREFA 3 — processamento: todos cogumelos são inteiro/bandeja automática → R$0
+    // fatiado/desfiado (ex: Shimeji desfiado Hirota) = null (a confirmar)
+    const laborProc = LABOR_PROCESSAMENTO.inteiro; // 0 — sem processamento manual
+    const laborProcStr = laborProc === null
+      ? '<span style="color:#EF9F27">a confirmar</span>'
+      : laborProc === 0
+        ? '<span style="color:var(--muted)">R$0 (inteiro)</span>'
+        : `<span style="color:#378ADD">R$${fmt2(laborProc)}/kg</span>`;
     rows += `<tr>
       <td style="font-weight:600;cursor:pointer;color:#7F77DD" onclick="setProdEspecie('${key}')">${ep.nome}${alertaStr}</td>
       <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace">${ts.toLocaleString('pt-BR')} kg</td>
@@ -8368,6 +8591,7 @@ function prodBuildComparativo() {
       <td style="text-align:right;color:#1D9E75;font-family:'DM Mono',monospace">${fmtR(venda)}/kg</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:${mpFull!==null&&mpFull>0?'#1D9E75':'#E24B4A'}">${mpFull!==null?fmtR(mpFull)+'/kg':'—'}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:${mcFull!==null&&mcFull>0?'#1D9E75':'#E24B4A'}">${mcFull!==null?fmtR(mcFull)+'/kg':'—'}</td>
+      <td style="text-align:right;font-size:11px">${laborProcStr}</td>
       <td style="text-align:center;font-size:11px;color:${vc}">${vd}</td>
     </tr>`;
   });
@@ -8377,6 +8601,7 @@ function prodBuildComparativo() {
     <td style="text-align:right;color:var(--muted);font-family:'DM Mono',monospace">—</td>
     <td style="text-align:right;color:#378ADD;font-family:'DM Mono',monospace;font-size:11px">R$24–26/kg<span style="font-size:9px;color:var(--muted)"> (pct 250g = R$6–6,50)</span></td>
     <td colspan="2" style="text-align:center;color:var(--muted);font-size:11px">—</td>
+    <td style="text-align:center;color:var(--muted);font-size:11px">—</td>
     <td style="text-align:center;color:var(--muted);font-size:11px">—</td>
     <td style="text-align:center;color:#378ADD;font-size:11px">Só compra</td>
   </tr>`;
@@ -8447,7 +8672,9 @@ function renderProducao() {
   }
   document.getElementById('prod-lotes-titulo').textContent = 'Histórico de lotes — ' + ep.nome;
   prodBuildLotes(ep);
+  prodBuildComposicao();
   prodBuildComparativo();
+  prodBuildDREReconciliacao();
   prodBuildFolhasEinstein();
   prodBuildFalhasAnalysis();
   _setProdDefaults(ep);
@@ -11255,10 +11482,11 @@ window.setRankMinVisitas=setRankMinVisitas; window.setRankSort=setRankSort;
 
 window.setView = setView;
 window.renderProducao = renderProducao;
-window.setProdEspecie = setProdEspecie;
-window.onProdSlider   = onProdSlider;
-window.onProdInput      = onProdInput;
-window.setCustosView    = setCustosView;
+window.setProdEspecie    = setProdEspecie;
+window.onProdSlider      = onProdSlider;
+window.onProdInput       = onProdInput;
+window.setCustosView     = setCustosView;
+window.prodSetRateioMode = prodSetRateioMode;
 window.toggleMotoristas = toggleMotoristas;
 window._ckgUpdate       = _ckgUpdate;
 window.renderExperimentos = renderExperimentos;
