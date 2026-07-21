@@ -583,6 +583,11 @@ tr:hover .rent-nav-icon{opacity:.6}
   <div id="view-rentabilidade" style="display:none">
     <div id="rent-log" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:#5DCAA5;margin-bottom:16px;white-space:pre-wrap;max-height:100px;overflow-y:auto">Rentabilidade — aguardando...</div>
     <div style="display:none" id="rent-period-btns"></div><!-- período controlado pelo mbar global -->
+    <div style="margin-bottom:8px;position:relative">
+      <input id="rent-busca-cliente" type="text" placeholder="🔍 Buscar cliente..." autocomplete="off"
+        style="width:100%;max-width:320px;padding:6px 10px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif">
+      <div id="rent-busca-resultados" style="display:none;position:absolute;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;margin-top:2px;max-height:280px;overflow-y:auto;width:320px;box-shadow:0 4px 12px rgba(0,0,0,.4)"></div>
+    </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap" id="rent-subview-btns"></div>
     <div class="note">
       Descontos: GPA 21% · Carrefour 9% · Sonda 7% · Zona Sul 5% · Sam's 10% · Mambo 10% · Hirota 10% · Einstein 0%<br>
@@ -634,6 +639,29 @@ tr:hover .rent-nav-icon{opacity:.6}
             <th style="text-align:right">% fat.</th>
           </tr></thead><tbody id="rent-mix-tbody"></tbody></table>
         </div>
+        <!-- Simulador de reajuste (Tarefa 4) -->
+        <div id="rent-simulador-section" style="display:none;margin-top:14px;border-top:1px solid var(--border2);padding-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div class="ct" style="margin-bottom:0">Simulador de reajuste</div>
+            <div style="display:flex;gap:6px">
+              <button class="mb" onclick="rentSimPreset('breakeven')" style="font-size:11px;padding:3px 8px">Break-even</button>
+              <button class="mb" onclick="rentSimPreset(15)" style="font-size:11px;padding:3px 8px">+15%</button>
+              <button class="mb" onclick="rentSimPreset(25)" style="font-size:11px;padding:3px 8px">+25%</button>
+              <button class="mb" onclick="rentSimPreset(30)" style="font-size:11px;padding:3px 8px">+30%</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="it" id="rent-sim-table"><thead><tr>
+              <th>Produto</th><th style="text-align:right">Kg</th>
+              <th style="text-align:right">R$/kg atual (liq)</th><th style="text-align:right;color:#b0c4de">Custo/kg</th>
+              <th style="text-align:right">Margem atual</th>
+              <th style="text-align:right">Novo preço bruto R$/kg</th>
+              <th style="text-align:right">Nova margem</th>
+              <th style="text-align:right">Δ Receita</th>
+            </tr></thead><tbody id="rent-sim-tbody"></tbody></table>
+          </div>
+          <div id="rent-sim-footer" style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;background:var(--bg3);border-radius:8px;padding:10px 14px"></div>
+        </div>
       </div>
       <div class="cc" id="rent-outros-section" style="display:none;margin-top:10px">
         <div class="ct" style="display:flex;justify-content:space-between;align-items:center">
@@ -644,6 +672,43 @@ tr:hover .rent-nav-icon{opacity:.6}
             <th>Cliente</th><th style="text-align:right">CNPJ</th>
             <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">NFs</th>
           </tr></thead><tbody id="rent-outros-tbody"></tbody></table>
+        </div>
+      </div>
+      <!-- Lista de clientes do grupo (RESTAURANTES / OUTROS) -->
+      <div class="cc" id="rent-client-list-section" style="display:none;margin-top:10px">
+        <div class="ct" style="display:flex;justify-content:space-between;align-items:center">
+          <span id="rent-client-list-title">Clientes</span>
+          <button id="rent-btn-fechar-client-list" class="mb">✕</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="it"><thead><tr>
+            <th>Cliente</th><th style="text-align:right;font-size:10px">CNPJ</th>
+            <th style="text-align:right">NFs</th><th style="text-align:right">Kg</th>
+            <th style="text-align:right">Fat. Bruto</th><th style="text-align:right">Receita Real</th>
+            <th style="text-align:right">R$/kg</th><th></th>
+          </tr></thead><tbody id="rent-client-list-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-view: Abaixo do Custo -->
+    <div id="rent-view-abaixo" style="display:none">
+      <div id="rent-abaixo-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px"></div>
+      <div class="cc">
+        <div class="ct" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Itens abaixo do custo <span id="rent-abaixo-modo" style="font-size:11px;color:var(--muted)"></span></span>
+          <button id="rent-abaixo-csv" class="mb" style="font-size:11px;padding:3px 9px">Exportar CSV</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="it" id="rent-abaixo-table"><thead><tr>
+            <th>Cliente</th><th>Produto</th><th style="text-align:right">Kg</th>
+            <th style="text-align:right">R$/kg líq</th><th style="text-align:right;color:#b0c4de">Custo</th>
+            <th style="text-align:right;color:#E24B4A">Gap R$/kg</th>
+            <th style="text-align:right;color:#E24B4A">Perda Total</th>
+            <th style="text-align:right">Break-even</th>
+            <th style="text-align:right">Reajuste %</th>
+            <th>Ação</th>
+          </tr></thead><tbody id="rent-abaixo-tbody"></tbody></table>
         </div>
       </div>
     </div>
@@ -4829,13 +4894,17 @@ function rentClassifyFamilia(prod) {
 }
 function rentEstimKg(prod,qtd,unid){
   const u=(unid||'').toUpperCase(),p=(prod||'').toUpperCase();
-  if(u==='KG')return qtd;
+  if(u==='KG') return qtd;
+  if(p.includes('GRANEL')) return qtd; // nome indica venda a granel → ignora unidade
   const mult=u==='CX'?6:1;
   let kg=0.2;
-  if(p.includes('500G'))kg=0.5;
-  else if(p.includes('250G'))kg=0.25;
+  if(p.includes('600G')||p.includes('600 G'))kg=0.6;
+  else if(p.includes('500G')||p.includes('500 G'))kg=0.5;
+  else if(p.includes('250G')||p.includes('250 G'))kg=0.25;
+  else if(p.includes('300G')||p.includes('300 G'))kg=0.3;
+  else if(p.includes('200G')||p.includes('200 G'))kg=0.2;
+  else if(p.includes('30G'))kg=0.03;
   else if(p.includes('1KG')||p.includes('1 KG'))kg=1.0;
-  else if(p.includes('300G'))kg=0.3;
   else if(p.includes('MORANGO')||p.includes('STRAWBERRY'))kg=0.3;
   return qtd*mult*kg;
 }
@@ -4858,13 +4927,16 @@ function rentNormalizeSKU(prod,unid){
   else if(p.includes(' BIO ')||p.startsWith('BIO '))canal='Bio';
   else if(p.includes('FATIADO'))canal='Fatiado';
   let emb='UN',pesoUnit=0.2;
-  if(u==='KG'){emb='KG';pesoUnit=1;}
+  if(u==='KG'||p.includes('GRANEL')){emb='KG';pesoUnit=1;}
   else if(u==='CX'){emb='CX';}
   if(emb!=='KG'){
-    if(p.includes('500G'))pesoUnit=0.5;
-    else if(p.includes('250G')||p.includes('MOYASHI')||p.includes('MOASHI')||p.includes('BROTO'))pesoUnit=0.25;
+    if(p.includes('600G')||p.includes('600 G'))pesoUnit=0.6;
+    else if(p.includes('500G')||p.includes('500 G'))pesoUnit=0.5;
+    else if(p.includes('250G')||p.includes('250 G')||p.includes('MOYASHI')||p.includes('MOASHI')||p.includes('BROTO'))pesoUnit=0.25;
+    else if(p.includes('300G')||p.includes('300 G'))pesoUnit=0.3;
+    else if(p.includes('200G')||p.includes('200 G'))pesoUnit=0.2;
+    else if(p.includes('30G'))pesoUnit=0.03;
     else if(p.includes('1KG')||p.includes('1 KG'))pesoUnit=1.0;
-    else if(p.includes('300G'))pesoUnit=0.3;
   }
   const parts=[esp,canal||null,emb!=='UN'?emb:null].filter(Boolean);
   return{label:parts.join(' '),especie:esp,canal,emb,pesoUnit};
@@ -5135,7 +5207,7 @@ function rentAgregarPorLoja(periods){
 }
 
 async function renderRentabilidade(){
-  ['rede','produto','loja'].forEach(v=>{const el=document.getElementById('rent-view-'+v);if(el)el.style.display=v===_rentSubView?'':'none';});
+  ['rede','produto','loja','abaixo'].forEach(v=>{const el=document.getElementById('rent-view-'+v);if(el)el.style.display=v===_rentSubView?'':'none';});
   const _lt=_rentSubView==='produto'?'rent-prod-tbody':_rentSubView==='loja'?'rent-loja-tbody':'rent-tbody';
   document.getElementById(_lt).innerHTML='<tr><td colspan="20" style="text-align:center;color:var(--muted);padding:20px">carregando...</td></tr>';
   document.getElementById('rent-kpis').innerHTML='';
@@ -5252,7 +5324,7 @@ async function renderRentabilidade(){
     }).join('');
     tb.querySelectorAll('tr[data-rent-i]').forEach(tr=>tr.addEventListener('click',()=>{
       const i=parseInt(tr.dataset.rentI);
-      _rentDados[i].rede==='OUTROS'?rentAbrirOutros():rentAbrirMix(i);
+      {const _rr=_rentDados[i];(_rr.rede==='OUTROS'||_rr.rede==='RESTAURANTES')?rentAbrirClienteList(i):rentAbrirMix(i);}
     }));
     document.getElementById('rent-tfoot').innerHTML=`<tr style="font-weight:600;border-top:2px solid var(--border2)">
       <td>TOTAL</td><td style="text-align:right;color:#378ADD">${rentFmtR(t.fb)}</td>
@@ -5271,6 +5343,8 @@ async function renderRentabilidade(){
     if(_rentProdGranView==='sku') renderRentPorSKU(lbl); else renderRentPorProduto(lbl);
   } else if(_rentSubView==='loja'){
     renderRentPorLoja(lbl);
+  } else if(_rentSubView==='abaixo'){
+    renderRentAbaixoCusto(lbl);
   }
 }
 
@@ -5865,9 +5939,10 @@ document.getElementById('rent-btn-fechar-outros').addEventListener('click',()=>{
 document.getElementById('rent-btn-fechar-familia').addEventListener('click',()=>{ _rentFamIdx=null; document.getElementById('rent-familia-section').style.display='none'; });
 document.getElementById('rent-btn-voltar-sku').addEventListener('click',()=>rentVoltarSKU());
 document.getElementById('rent-btn-fechar-loja-mix').addEventListener('click',()=>{ _rentLojaIdx=null; document.getElementById('rent-loja-mix-section').style.display='none'; });
+document.getElementById('rent-btn-fechar-client-list').addEventListener('click',()=>{ document.getElementById('rent-client-list-section').style.display='none'; });
 
 // Botões subview
-[['rede','Por Rede'],['produto','Por Produto'],['loja','Por Loja']].forEach(([v,l])=>{
+[['rede','Por Rede'],['produto','Por Produto'],['loja','Por Loja'],['abaixo','⚠️ Abaixo do Custo']].forEach(([v,l])=>{
   const b=document.createElement('button'); b.className='mb'+(v==='rede'?' on':''); b.textContent=l;
   b.setAttribute('data-sv',v);
   b.addEventListener('click',()=>{
@@ -5875,7 +5950,8 @@ document.getElementById('rent-btn-fechar-loja-mix').addEventListener('click',()=
     document.querySelectorAll('#rent-subview-btns .mb').forEach(x=>x.classList.remove('on')); b.classList.add('on');
     document.getElementById('rent-familia-section').style.display='none';
     document.getElementById('rent-loja-mix-section').style.display='none';
-    // Limpa tbodies das subviews inativas para não sobrar "carregando..."
+    document.getElementById('rent-client-list-section').style.display='none';
+    document.getElementById('rent-mix-section').style.display='none';
     ['rent-tbody','rent-prod-tbody','rent-loja-tbody'].forEach(id=>{
       if((v==='rede'&&id!=='rent-tbody')||(v==='produto'&&id!=='rent-prod-tbody')||(v==='loja'&&id!=='rent-loja-tbody'))
         { const el=document.getElementById(id); if(el)el.innerHTML=''; }
@@ -5889,6 +5965,337 @@ document.getElementById('rent-btn-fechar-loja-mix').addEventListener('click',()=
 // Filtros Por Loja
 document.getElementById('rent-loja-filtro-rede').addEventListener('change',e=>{ _rentLojaFiltroRede=e.target.value; renderRentabilidade(); });
 document.getElementById('rent-loja-filtro-vendedor').addEventListener('change',e=>{ _rentLojaFiltroVendedor=e.target.value; renderRentabilidade(); });
+
+// ── TAREFA 2-4: Client list, Abaixo do Custo, Simulador ────────────────────
+
+let _rentClientesAtual = [];
+let _rentSimCliente = null, _rentSimDesc = 0, _rentSimInputs = {}, _rentAbaixoData = [];
+
+function rentAbrirClienteList(redeIdx) {
+  _rentRedeIdx = redeIdx;
+  const r = _rentDados[redeIdx];
+  if (!r) return;
+  document.getElementById('rent-mix-section').style.display = 'none';
+  const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
+  const kgPorCliente = {};
+  for (const p of periods) {
+    for (const row of (_rentPplC[p] || [])) {
+      const cn14 = rentNormCNPJ(row.cliente_cnpj);
+      if (!cn14 || rentDeveExcluir(cn14, row.cliente_nome)) continue;
+      if (rentGetRede(row.cliente_nome || '', cn14) !== r.rede) continue;
+      kgPorCliente[cn14] = (kgPorCliente[cn14] || 0) + rentEstimKg(row.produto, row.quantidade_vendida || 0, row.unidade);
+    }
+  }
+  const desc = r.desc_pct;
+  _rentClientesAtual = Object.values(r.clientes).map(c => {
+    const kg = kgPorCliente[c.cnpj] || 0;
+    const receita = c.fat_bruto * (1 - desc);
+    const rkg = kg > 0 ? receita / kg : null;
+    return {...c, kg, receita, rkg, desc_pct: desc};
+  }).sort((a, b) => b.fat_bruto - a.fat_bruto);
+
+  document.getElementById('rent-client-list-title').textContent = `${r.rede} — ${_rentClientesAtual.length} clientes`;
+  document.getElementById('rent-client-list-tbody').innerHTML = _rentClientesAtual.map((c, i) => {
+    const mPct = c.fat_bruto > 0 ? (c.receita / c.fat_bruto) * 100 : null;
+    return `<tr style="cursor:pointer" onclick="rentAbrirClienteMix(${i})">
+      <td style="font-weight:500">${c.nome}</td>
+      <td style="text-align:right;color:var(--muted);font-size:11px">${c.cnpj}</td>
+      <td style="text-align:right;color:var(--muted)">${c.nfs}</td>
+      <td style="text-align:right;color:var(--muted)">${c.kg > 0 ? Math.round(c.kg).toLocaleString('pt-BR') + ' kg' : '—'}</td>
+      <td style="text-align:right">${rentFmtR(c.fat_bruto)}</td>
+      <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(c.receita)}</td>
+      <td style="text-align:right;color:#f0f0ef">${c.rkg != null ? rentFmtR2(c.rkg) + '/kg' : '—'}</td>
+      <td><span class="${_sdotClass(mPct)}"></span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rent-client-list-section').style.display = '';
+  document.getElementById('rent-client-list-section').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+window.rentAbrirClienteList = rentAbrirClienteList;
+
+function rentAbrirClienteMix(i) {
+  const c = _rentClientesAtual[i];
+  if (!c) return;
+  const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
+  const mixMap = {};
+  for (const p of periods) {
+    for (const row of (_rentPplC[p] || [])) {
+      const cn14 = rentNormCNPJ(row.cliente_cnpj);
+      if (cn14 !== c.cnpj) continue;
+      const key = row.produto || '?';
+      if (!mixMap[key]) mixMap[key] = {produto: key, unidade: row.unidade || 'UN', qtd_vendida: 0, valor_vendido: 0, qtd_dev: 0, valor_dev: 0};
+      const m = mixMap[key];
+      m.qtd_vendida += row.quantidade_vendida || 0;
+      m.valor_vendido += row.valor_vendido || 0;
+      const pf = (row.pct_devolucao || 0) / 100;
+      m.qtd_dev += row.quantidade_devolvida > 0 ? row.quantidade_devolvida : (row.quantidade_vendida || 0) * pf;
+      m.valor_dev += row.valor_devolvido > 0 ? row.valor_devolvido : (row.valor_vendido || 0) * pf;
+    }
+  }
+  const mix = Object.values(mixMap).map(it => {
+    const pct_fat = c.fat_bruto > 0 ? it.valor_vendido / c.fat_bruto : 0;
+    const rec = c.receita * pct_fat;
+    const pct_dev = it.valor_vendido > 0 ? it.valor_dev / it.valor_vendido : 0;
+    const un = it.unidade === 'KG' ? 'kg' : 'bja';
+    return {...it, pct_fat, rec_real: rec, pm_real: it.qtd_vendida > 0 ? rec / it.qtd_vendida : 0, pct_dev_it: pct_dev, un};
+  }).sort((a, b) => b.valor_vendido - a.valor_vendido);
+
+  const mPct = c.fat_bruto > 0 ? (c.receita / c.fat_bruto * 100).toFixed(1) : '—';
+  document.getElementById('rent-mix-title').textContent = `Mix — ${c.nome} (${c.nfs} NFs · margem ${mPct}% · desc ${Math.round(c.desc_pct * 100)}%)`;
+  document.getElementById('rent-mix-tbody').innerHTML = mix.map(it => {
+    const itKg = rentEstimKg(it.produto, it.qtd_vendida, it.unidade);
+    const itUnid = (it.unidade || '').toUpperCase(), itQtd = it.qtd_vendida || 0;
+    const itBja = itUnid === 'CX' ? itQtd * 6 : itUnid === 'KG' ? 0 : itQtd;
+    const itRkgBruto = itKg > 0 ? it.valor_vendido / itKg : null;
+    const itRbjaBruto = itBja > 0 ? it.valor_vendido / itBja : null;
+    const itRkgLiq = itRkgBruto !== null ? itRkgBruto * (1 - c.desc_pct) : null;
+    const itRbjaLiq = itRbjaBruto !== null ? itRbjaBruto * (1 - c.desc_pct) : null;
+    return `<tr>
+      <td>${it.produto || '—'}</td>
+      <td style="text-align:right;color:var(--muted)">${it.qtd_vendida > 0 ? it.qtd_vendida.toLocaleString('pt-BR', {maximumFractionDigits:2}) : '—'}</td>
+      <td style="text-align:right;color:var(--muted)">${it.unidade}</td>
+      <td style="text-align:right">${rentFmtR(it.valor_vendido)}</td>
+      <td style="text-align:right;color:var(--muted)">${it.pm_real > 0 ? rentFmtR2(it.pm_real) + '/' + it.un : '—'}</td>
+      <td style="text-align:right;color:#E24B4A">${it.qtd_dev > 0 ? it.qtd_dev.toLocaleString('pt-BR', {maximumFractionDigits:2}) : '—'}</td>
+      <td style="text-align:right;color:#E24B4A">${it.valor_dev > 0 ? rentFmtR(it.valor_dev) : '—'}</td>
+      <td style="text-align:right"><span class="badge ${it.pct_dev_it > 0.20 ? 'br' : it.pct_dev_it > 0.10 ? 'ba' : 'bg'}">${(it.pct_dev_it * 100).toFixed(1)}%</span></td>
+      <td style="text-align:right;font-weight:600;color:#1D9E75">${rentFmtR(it.rec_real)}</td>
+      <td style="text-align:right;color:#f0f0ef;font-weight:500">${itRkgLiq !== null ? rentFmtR2(itRkgLiq) + '/kg' : '—'}</td>
+      <td style="text-align:right;color:#f0f0ef;font-weight:500">${itRbjaLiq !== null ? rentFmtR2(itRbjaLiq) + '/bja' : '—'}</td>
+      <td style="text-align:right;color:var(--muted)">${(it.pct_fat * 100).toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rent-mix-section').style.display = '';
+  rentMontarSimulador(c, mix);
+  document.getElementById('rent-mix-section').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+window.rentAbrirClienteMix = rentAbrirClienteMix;
+
+function rentMontarSimulador(c, mix) {
+  _rentSimCliente = c;
+  _rentSimDesc = c.desc_pct;
+  _rentSimInputs = {};
+  const simEl = document.getElementById('rent-simulador-section');
+  const rows = mix.filter(it => {
+    const lbl = rentNormalizeSKU(it.produto, it.unidade).label;
+    return CUSTO_SKU_KG[lbl] != null;
+  }).map(it => {
+    const sku = rentNormalizeSKU(it.produto, it.unidade);
+    const itKg = rentEstimKg(it.produto, it.qtd_vendida, it.unidade);
+    const custo = CUSTO_SKU_KG[sku.label];
+    const rkg_bruto = itKg > 0 ? it.valor_vendido / itKg : null;
+    const rkg_liq = rkg_bruto !== null ? rkg_bruto * (1 - c.desc_pct) : null;
+    const margem_atual = rkg_liq != null && rkg_liq > 0 ? (rkg_liq - custo) / rkg_liq : null;
+    _rentSimInputs[sku.label] = {rkg_bruto_atual: rkg_bruto || 0, novo_preco: rkg_bruto || 0, custo, rkg_liq, kg: itKg, margem_atual};
+    return {produto: it.produto, label: sku.label, itKg, rkg_bruto, rkg_liq, custo, margem_atual};
+  });
+  if (!rows.length) { simEl.style.display = 'none'; return; }
+  simEl.style.display = '';
+  document.getElementById('rent-sim-tbody').innerHTML = rows.map(row => {
+    const mAtualPct = row.margem_atual != null ? (row.margem_atual * 100).toFixed(1) + '%' : '—';
+    const mAtualColor = row.margem_atual != null ? (row.margem_atual < 0 ? '#E24B4A' : row.margem_atual < 0.15 ? '#EF9F27' : '#1D9E75') : 'var(--muted)';
+    const safeId = row.label.replace(/[^a-z0-9]/gi, '_');
+    return `<tr data-sim-label="${row.label}">
+      <td style="font-weight:500">${row.produto}</td>
+      <td style="text-align:right;color:var(--muted)">${row.itKg > 0 ? Math.round(row.itKg).toLocaleString('pt-BR') : '—'}</td>
+      <td style="text-align:right;color:#f0f0ef">${row.rkg_liq != null ? rentFmtR2(row.rkg_liq) + '/kg' : '—'}</td>
+      <td style="text-align:right;color:#b0c4de">${row.custo != null ? rentFmtR2(row.custo) + '/kg' : '—'}</td>
+      <td style="text-align:right;color:${mAtualColor}">${mAtualPct}</td>
+      <td style="text-align:right"><input type="number" step="0.5" min="0" value="${row.rkg_bruto != null ? row.rkg_bruto.toFixed(2) : 0}"
+        style="width:80px;text-align:right;background:var(--bg3);border:1px solid var(--border2);color:#f0f0ef;border-radius:4px;padding:2px 6px;font-size:12px"
+        oninput="rentSimAtualizar('${row.label}', this.value)"></td>
+      <td style="text-align:right" id="sim-nova-margem-${safeId}">—</td>
+      <td style="text-align:right" id="sim-delta-${safeId}">—</td>
+    </tr>`;
+  }).join('');
+  rentSimAtualizarFooter();
+}
+
+function rentSimAtualizar(label, val) {
+  const s = _rentSimInputs[label];
+  if (!s) return;
+  const novo = parseFloat(val) || 0;
+  s.novo_preco = novo;
+  const novo_liq = novo * (1 - _rentSimDesc);
+  const nova_margem = novo_liq > 0 && s.custo != null ? (novo_liq - s.custo) / novo_liq : null;
+  const delta = s.kg > 0 && s.rkg_liq != null ? (novo_liq - s.rkg_liq) * s.kg : null;
+  const safeId = label.replace(/[^a-z0-9]/gi, '_');
+  const mEl = document.getElementById('sim-nova-margem-' + safeId);
+  const dEl = document.getElementById('sim-delta-' + safeId);
+  if (mEl) {
+    mEl.style.color = nova_margem != null ? (nova_margem < 0 ? '#E24B4A' : nova_margem < 0.15 ? '#EF9F27' : '#1D9E75') : 'var(--muted)';
+    mEl.textContent = nova_margem != null ? (nova_margem * 100).toFixed(1) + '%' : '—';
+  }
+  if (dEl) {
+    if (delta != null) {
+      dEl.style.color = delta >= 0 ? '#1D9E75' : '#E24B4A';
+      dEl.textContent = (delta >= 0 ? '+' : '') + rentFmtR(delta);
+    } else { dEl.textContent = '—'; }
+  }
+  rentSimAtualizarFooter();
+}
+window.rentSimAtualizar = rentSimAtualizar;
+
+function rentSimAtualizarFooter() {
+  let deltaTotal = 0, hasData = false;
+  for (const s of Object.values(_rentSimInputs)) {
+    if (s.kg > 0 && s.rkg_liq != null) {
+      deltaTotal += (s.novo_preco * (1 - _rentSimDesc) - s.rkg_liq) * s.kg;
+      hasData = true;
+    }
+  }
+  const fc = document.getElementById('rent-sim-footer');
+  if (fc) fc.innerHTML = hasData
+    ? `<span>Δ Receita Total estimada: <strong style="color:${deltaTotal >= 0 ? '#1D9E75' : '#E24B4A'}">${deltaTotal >= 0 ? '+' : ''}${rentFmtR(deltaTotal)}</strong></span>`
+    : '';
+}
+
+function rentSimPreset(target) {
+  for (const [label, s] of Object.entries(_rentSimInputs)) {
+    if (s.custo == null) continue;
+    const rkg_liq_target = target === 'breakeven' ? s.custo : s.custo / (1 - target / 100);
+    const novo_preco = _rentSimDesc < 1 ? rkg_liq_target / (1 - _rentSimDesc) : rkg_liq_target;
+    s.novo_preco = novo_preco;
+    const row = document.querySelector(`tr[data-sim-label="${label}"]`);
+    if (row) {
+      const inp = row.querySelector('input[type=number]');
+      if (inp) { inp.value = novo_preco.toFixed(2); rentSimAtualizar(label, novo_preco); }
+    }
+  }
+}
+window.rentSimPreset = rentSimPreset;
+
+function rentAgregarAbaixoCusto(periods) {
+  const byClienteProd = {};
+  for (const p of periods) {
+    for (const row of (_rentPplC[p] || [])) {
+      const cn14 = rentNormCNPJ(row.cliente_cnpj);
+      if (!cn14 || rentDeveExcluir(cn14, row.cliente_nome)) continue;
+      const rede = rentGetRede(row.cliente_nome || '', cn14);
+      const desc = rentGetDesconto(rede);
+      const sku = rentNormalizeSKU(row.produto, row.unidade);
+      const kg = rentEstimKg(row.produto, row.quantidade_vendida || 0, row.unidade);
+      const val = row.valor_vendido || 0;
+      const pf = (row.pct_devolucao || 0) / 100;
+      const dev = row.valor_devolvido > 0 ? row.valor_devolvido : val * pf;
+      const key = cn14 + '|' + sku.label;
+      if (!byClienteProd[key]) byClienteProd[key] = {cliente: row.cliente_nome || '', cnpj: cn14, rede, desc, label: sku.label, kg: 0, fat_bruto: 0, valor_dev: 0};
+      byClienteProd[key].kg += kg;
+      byClienteProd[key].fat_bruto += val;
+      byClienteProd[key].valor_dev += dev;
+    }
+  }
+  const result = [];
+  for (const s of Object.values(byClienteProd)) {
+    if (s.kg <= 0) continue;
+    const fat_liq = Math.max(0, s.fat_bruto - s.valor_dev);
+    const receita = fat_liq * (1 - s.desc);
+    const rkg_liq = receita / s.kg;
+    const custo = CUSTO_SKU_KG[s.label];
+    if (custo == null || rkg_liq >= custo) continue;
+    const deficit_kg = custo - rkg_liq;
+    const perda_total = deficit_kg * s.kg;
+    const rkg_bruto = s.fat_bruto / s.kg;
+    const breakeven_bruto = s.desc < 1 ? custo / (1 - s.desc) : custo;
+    const reajuste_pct = rkg_bruto > 0 ? (breakeven_bruto / rkg_bruto - 1) * 100 : null;
+    result.push({...s, fat_liq, receita, rkg_liq, rkg_bruto, custo, deficit_kg, perda_total, breakeven_bruto, reajuste_pct});
+  }
+  return result.sort((a, b) => b.perda_total - a.perda_total);
+}
+
+function renderRentAbaixoCusto(lbl) {
+  const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
+  const modoEl = document.getElementById('rent-abaixo-modo');
+  if (modoEl) modoEl.textContent = '(' + lbl + ' · custo: base sem overhead)';
+  _rentAbaixoData = rentAgregarAbaixoCusto(periods);
+  const totKg = _rentAbaixoData.reduce((s, it) => s + it.kg, 0);
+  const totPerda = _rentAbaixoData.reduce((s, it) => s + it.perda_total, 0);
+  const totClientes = new Set(_rentAbaixoData.map(it => it.cnpj)).size;
+  document.getElementById('rent-abaixo-kpis').innerHTML = `
+    <div class="kpi-card"><div class="kpi-val">${_rentAbaixoData.length}</div><div class="kpi-lbl">Itens c/ prejuízo</div></div>
+    <div class="kpi-card"><div class="kpi-val">${totClientes}</div><div class="kpi-lbl">Clientes afetados</div></div>
+    <div class="kpi-card"><div class="kpi-val">${Math.round(totKg).toLocaleString('pt-BR')} kg</div><div class="kpi-lbl">Volume afetado</div></div>
+    <div class="kpi-card" style="border-color:#E24B4A55"><div class="kpi-val" style="color:#E24B4A">${rentFmtR(totPerda)}</div><div class="kpi-lbl">Perda estimada</div></div>`;
+  const tb = document.getElementById('rent-abaixo-tbody');
+  if (!_rentAbaixoData.length) {
+    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Nenhum item abaixo do custo no período 🎉</td></tr>';
+    return;
+  }
+  tb.innerHTML = _rentAbaixoData.map(it => {
+    const urgente = it.deficit_kg / it.custo > 0.20;
+    const badge = urgente ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>';
+    return `<tr>
+      <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
+      <td style="text-align:right;color:var(--muted)">${Math.round(it.kg).toLocaleString('pt-BR')}</td>
+      <td style="text-align:right;color:#E24B4A;font-weight:500">${rentFmtR2(it.rkg_liq)}/kg</td>
+      <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
+      <td style="text-align:right;color:#E24B4A;font-weight:600">−${rentFmtR2(it.deficit_kg)}/kg</td>
+      <td style="text-align:right;color:#E24B4A;font-weight:700">${rentFmtR(it.perda_total)}</td>
+      <td style="text-align:right;color:#EF9F27">${it.breakeven_bruto != null ? rentFmtR2(it.breakeven_bruto) + '/kg' : '—'}</td>
+      <td style="text-align:right;color:#EF9F27">${it.reajuste_pct != null ? '+' + it.reajuste_pct.toFixed(1) + '%' : '—'}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportCSV_abaixo() {
+  const rows = [['Cliente','CNPJ','Produto','Kg','R$/kg_liq','Custo/kg','Deficit/kg','Perda_Total_R$','Breakeven_bruto','Reajuste_%','Status']];
+  for (const it of _rentAbaixoData) {
+    rows.push([it.cliente, it.cnpj, it.label, Math.round(it.kg), it.rkg_liq.toFixed(2), it.custo.toFixed(2), it.deficit_kg.toFixed(2), it.perda_total.toFixed(2),
+      it.breakeven_bruto != null ? it.breakeven_bruto.toFixed(2) : '', it.reajuste_pct != null ? it.reajuste_pct.toFixed(1) : '',
+      it.deficit_kg / it.custo > 0.20 ? 'URGENTE' : 'REVISAR']);
+  }
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'abaixo-custo.csv'; a.click();
+}
+window.exportCSV_abaixo = exportCSV_abaixo;
+
+function rentBuscaCliente(q) {
+  const res = document.getElementById('rent-busca-resultados');
+  if (!q || q.length < 2) { res.style.display = 'none'; return; }
+  const qu = q.toUpperCase();
+  const matches = [];
+  for (let i = 0; i < _rentDados.length && matches.length < 10; i++) {
+    const r = _rentDados[i];
+    for (const c of Object.values(r.clientes || {})) {
+      if ((c.nome || '').toUpperCase().includes(qu) || (c.cnpj || '').includes(q)) {
+        matches.push({...c, redeIdx: i, rede: r.rede, isGroup: r.rede === 'OUTROS' || r.rede === 'RESTAURANTES'});
+        if (matches.length >= 10) break;
+      }
+    }
+  }
+  if (!matches.length) { res.innerHTML = '<div style="padding:10px;color:var(--muted);font-size:13px">Nenhum resultado</div>'; res.style.display = ''; return; }
+  res.innerHTML = matches.map((m, j) => `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border2)"
+    onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''"
+    onclick="rentBuscaAbrir(${j})">
+    <div style="font-weight:500;font-size:13px">${m.nome}</div>
+    <div style="font-size:11px;color:var(--muted)">${m.rede} · ${m.cnpj} · ${rentFmtR(m.fat_bruto)}</div>
+  </div>`).join('');
+  window._rentBuscaMatches = matches;
+  res.style.display = '';
+}
+window.rentBuscaCliente = rentBuscaCliente;
+
+function rentBuscaAbrir(j) {
+  const m = (window._rentBuscaMatches || [])[j];
+  if (!m) return;
+  document.getElementById('rent-busca-resultados').style.display = 'none';
+  document.getElementById('rent-busca-cliente').value = '';
+  if (m.isGroup) rentAbrirClienteList(m.redeIdx);
+  else rentAbrirMix(m.redeIdx);
+}
+window.rentBuscaAbrir = rentBuscaAbrir;
+
+// Wire search box + CSV export
+document.getElementById('rent-busca-cliente').addEventListener('input', e => rentBuscaCliente(e.target.value));
+document.addEventListener('click', e => {
+  if (!e.target.closest('#rent-busca-resultados') && !e.target.closest('#rent-busca-cliente')) {
+    const res = document.getElementById('rent-busca-resultados');
+    if (res) res.style.display = 'none';
+  }
+});
+document.getElementById('rent-abaixo-csv').addEventListener('click', exportCSV_abaixo);
 
 // ── Navigation (updated) ───────────────────────────────────────────────
 // Expose to global scope for onclick handlers
