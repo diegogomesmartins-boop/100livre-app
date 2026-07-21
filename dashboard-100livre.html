@@ -4852,41 +4852,63 @@ const CUSTO_SKU_KG = {
   'Shimeji Preto Members Mark CX': 24.16,
 };
 
-const _FAM_ESP_MAP = {
-  'Cogumelo Orgânico':       ['paris'],
-  'GPA — Qualitá': ['paris','portobello'],
-  "Sam's — Members Mark":['shimeji_branco'],
-  'Carrefour Bio':            ['paris'],
-  'Cogumelo Padrão':          ['paris','portobello','shimeji_branco','shimeji_preto'],
+// Custos auditados por espécie — valores extraídos do simulador Prod×Terc
+// custo_prod = insumo/kg (substrato/blocos ÷ rendimento meta); null = só compra
+const CUSTOS_ESPECIE = {
+  paris:          {custo_compra:27.00, custo_prod:27.89, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
+  portobello:     {custo_compra:32.04, custo_prod:20.84, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
+  shitake:        {custo_compra:25.00, custo_prod:13.88, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
+  shimeji_preto:  {custo_compra:24.16, custo_prod:12.71, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
+  shimeji_branco: {custo_compra:15.74, custo_prod:null,  fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
+  shimeji_salmao: {custo_compra:24.16, custo_prod:null,  fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
 };
-function getCustoTotal(familia){
-  const keys=_FAM_ESP_MAP[familia];
-  if(!keys||!keys.length) return null;
-  const eps=keys.map(k=>ESPECIES_PROD[k]).filter(Boolean);
-  if(!eps.length) return null;
-  const avg=arr=>arr.reduce((s,v)=>s+v,0)/arr.length;
-  const insumos=eps.map(ep=>prodCustoInsumoKg(ep.meta_rend,ep)).filter(v=>v!=null);
-  const compras=eps.map(ep=>ep.custo_compra_revenda).filter(v=>v!=null);
-  if(!insumos.length&&!compras.length) return null;
-  const custo_insumo_kg=insumos.length?+avg(insumos).toFixed(2):null;
-  const custo_compra_kg=compras.length?+avg(compras).toFixed(2):null;
-  const custo_embalagem_kg=CUSTO_EMBALAGEM_KG;
-  const custo_energia_kg=CUSTO_ENERGIA_KG;
-  const custo_fixos_kg=CUSTO_FIXOS_KG;
-  const custo_frete_kg=CUSTO_FRETE_KG;
-  const overhead=CUSTO_COMPARTILHADO_KG;
-  const custo_total_producao=custo_insumo_kg!=null?+(custo_insumo_kg+overhead).toFixed(2):null;
-  const custo_total_compra=custo_compra_kg!=null?+(custo_compra_kg+overhead).toFixed(2):null;
-  let melhor_opcao=null,melhor_custo_total=null;
-  if(custo_total_producao!=null&&custo_total_compra!=null){
-    melhor_opcao=custo_total_producao<=custo_total_compra?'PROD':'COMPRA';
-    melhor_custo_total=Math.min(custo_total_producao,custo_total_compra);
-  } else if(custo_total_producao!=null){melhor_opcao='PROD';melhor_custo_total=custo_total_producao;}
-  else if(custo_total_compra!=null){melhor_opcao='COMPRA';melhor_custo_total=custo_total_compra;}
-  return{custo_insumo_kg,custo_compra_kg,custo_fixos_kg,custo_embalagem_kg,custo_energia_kg,custo_frete_kg,custo_total_producao,custo_total_compra,melhor_opcao,melhor_custo_total};
+function getCustoTotal(especieKey){
+  const e=CUSTOS_ESPECIE[especieKey];
+  if(!e) return null;
+  const overhead=e.fixos+e.embalagem+e.energia+e.frete;
+  const custo_total_compra=+(e.custo_compra+overhead).toFixed(2);
+  const custo_total_producao=e.custo_prod!=null?+(e.custo_prod+overhead).toFixed(2):null;
+  const melhor_opcao=custo_total_producao!=null&&custo_total_producao<custo_total_compra?'PROD':'COMPRA';
+  const melhor_custo_total=custo_total_producao!=null?Math.min(custo_total_compra,custo_total_producao):custo_total_compra;
+  return{custo_insumo_kg:e.custo_prod,custo_compra_kg:e.custo_compra,custo_fixos_kg:e.fixos,custo_embalagem_kg:e.embalagem,custo_energia_kg:e.energia,custo_frete_kg:e.frete,custo_total_producao,custo_total_compra,melhor_opcao,melhor_custo_total};
 }
-// Backward compat para renderRentScatter
-function getCustoEspecie(nomeFamilia){const c=getCustoTotal(nomeFamilia);return c?{custo_producao:c.custo_total_producao,custo_compra:c.custo_total_compra,especie:nomeFamilia}:null;}
+// Mapeia label de SKU (de rentNormalizeSKU) → chave de CUSTOS_ESPECIE
+function _skuToEspecie(lbl){
+  const u=(lbl||'').toUpperCase();
+  if(u.startsWith('PARIS')) return 'paris';
+  if(u.startsWith('PORTOBELLO')) return 'portobello';
+  if(u.includes('SHITAKE')||u.includes('SHIITAKE')) return 'shitake';
+  if(u.includes('SALMAO')||u.includes('SALMÃO')) return 'shimeji_salmao';
+  if(u.includes('PRETO')) return 'shimeji_preto';
+  if(u.includes('SHIMEJI')||u.includes('BRANCO')) return 'shimeji_branco';
+  return null;
+}
+// Custo ponderado da família a partir do mapa SKU→kg acumulado em rentAgregarPorFamilia
+function _famCustoFromSKUs(skuKgMap){
+  let wCC=0,wCP=0,wMel=0,wKg=0;
+  for(const [lbl,kg] of Object.entries(skuKgMap||{})){
+    if(kg<=0) continue;
+    const ci=getCustoTotal(_skuToEspecie(lbl));
+    if(!ci) continue;
+    wCC+=ci.custo_total_compra*kg;
+    wCP+=(ci.custo_total_producao??ci.custo_total_compra)*kg;
+    wMel+=ci.melhor_custo_total*kg;
+    wKg+=kg;
+  }
+  if(wKg===0) return null;
+  const custo_total_compra=+(wCC/wKg).toFixed(2);
+  const custo_total_producao=+(wCP/wKg).toFixed(2);
+  const melhor_custo_total=+(wMel/wKg).toFixed(2);
+  const melhor_opcao=melhor_custo_total<custo_total_compra?'PROD':'COMPRA';
+  const e=CUSTOS_ESPECIE[Object.keys(skuKgMap).map(_skuToEspecie).find(Boolean)||''];
+  return{
+    custo_insumo_kg:e?.custo_prod??null,custo_compra_kg:e?.custo_compra??null,
+    custo_fixos_kg:5.96,custo_embalagem_kg:2.04,custo_energia_kg:1.75,custo_frete_kg:5.47,
+    custo_total_compra,custo_total_producao,melhor_opcao,melhor_custo_total
+  };
+}
+// Compat scatter
+function getCustoEspecie(f){const ci=_famCustoFromSKUs(f._skuKg||{});return ci?{custo_producao:ci.custo_total_producao,custo_compra:ci.custo_total_compra}:null;}
 
 function rentGetVendedor(rede){if(['GPA',"SAM'S",'SONDA'].includes(rede))return'Anderson';if(['CARREFOUR','MAMBO','HIROTA'].includes(rede))return'Lucas';if(['ZONA SUL','DIA','RESTAURANTES'].includes(rede))return'Julia';return'—';}
 
@@ -5235,12 +5257,12 @@ let _rentScatterChart=null;
 function renderRentScatter(fams){
   const wrap=document.getElementById('rent-scatter-wrap');
   if(!wrap)return;
-  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&getCustoEspecie(f.familia));
+  const dados=fams.filter(f=>f.kg>0&&f.rkg>0&&_famCustoFromSKUs(f._skuKg));
   if(!dados.length){wrap.style.display='none';return;}
   wrap.style.display='';
   const pts=dados.map(f=>{
-    const ci=getCustoEspecie(f.familia);
-    const c=ci?Math.min(ci.custo_compra||Infinity,ci.custo_producao||Infinity):null;
+    const ci=_famCustoFromSKUs(f._skuKg);
+    const c=ci?.melhor_custo_total??null;
     const mPct=c&&isFinite(c)&&f.rkg>0?(f.rkg-c)/f.rkg*100:null;
     return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:Math.max(4,Math.sqrt(f.receita/200)),label:f.familia,receita:f.receita};
   }).filter(p=>p.y!=null);
@@ -5514,7 +5536,7 @@ function renderRentPorProduto(lbl){
     const pct_dev=f.fat_bruto>0?f.valor_dev/f.fat_bruto:0;
     const s=f.margem>=0.55?'🟢':f.margem>=0.35?'🟡':'🔴';
     const dcol=pct_dev>0.20?'#E24B4A':pct_dev>0.10?'#EF9F27':'#1D9E75';
-    const ci=getCustoTotal(f.familia);
+    const ci=_famCustoFromSKUs(f._skuKg);
     const cc=ci?.custo_total_compra,cp=ci?.custo_total_producao,mo=ci?.melhor_opcao,mc=ci?.melhor_custo_total;
     const mKg=mc!=null&&f.rkg>0?+(f.rkg-mc).toFixed(2):null;
     const mPct=mKg!=null&&f.rkg>0?mKg/f.rkg:null;
@@ -5574,9 +5596,10 @@ function rentAbrirFamilia(idx){
   document.getElementById('rent-familia-title').textContent=f.familia+' — SKUs';
   document.getElementById('rent-btn-voltar-sku').style.display='none';
   document.getElementById('rent-sku-rede-view').style.display='none';
-  const ci=getCustoTotal(f.familia);
-  const mc=ci?.melhor_custo_total;
   document.getElementById('rent-familia-tbody').innerHTML=_rentFamSKUs.map((s,i)=>{
+    const esp=_skuToEspecie(s.label);
+    const ci=esp?getCustoTotal(esp):null;
+    const mc=ci?.melhor_custo_total;
     const pct_dev=s.fat_bruto>0?s.valor_dev/s.fat_bruto:0;
     const rkg_bruto=s.kg>0?s.fat_bruto/s.kg:null;
     const rkg_real=rkg_bruto!=null?rkg_bruto*(1-f.desc_ponderado):null;
