@@ -655,8 +655,8 @@ tr:hover .rent-nav-icon{opacity:.6}
           <div class="ct" style="margin-bottom:0">Por produto <span id="rent-prod-period-label" style="color:#378ADD"></span></div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             <span style="font-size:10px;color:var(--muted)">Custo:</span>
-            <button class="mb on" id="rent-custo-pleno"  onclick="_setRentCustoModo('pleno')"  style="font-size:11px;padding:3px 9px" title="Inclui rateio de fixos de produção (R$5,96/kg)">Pleno</button>
-            <button class="mb"    id="rent-custo-direto" onclick="_setRentCustoModo('direto')" style="font-size:11px;padding:3px 9px" title="Sem fixos — compra + embalagem + energia + frete">Direto</button>
+            <button class="mb active" data-custo-modo="pleno"  onclick="rentSetCustoModo('pleno')"  style="font-size:11px;padding:3px 9px" title="Inclui rateio de fixos de produção (R$5,96/kg)">Pleno</button>
+            <button class="mb"        data-custo-modo="direto" onclick="rentSetCustoModo('direto')" style="font-size:11px;padding:3px 9px" title="Sem fixos — compra + embalagem + energia + frete">Direto</button>
             <span style="border-left:1px solid var(--border2);height:16px;margin:0 2px"></span>
             <button class="mb on" id="pg-familia"  onclick="_setRentProdView('familia')"  style="font-size:11px;padding:3px 9px">Família</button>
             <button class="mb"    id="pg-sku"      onclick="_setRentProdView('sku')"     style="font-size:11px;padding:3px 9px">SKU</button>
@@ -4754,7 +4754,7 @@ const rentFmtR2 = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractio
 let _rentPeriodo='acum', _rentSort='receita', _rentFatC={}, _rentDevC={}, _rentPplC={}, _rentDreC={}, _rentDados=[], _rentRedeIdx=null, _rentOutrosC=[];
 let _rentSubView='rede', _rentFamIdx=null, _rentLojaIdx=null;
 let _rentProdGranView='familia';
-let _rentCustoModo='pleno'; // 'pleno' (inclui fixos) | 'direto' (sem fixos de produção)
+let _rentCustoModo=new URLSearchParams(location.search).get('c')||'pleno'; // 'pleno' | 'direto'
 let _rentFamSKUs=[];
 let _rentLojaFiltroRede='Todas', _rentLojaFiltroVendedor='Todos';
 let _rentLojasDados=[], _rentFamDados=[];
@@ -5289,9 +5289,9 @@ function _setRentProdView(v){
     else renderRentPorProduto(lbl);
   }
 }
-function _setRentCustoModo(m){
+function rentSetCustoModo(m){
   _rentCustoModo=m;
-  ['pleno','direto'].forEach(k=>{const b=document.getElementById('rent-custo-'+k);if(b)b.classList.toggle('on',k===m);});
+  document.querySelectorAll('[data-custo-modo]').forEach(b=>b.classList.toggle('active',b.dataset.custoModo===m));
   try{const u=new URL(location.href);u.searchParams.set('c',m);history.replaceState(null,'',u.toString());}catch(e){}
   if(_rentSubView==='produto'&&_rentProdGranView==='familia'){
     const lbl=(document.getElementById('rent-prod-period-label').textContent||'').replace(/^[—\s]+/,'');
@@ -5893,6 +5893,7 @@ document.getElementById('rent-loja-filtro-vendedor').addEventListener('change',e
 // ── Navigation (updated) ───────────────────────────────────────────────
 // Expose to global scope for onclick handlers
 window.setMes  = setMes;
+window.rentSetCustoModo = rentSetCustoModo;
 
 // ═══════════════════════════════════════════════════════════════════════
 // PRODUÇÃO × TERCEIRIZAÇÃO
@@ -9456,8 +9457,8 @@ window._silentRefresh = function() {
 
 try {
   startListeners();
-  // Restaura modo custo do URL (?c=direto|pleno)
-  try{const _urlC=new URL(location.href).searchParams.get('c');if(_urlC==='direto'||_urlC==='pleno')_setRentCustoModo(_urlC);}catch(e){}
+  // Sincroniza estado inicial dos botões de custo com _rentCustoModo (já lido da URL)
+  try{rentSetCustoModo(_rentCustoModo);}catch(e){}
   // Navega para a view guardada no hash ao carregar (ex: #rentabilidade/produto)
   const _h = location.hash.replace('#','');
   if (_h) {
