@@ -5264,8 +5264,7 @@ function renderRentScatter(fams){
     const ci=_famCustoFromSKUs(f._skuKg);
     const c=ci?.melhor_custo_total??null;
     const mPct=c!=null&&c>0&&isFinite(c)&&f.rkg>0?(f.rkg-c)/f.rkg*100:null;
-    const rSafe=Math.sqrt(Math.max(0,f.receita)/200);
-    return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:Math.max(4,isFinite(rSafe)?rSafe:4),label:f.familia||'?',receita:f.receita};
+    return{x:Math.round(f.kg),y:mPct!=null?+mPct.toFixed(1):null,r:f.receita>0?Math.max(4,Math.sqrt(f.receita/1000)):4,label:f.familia||'?',receita:f.receita};
   }).filter(p=>p.y!=null);
   if(!pts.length){wrap.style.display='none';return;}
   const ctx=document.getElementById('rent-scatter-chart');
