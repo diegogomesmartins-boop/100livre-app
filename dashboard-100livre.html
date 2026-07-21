@@ -708,6 +708,16 @@ tr:hover .rent-nav-icon{opacity:.6}
         <label style="display:flex;gap:5px;align-items:center;cursor:pointer;font-size:12px"><input type="checkbox" onchange="rentAbaixoFiltroMudar()" value="INTERNO"> Interno</label>
         <label style="display:flex;gap:5px;align-items:center;cursor:pointer;font-size:12px"><input type="checkbox" onchange="rentAbaixoFiltroMudar()" value="LOGISTICA"> Logística</label>
       </div>
+      <!-- Materialidade -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;padding:8px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--border2);align-items:center">
+        <div style="font-size:11px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Materialidade:</div>
+        <label style="font-size:12px">Vol mín <input type="number" id="mat-vol" value="50" min="0" style="width:50px;margin-left:4px;padding:2px 4px;background:var(--bg3,#1a1a1a);border:1px solid var(--border2);border-radius:4px;color:inherit" onchange="rentAbaixoFiltroMudar()"> kg</label>
+        <label style="font-size:12px">NFs mín <input type="number" id="mat-nfs" value="3" min="1" style="width:35px;margin-left:4px;padding:2px 4px;background:var(--bg3,#1a1a1a);border:1px solid var(--border2);border-radius:4px;color:inherit" onchange="rentAbaixoFiltroMudar()"></label>
+        <label style="font-size:12px">Meses mín <input type="number" id="mat-meses" value="2" min="1" style="width:35px;margin-left:4px;padding:2px 4px;background:var(--bg3,#1a1a1a);border:1px solid var(--border2);border-radius:4px;color:inherit" onchange="rentAbaixoFiltroMudar()"></label>
+        <label style="font-size:12px">Perda mín <input type="number" id="mat-perda" value="500" min="0" style="width:60px;margin-left:4px;padding:2px 4px;background:var(--bg3,#1a1a1a);border:1px solid var(--border2);border-radius:4px;color:inherit" onchange="rentAbaixoFiltroMudar()"> R$</label>
+        <label style="display:flex;gap:5px;align-items:center;cursor:pointer;font-size:12px"><input type="checkbox" id="mat-all" onchange="rentAbaixoFiltroMudar()"> Mostrar todos</label>
+        <div id="rent-abaixo-mat-excl" style="font-size:11px;color:var(--muted);margin-left:auto"></div>
+      </div>
       <div id="rent-abaixo-exclusoes" style="font-size:11px;color:var(--muted);margin-bottom:8px;cursor:pointer" onclick="rentAbaixoToggleExcluidos()"></div>
       <div id="rent-abaixo-excluidos-det" style="display:none;margin-bottom:10px;padding:10px 14px;background:var(--bg2);border-radius:6px;font-size:11px;color:var(--muted);border:1px solid var(--border2)"></div>
       <div class="cc">
@@ -725,6 +735,21 @@ tr:hover .rent-nav-icon{opacity:.6}
             <th style="text-align:right">Reajuste %</th>
             <th>Ação</th>
           </tr></thead><tbody id="rent-abaixo-tbody"></tbody></table>
+        </div>
+      </div>
+      <!-- Evento Isolado -->
+      <div id="rent-abaixo-isolado-section" style="display:none;margin-top:16px">
+        <div class="cc">
+          <div class="ct">⚡ Revisar — possível evento isolado <span id="rent-abaixo-isolado-label" style="font-size:11px;color:var(--muted)"></span></div>
+          <div style="overflow-x:auto">
+            <table class="it"><thead><tr>
+              <th>Cliente</th><th>Produto</th><th style="text-align:right">Kg</th>
+              <th style="text-align:right">R$/kg líq</th><th style="text-align:right;color:#b0c4de">Custo</th>
+              <th style="text-align:right;color:#E24B4A">Perda Total</th>
+              <th style="text-align:right">Break-even</th>
+              <th>Motivo</th>
+            </tr></thead><tbody id="rent-abaixo-isolado-tbody"></tbody></table>
+          </div>
         </div>
       </div>
     </div>
@@ -4855,7 +4880,7 @@ window.exportarCsvMotorista = exportarCsvMotorista;
 const RENT_DESCONTOS = {'GPA':0.21,'CARREFOUR':0.09,'SONDA':0.07,'ZONA SUL':0.05,"SAM'S":0.10,'MAMBO':0.10,'HIROTA':0.10,'EINSTEIN':0,'MUFFATO':0,'5M':0,'RESTAURANTES':0,'DIA':0};
 const RENT_CORES = {'GPA':'#378ADD','CARREFOUR':'#1D9E75','ZONA SUL':'#EF9F27',"SAM'S":'#7F77DD','SONDA':'#E24B4A','HIROTA':'#5DCAA5','DIA':'#D85A30','MAMBO':'#888780','EINSTEIN':'#9B7FDD','MUFFATO':'#DD7F9B','5M':'#7FDDBB','RESTAURANTES':'#DDA87F','BOTICÁRIO':'#DD3C8F','SOUZA CRUZ':'#3CDD8F','OUTROS':'#555452'};
 const rentNormCNPJ = c => (c||'').replace(/\D/g,'');
-const RENT_EXCLUIR_RAIZ = ['06188376','45946457'];
+const RENT_EXCLUIR_RAIZ = ['06188376','45946457','59109922']; // 59109922 = MARIZA DIVINO
 const RENT_EXCLUIR_NOME = ['HB POOLING','IFCO','HOLAMGROW','INDATABRASIL','INDATA BRASIL','HOCHIMIX'];
 const rentFmtR  = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
 const rentFmtR2 = v => 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -5045,7 +5070,10 @@ function _skuToEspecie(lbl){
 function _embalemKg(lbl){
   const u=(lbl||'').toUpperCase();
   if(u.endsWith(' KG')||u.includes('GRANEL')) return 0.40;
+  if(u.includes('600G')) return 0.68;
+  if(u.includes('500G')) return 0.82;
   if(u.includes('250G')||u.includes('MOYASHI')||u.includes('MOASHI')||u.includes('BROTO')) return 1.63;
+  if(u.includes('30G')) return 13.60;
   return 2.04;
 }
 // Custo ponderado da família — suporta modo 'pleno' (default) ou 'direto' (sem fixos)
@@ -6002,21 +6030,31 @@ document.getElementById('rent-loja-filtro-vendedor').addEventListener('change',e
 
 // ── Tipo cliente ────────────────────────────────────────────────────────────
 
-const _TIPO_CLIENTE = {
-  'KENTISA':           'TRADER',
-  'TAKOISH':           'TRADER',
-  'URAKAMI':           'TRADER',
-  'IWAO':              'FORNECEDOR',
-  'CASSIA':            'FORNECEDOR',
-  'MARIZA':            'FORNECEDOR',
-  'DIEGO GOMES':       'INTERNO',
-  'INDATABRASIL':      'INTERNO',
-  'HOCHIMIX':          'INTERNO',
-  'HB POOLING':        'LOGISTICA',
-  'IFCO':              'LOGISTICA',
-  'HOLAMGROW':         'INTERNO',
+const _TIPO_CLIENTE_CNPJ = {
+  '51025112000138': 'TRADER',   // KENTISA
+  '22339664000112': 'TRADER',   // KENTISA (2º CNPJ)
+  '10307715000145': 'TRADER',   // TAKOISH
+  '08481951000131': 'TRADER',   // URAKAMI
+  '22775873898':    'INTERNO',  // DIEGO GOMES (CPF)
+  '06188376000158': 'INTERNO',  // INDATABRASIL
+  '45946457000121': 'INTERNO',  // HOCHIMIX
 };
-function rentGetTipoCliente(nome) {
+const _TIPO_CLIENTE = {
+  'KENTISA':     'TRADER',
+  'TAKOISH':     'TRADER',
+  'URAKAMI':     'TRADER',
+  'IWAO':        'FORNECEDOR',
+  'CASSIA':      'FORNECEDOR',
+  'DIEGO GOMES': 'INTERNO',
+  'INDATABRASIL':'INTERNO',
+  'HOCHIMIX':    'INTERNO',
+  'HB POOLING':  'LOGISTICA',
+  'IFCO':        'LOGISTICA',
+  'HOLAMGROW':   'INTERNO',
+};
+function rentGetTipoCliente(nome, cnpj) {
+  const cn = (cnpj || '').replace(/\D/g, '');
+  if (cn && _TIPO_CLIENTE_CNPJ[cn]) return _TIPO_CLIENTE_CNPJ[cn];
   const u = (nome || '').toUpperCase();
   for (const [k, v] of Object.entries(_TIPO_CLIENTE)) {
     if (u.includes(k.toUpperCase())) return v;
@@ -6226,12 +6264,21 @@ window.rentSimPreset = rentSimPreset;
 function _rentAbaixoGetFiltros() {
   const tipos = new Set(), clientes = new Set();
   document.querySelectorAll('#rent-view-abaixo input[type=checkbox]').forEach(cb => {
+    if (cb.id === 'mat-all') return;
     if (!cb.checked) return;
     const v = cb.value;
     if (['VENDA','BONIFICACAO','AMOSTRA','REMESSA','TRANSFERENCIA'].includes(v)) tipos.add(v);
     else clientes.add(v);
   });
-  return {tipos, clientes};
+  const matAll = !!(document.getElementById('mat-all') || {}).checked;
+  const matCfg = {
+    vol:   parseFloat((document.getElementById('mat-vol') || {}).value) || 50,
+    nfs:   parseInt((document.getElementById('mat-nfs') || {}).value)   || 3,
+    meses: parseInt((document.getElementById('mat-meses') || {}).value) || 2,
+    perda: parseFloat((document.getElementById('mat-perda') || {}).value) || 500,
+    all:   matAll
+  };
+  return {tipos, clientes, matCfg};
 }
 
 function rentAbaixoFiltroMudar() { renderRentAbaixoCusto(_rentAbaixoLbl || ''); }
@@ -6240,6 +6287,8 @@ window.rentAbaixoFiltroMudar = rentAbaixoFiltroMudar;
 let _rentAbaixoLbl = '';
 let _rentAbaixoExcluidosDet = [];
 let _rentAbaixoExclShowDetail = false;
+let _rentAbaixoIsoladoData = [];
+let _rentAbaixoMatExcluidos = [];
 
 function rentAbaixoToggleExcluidos() {
   _rentAbaixoExclShowDetail = !_rentAbaixoExclShowDetail;
@@ -6248,17 +6297,17 @@ function rentAbaixoToggleExcluidos() {
 }
 window.rentAbaixoToggleExcluidos = rentAbaixoToggleExcluidos;
 
-function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes) {
+function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes, matCfg) {
   const byClienteProd = {};
   const excluidos = [];
   for (const p of periods) {
     for (const row of (_rentPplC[p] || [])) {
       const cn14 = rentNormCNPJ(row.cliente_cnpj);
       if (!cn14 || rentDeveExcluir(cn14, row.cliente_nome)) continue;
-      const tipoOp = row.tipo_operacao || 'VENDA'; // backward compat: old rows sem campo → VENDA
-      const tipoCliente = rentGetTipoCliente(row.cliente_nome || '');
+      const tipoOp = row.tipo_operacao || 'VENDA';
       if (filtroTipos && !filtroTipos.has(tipoOp)) { excluidos.push({motivo:'tipo_op:'+tipoOp, nome: row.cliente_nome, produto: row.produto}); continue; }
-      if (filtroClientes && !filtroClientes.has(tipoCliente)) { excluidos.push({motivo:'tipo_cli:'+tipoCliente, nome: row.cliente_nome, produto: row.produto}); continue; }
+      // tipo_cliente filter applied post-aggregation so traders still reach evento_isolado
+      const tipoCliente = rentGetTipoCliente(row.cliente_nome || '', cn14);
       const rede = rentGetRede(row.cliente_nome || '', cn14);
       const desc = rentGetDesconto(rede);
       const sku = rentNormalizeSKU(row.produto, row.unidade);
@@ -6266,41 +6315,107 @@ function rentAgregarAbaixoCusto(periods, filtroTipos, filtroClientes) {
       const val = row.valor_vendido || 0;
       const pf = (row.pct_devolucao || 0) / 100;
       const dev = row.valor_devolvido > 0 ? row.valor_devolvido : val * pf;
+      const fat_liq_row = val - dev;
+      const receita_row = fat_liq_row * (1 - desc);
+      const rkg_row = kg > 0 ? receita_row / kg : 0;
       const key = cn14 + '|' + sku.label + '|' + tipoOp;
-      if (!byClienteProd[key]) byClienteProd[key] = {cliente: row.cliente_nome || '', cnpj: cn14, rede, desc, label: sku.label, tipoOp, tipoCliente, kg: 0, fat_bruto: 0, valor_dev: 0};
-      byClienteProd[key].kg += kg;
-      byClienteProd[key].fat_bruto += val;
-      byClienteProd[key].valor_dev += dev;
+      if (!byClienteProd[key]) byClienteProd[key] = {
+        cliente: row.cliente_nome || '', cnpj: cn14, rede, desc, label: sku.label, tipoOp, tipoCliente,
+        kg: 0, fat_bruto: 0, valor_dev: 0, n_nfs: 0, meses_set: new Set(), max_nf_kg: 0, sum_rkg2_kg: 0
+      };
+      const acc = byClienteProd[key];
+      acc.kg += kg; acc.fat_bruto += val; acc.valor_dev += dev;
+      acc.n_nfs++;
+      acc.meses_set.add(row.periodo || p);
+      if (kg > acc.max_nf_kg) acc.max_nf_kg = kg;
+      if (kg > 0) acc.sum_rkg2_kg += rkg_row * rkg_row * kg;
     }
   }
   _rentAbaixoExcluidosDet = excluidos;
-  const result = [];
+
+  const matVol   = matCfg?.vol   ?? 50;
+  const matNfs   = matCfg?.nfs   ?? 3;
+  const matMeses = matCfg?.meses ?? 2;
+  const matPerda = matCfg?.perda ?? 500;
+  const matAll   = matCfg?.all   ?? false;
+
+  const result = [], resultIsolado = [], excMat = [];
   for (const s of Object.values(byClienteProd)) {
     if (s.kg <= 0) continue;
     const fat_liq = Math.max(0, s.fat_bruto - s.valor_dev);
     const receita = fat_liq * (1 - s.desc);
     const rkg_liq = receita / s.kg;
-    const custo = CUSTO_SKU_KG[s.label];
-    if (custo == null || rkg_liq >= custo) continue;
+    const _ci = _famCustoFromSKUs({[s.label]: 1}, _rentCustoModo);
+    if (!_ci) continue;
+    const custo = _ci.melhor_custo_total;
+    if (rkg_liq >= custo) continue;
     const deficit_kg = custo - rkg_liq;
     const perda_total = deficit_kg * s.kg;
     const rkg_bruto = s.fat_bruto / s.kg;
     const breakeven_bruto = s.desc < 1 ? custo / (1 - s.desc) : custo;
     const reajuste_pct = rkg_bruto > 0 ? (breakeven_bruto / rkg_bruto - 1) * 100 : null;
-    result.push({...s, fat_liq, receita, rkg_liq, rkg_bruto, custo, deficit_kg, perda_total, breakeven_bruto, reajuste_pct});
+    const n_meses = s.meses_set.size;
+    const variance = s.sum_rkg2_kg / s.kg - rkg_liq * rkg_liq;
+    const desvio = Math.sqrt(Math.max(0, variance));
+    const cv = rkg_liq > 0 ? desvio / rkg_liq : 0;
+    const conc = s.kg > 0 ? s.max_nf_kg / s.kg : 0;
+    const evento_isolado = conc > 0.5 || cv > 0.25;
+    const item = {
+      cliente: s.cliente, cnpj: s.cnpj, rede: s.rede, desc: s.desc, label: s.label,
+      tipoOp: s.tipoOp, tipoCliente: s.tipoCliente, kg: s.kg, fat_bruto: s.fat_bruto,
+      valor_dev: s.valor_dev, n_nfs: s.n_nfs, n_meses, max_nf_kg: s.max_nf_kg,
+      fat_liq, receita, rkg_liq, rkg_bruto, custo, deficit_kg, perda_total,
+      breakeven_bruto, reajuste_pct, evento_isolado, conc_maxnf: +conc.toFixed(2), cv_preco: +cv.toFixed(2)
+    };
+    const passaMat = matAll || (s.kg >= matVol && s.n_nfs >= matNfs && n_meses >= matMeses && perda_total >= matPerda);
+    if (!passaMat) { excMat.push(item); continue; }
+    if (evento_isolado) {
+      resultIsolado.push(item);
+    } else if (!filtroClientes || filtroClientes.has(item.tipoCliente)) {
+      result.push(item);
+    } else {
+      excluidos.push({motivo:'tipo_cli:'+item.tipoCliente, nome: item.cliente, produto: item.label});
+    }
   }
-  return result.sort((a, b) => b.perda_total - a.perda_total);
+  _rentAbaixoMatExcluidos = excMat;
+  return {
+    result: result.sort((a,b) => b.perda_total - a.perda_total),
+    resultIsolado: resultIsolado.sort((a,b) => b.perda_total - a.perda_total)
+  };
+}
+
+function _renderAbaixoRow(it) {
+  const urgente = it.deficit_kg / it.custo > 0.20;
+  const badge = urgente ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>';
+  return `<tr>
+    <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
+    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
+    <td style="text-align:right;color:var(--muted)">${Math.round(it.kg).toLocaleString('pt-BR')}</td>
+    <td style="text-align:right;color:#E24B4A;font-weight:500">${rentFmtR2(it.rkg_liq)}/kg</td>
+    <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
+    <td style="text-align:right;color:#E24B4A;font-weight:600">−${rentFmtR2(it.deficit_kg)}/kg</td>
+    <td style="text-align:right;color:#E24B4A;font-weight:700">${rentFmtR(it.perda_total)}</td>
+    <td style="text-align:right;color:#EF9F27">${it.breakeven_bruto != null ? rentFmtR2(it.breakeven_bruto) + '/kg' : '—'}</td>
+    <td style="text-align:right;color:#EF9F27">${it.reajuste_pct == null ? '—' : it.reajuste_pct <= 0 ? '<span style="color:#4caf50">OK</span>' : '+' + it.reajuste_pct.toFixed(1) + '%'}</td>
+    <td>${badge}</td>
+  </tr>`;
 }
 
 function renderRentAbaixoCusto(lbl) {
   _rentAbaixoLbl = lbl;
   const periods = _rentPeriodo === 'acum' ? PERIODOS : [_rentPeriodo];
   const modoEl = document.getElementById('rent-abaixo-modo');
-  if (modoEl) modoEl.textContent = '(' + lbl + ' · custo: base sem overhead)';
-  const {tipos, clientes} = _rentAbaixoGetFiltros();
-  _rentAbaixoData = rentAgregarAbaixoCusto(periods, tipos, clientes);
+  if (modoEl) modoEl.textContent = '(' + lbl + ' · custo: ' + (_rentCustoModo === 'direto' ? 'direto' : 'pleno') + ')';
+  const {tipos, clientes, matCfg} = _rentAbaixoGetFiltros();
+  const agg = rentAgregarAbaixoCusto(periods, tipos, clientes, matCfg);
+  _rentAbaixoData = agg.result;
+  _rentAbaixoIsoladoData = agg.resultIsolado;
 
-  // Exclusion counter
+  // Materialidade exclusion counter
+  const matExcEl = document.getElementById('rent-abaixo-mat-excl');
+  if (matExcEl) matExcEl.textContent = _rentAbaixoMatExcluidos.length > 0 ? `${_rentAbaixoMatExcluidos.length} itens fora do critério de materialidade` : '';
+
+  // Tipo filter exclusion counter
   const excByTipo = {}, excByCli = {};
   for (const ex of _rentAbaixoExcluidosDet) {
     if (ex.motivo.startsWith('tipo_op:')) excByTipo[ex.motivo.slice(8)] = (excByTipo[ex.motivo.slice(8)] || 0) + 1;
@@ -6331,37 +6446,50 @@ function renderRentAbaixoCusto(lbl) {
     <div class="kpi-card"><div class="kpi-val">${totClientes}</div><div class="kpi-lbl">Clientes afetados</div></div>
     <div class="kpi-card"><div class="kpi-val">${Math.round(totKg).toLocaleString('pt-BR')} kg</div><div class="kpi-lbl">Volume afetado</div></div>
     <div class="kpi-card" style="border-color:#E24B4A55"><div class="kpi-val" style="color:#E24B4A">${rentFmtR(totPerda)}</div><div class="kpi-lbl">Perda estimada</div></div>`;
+
   const tb = document.getElementById('rent-abaixo-tbody');
   if (!_rentAbaixoData.length) {
     tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Nenhum item abaixo do custo com os filtros ativos 🎉</td></tr>';
-    return;
+  } else {
+    tb.innerHTML = _rentAbaixoData.map(_renderAbaixoRow).join('');
   }
-  tb.innerHTML = _rentAbaixoData.map(it => {
-    const urgente = it.deficit_kg / it.custo > 0.20;
-    const badge = urgente ? '<span class="badge br">URGENTE</span>' : '<span class="badge ba">REVISAR</span>';
-    return `<tr>
-      <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
-      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
-      <td style="text-align:right;color:var(--muted)">${Math.round(it.kg).toLocaleString('pt-BR')}</td>
-      <td style="text-align:right;color:#E24B4A;font-weight:500">${rentFmtR2(it.rkg_liq)}/kg</td>
-      <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
-      <td style="text-align:right;color:#E24B4A;font-weight:600">−${rentFmtR2(it.deficit_kg)}/kg</td>
-      <td style="text-align:right;color:#E24B4A;font-weight:700">${rentFmtR(it.perda_total)}</td>
-      <td style="text-align:right;color:#EF9F27">${it.breakeven_bruto != null ? rentFmtR2(it.breakeven_bruto) + '/kg' : '—'}</td>
-      <td style="text-align:right;color:#EF9F27">${it.reajuste_pct != null ? '+' + it.reajuste_pct.toFixed(1) + '%' : '—'}</td>
-      <td>${badge}</td>
-    </tr>`;
-  }).join('');
+
+  // Evento isolado section
+  const isoSec = document.getElementById('rent-abaixo-isolado-section');
+  const isoTb = document.getElementById('rent-abaixo-isolado-tbody');
+  const isoLbl = document.getElementById('rent-abaixo-isolado-label');
+  if (isoSec) isoSec.style.display = _rentAbaixoIsoladoData.length ? '' : 'none';
+  if (isoLbl) isoLbl.textContent = _rentAbaixoIsoladoData.length ? `(${_rentAbaixoIsoladoData.length} itens)` : '';
+  if (isoTb) {
+    isoTb.innerHTML = _rentAbaixoIsoladoData.map(it => {
+      const motivo = it.conc_maxnf > 0.5
+        ? `1 NF = ${Math.round(it.conc_maxnf*100)}% do vol`
+        : `CV preço = ${(it.cv_preco*100).toFixed(0)}%`;
+      return `<tr>
+        <td style="font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.cliente}">${it.cliente}</td>
+        <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
+        <td style="text-align:right;color:var(--muted)">${Math.round(it.kg).toLocaleString('pt-BR')}</td>
+        <td style="text-align:right;color:#E24B4A">${rentFmtR2(it.rkg_liq)}/kg</td>
+        <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
+        <td style="text-align:right;color:#E24B4A;font-weight:600">${rentFmtR(it.perda_total)}</td>
+        <td style="text-align:right;color:#EF9F27">${it.breakeven_bruto != null ? rentFmtR2(it.breakeven_bruto) + '/kg' : '—'}</td>
+        <td style="font-size:11px;color:var(--muted)">${motivo}</td>
+      </tr>`;
+    }).join('');
+  }
 }
 
 function exportCSV_abaixo() {
-  const rows = [['Cliente','CNPJ','Produto','Tipo_Op','Tipo_Cliente','Kg','R$/kg_liq','Custo/kg','Deficit/kg','Perda_Total_R$','Breakeven_bruto','Reajuste_%','Status']];
-  for (const it of _rentAbaixoData) {
-    rows.push([it.cliente, it.cnpj, it.label, it.tipoOp || '', it.tipoCliente || '',
-      Math.round(it.kg), it.rkg_liq.toFixed(2), it.custo.toFixed(2), it.deficit_kg.toFixed(2), it.perda_total.toFixed(2),
-      it.breakeven_bruto != null ? it.breakeven_bruto.toFixed(2) : '', it.reajuste_pct != null ? it.reajuste_pct.toFixed(1) : '',
-      it.deficit_kg / it.custo > 0.20 ? 'URGENTE' : 'REVISAR']);
-  }
+  const hdr = ['Secao','Cliente','CNPJ','Produto','Tipo_Op','Tipo_Cliente','Kg','NFs','Meses','R$/kg_liq','Custo/kg','Deficit/kg','Perda_Total_R$','Breakeven_bruto','Reajuste_%','Status'];
+  const rows = [hdr];
+  const fmt = (it, secao) => [secao, it.cliente, it.cnpj, it.label, it.tipoOp || '', it.tipoCliente || '',
+    Math.round(it.kg), it.n_nfs || '', it.n_meses || '',
+    it.rkg_liq.toFixed(2), it.custo.toFixed(2), it.deficit_kg.toFixed(2), it.perda_total.toFixed(2),
+    it.breakeven_bruto != null ? it.breakeven_bruto.toFixed(2) : '',
+    it.reajuste_pct != null ? it.reajuste_pct.toFixed(1) : '',
+    it.deficit_kg / it.custo > 0.20 ? 'URGENTE' : 'REVISAR'];
+  for (const it of _rentAbaixoData) rows.push(fmt(it, 'PRINCIPAL'));
+  for (const it of _rentAbaixoIsoladoData) rows.push(fmt(it, 'EVENTO_ISOLADO'));
   const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
   const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'abaixo-custo.csv'; a.click();
 }
@@ -6414,14 +6542,21 @@ function renderRentAuditoria(lbl) {
   for (const p of periods) {
     for (const row of (_rentPplC[p] || [])) {
       if (!row.produto || !row.preco_medio || row.preco_medio <= 0) continue;
+      const kg = rentEstimKg(row.produto, row.quantidade_vendida || 0, row.unidade);
+      if (kg <= 0) continue;
       if (!precosPorSku[row.produto]) precosPorSku[row.produto] = [];
-      precosPorSku[row.produto].push(row.preco_medio);
+      precosPorSku[row.produto].push({p: row.preco_medio, kg});
     }
   }
   const medianaSku = {};
-  for (const [sku, precos] of Object.entries(precosPorSku)) {
-    const s = [...precos].sort((a, b) => a - b);
-    medianaSku[sku] = s[Math.floor(s.length / 2)];
+  for (const [sku, pares] of Object.entries(precosPorSku)) {
+    pares.sort((a, b) => a.p - b.p);
+    const totKg = pares.reduce((s, x) => s + x.kg, 0);
+    let cum = 0;
+    for (const x of pares) {
+      cum += x.kg;
+      if (cum >= totKg / 2) { medianaSku[sku] = x.p; break; }
+    }
   }
 
   const anomalias = [];
@@ -6430,7 +6565,7 @@ function renderRentAuditoria(lbl) {
     for (const row of (_rentPplC[p] || [])) {
       const cn14 = rentNormCNPJ(row.cliente_cnpj);
       if (!cn14 || rentDeveExcluir(cn14, row.cliente_nome)) continue;
-      const tipoCliente = rentGetTipoCliente(row.cliente_nome || '');
+      const tipoCliente = rentGetTipoCliente(row.cliente_nome || '', cn14);
       const tipoOp = row.tipo_operacao || 'VENDA';
       const mediana = medianaSku[row.produto] || 0;
       const precoUn = row.preco_medio || 0;
@@ -6464,12 +6599,12 @@ function renderRentAuditoria(lbl) {
       const cn14 = rentNormCNPJ(row.cliente_cnpj);
       if (!cn14 || rentDeveExcluir(cn14, row.cliente_nome)) continue;
       if (!clientesNaoClass.has(cn14)) {
-        const tipoCliente = rentGetTipoCliente(row.cliente_nome || '');
+        const tipoCliente = rentGetTipoCliente(row.cliente_nome || '', cn14);
         if (tipoCliente === 'CLIENTE') {
-          // Check if this client appears in _TIPO_CLIENTE keys (already classified)
-          const nome = (row.cliente_nome || '').toUpperCase();
-          const classified = Object.keys(_TIPO_CLIENTE).some(k => nome.includes(k.toUpperCase()));
-          if (!classified) clientesNaoClass.set(cn14, {nome: row.cliente_nome || '', cnpj: cn14, fat_bruto: 0});
+          const rede = rentGetRede(row.cliente_nome || '', cn14);
+          if (rede === 'OUTROS' || rede === 'RESTAURANTES') {
+            clientesNaoClass.set(cn14, {nome: row.cliente_nome || '', cnpj: cn14, fat_bruto: 0});
+          }
         }
       }
       if (clientesNaoClass.has(cn14)) clientesNaoClass.get(cn14).fat_bruto += row.valor_vendido || 0;
