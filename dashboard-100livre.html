@@ -1640,6 +1640,16 @@ setTimeout(function() {
       traders (KENTISA/TAKOISH/URAKAMI/CHAMPETIT/COGUS),
       internos (INDATABRASIL/HOCHIMIX/DIEGO), logística
       (HB POOLING/IFCO), MARIZA DIVINO.
+
+   9. CUSTO DE PRODUÇÃO vem sempre da aba Prod × Terc
+      (dados reais de lote: substrato, colhido, rendimento).
+      CUSTOS_ESPECIE não pode ter valores divergentes.
+      Onde houver produção própria, custo_prod real substitui
+      estimativa. Rateio compartilhado: R$21,70/kg
+      (fixos R$12,44 + embalagem R$2,04 + energia R$1,75
+      + frete R$5,47). Embalagem varia por formato via
+      _embalemKgFromPeso() — não somar novamente o campo
+      embalagem de CUSTOS_ESPECIE na fórmula de Rentabilidade.
    ═══════════════════════════════════════════════════════════════════ */
 
 import { initializeApp }                    from './firebase/firebase-app.js';
@@ -5202,16 +5212,18 @@ const CUSTO_SKU_KG = {
   'Shimeji Preto Members Mark CX': 24.16,
 };
 
-// Custos auditados por espécie — valores extraídos do simulador Prod×Terc
-// custo_prod = insumo/kg (substrato/blocos ÷ rendimento meta); null = só compra
+// Custos auditados por espécie — fonte única: Prod×Terc (dados reais de lote)
+// custo_prod = insumo/kg (substrato ÷ rendimento real); null = só compra
+// fixos = 12.44 = rateio_total (21.70) − embalagem (2.04) − energia (1.75) − frete (5.47)
+// rendimento = % colhido sobre substrato (adimensional; null = sem produção própria)
 const CUSTOS_ESPECIE = {
-  paris:          {custo_compra:27.00, custo_prod:27.89, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
-  portobello:     {custo_compra:32.04, custo_prod:20.84, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
-  shitake:        {custo_compra:25.00, custo_prod:13.88, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
-  shimeji_preto:  {custo_compra:24.16, custo_prod:12.71, fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
-  shimeji_branco: {custo_compra:15.74, custo_prod:null,  fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
-  shimeji_salmao: {custo_compra:24.16, custo_prod:null,  fixos:5.96, embalagem:2.04, energia:1.75, frete:5.47},
-  moyashi:        {custo_compra:12.00, custo_prod:null,  fixos:5.96, embalagem:1.63, energia:1.75, frete:5.47},
+  paris:          {custo_compra:27.00, custo_prod:27.89, fixos:12.44, embalagem:2.04, energia:1.75, frete:5.47, rendimento:0.097},
+  portobello:     {custo_compra:29.50, custo_prod:29.22, fixos:12.44, embalagem:2.04, energia:1.75, frete:5.47, rendimento:0.093},
+  shitake:        {custo_compra:25.00, custo_prod:26.76, fixos:12.44, embalagem:2.04, energia:1.75, frete:5.47, rendimento:0.139},
+  shimeji_preto:  {custo_compra:24.16, custo_prod:10.44, fixos:12.44, embalagem:2.04, energia:1.75, frete:5.47, rendimento:0.203},
+  shimeji_branco: {custo_compra:15.74, custo_prod:13.84, fixos:12.44, embalagem:2.04, energia:1.75, frete:5.47, rendimento:0.163},
+  shimeji_salmao: {custo_compra:30.00, custo_prod:23.04, fixos:12.44, embalagem:2.04, energia:1.75, frete:5.47, rendimento:0.098},
+  moyashi:        {custo_compra:12.00, custo_prod:null,  fixos:5.96,  embalagem:1.63, energia:1.75, frete:5.47, rendimento:null},
   // Folhas — custo não mapeado: sem_custo:true sinaliza "custo não mapeado" na view
   folha:          {custo_compra:null, custo_prod:null, fixos:5.96, embalagem:1.00, energia:1.75, frete:5.47, sem_custo:true},
   folha_fatiada:  {custo_compra:null, custo_prod:null, fixos:5.96, embalagem:1.50, energia:1.75, frete:5.47, sem_custo:true},
@@ -7197,7 +7209,7 @@ function _renderRentMargemBlocos() {
     const totKg = rows.reduce((s,it)=>s+it.vol_mensal,0);
     const tHead = tier === 'sem_custo'
       ? `<tr><th>Negociação</th><th>SKU</th><th style="text-align:right">Kg/mês</th><th style="text-align:right">R$/kg vigente</th><th style="text-align:right">Δ preço</th><th>Status</th></tr>`
-      : `<tr><th>Negociação</th><th>SKU</th><th style="text-align:right">Kg/mês</th><th style="text-align:right">R$/kg vig</th><th style="text-align:right;color:#b0c4de">Custo</th><th style="text-align:right">Margem R$</th><th style="text-align:right">Margem %</th><th style="text-align:right">Δ preço</th><th style="text-align:right">Preço p/ ${meta}%</th><th style="text-align:right;color:#EF9F27">Reaj. nec.</th></tr>`;
+      : `<tr><th>Negociação</th><th>SKU</th><th style="text-align:right">Kg/mês</th><th style="text-align:right">R$/kg vig</th><th style="text-align:right;color:#b0c4de">Custo</th><th style="text-align:right;color:var(--muted)">Rend.</th><th style="text-align:right">Margem R$</th><th style="text-align:right">Margem %</th><th style="text-align:right">Δ preço</th><th style="text-align:right">Preço p/ ${meta}%</th><th style="text-align:right;color:#EF9F27">Reaj. nec.</th></tr>`;
     const tRows = rows.map(it => {
       if (tier === 'sem_custo') {
         return `<tr>
@@ -7212,12 +7224,17 @@ function _renderRentMargemBlocos() {
       const preco_alvo = _margPrecoAlvo(it.custo, it.desc, meta);
       const reaj_nec = it.preco_bruto_vigente > 0 ? (preco_alvo / it.preco_bruto_vigente - 1) * 100 : null;
       const mrgColor = it.margem_pct < 0 ? '#E24B4A' : it.margem_pct < 10 ? '#EF9F27' : it.margem_pct < 20 ? '#F2C94C' : it.margem_pct < 30 ? '#378ADD' : '#1D9E75';
+      const _espRend = _skuToEspecie(it.label);
+      const _rendVal = _espRend ? (CUSTOS_ESPECIE[_espRend]?.rendimento ?? null) : null;
+      const _rendTxt = _rendVal != null ? (_rendVal * 100).toFixed(1) + '%' : '—';
+      const _rendColor = _rendVal != null ? (_rendVal >= 0.15 ? '#1D9E75' : _rendVal >= 0.10 ? '#EF9F27' : '#E24B4A') : 'var(--muted)';
       return `<tr>
         <td style="font-weight:500;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.cliente}</td>
         <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.label}</td>
         <td style="text-align:right;color:var(--muted)">${Math.round(it.vol_mensal).toLocaleString('pt-BR')}</td>
         <td style="text-align:right">${rentFmtR2(it.preco_vigente)}/kg</td>
-        <td style="text-align:right;color:#b0c4de">${rentFmtR2(it.custo)}/kg</td>
+        <td style="text-align:right;color:#b0c4de" title="Custo pleno insumo + rateio R$21,70/kg">${rentFmtR2(it.custo)}/kg</td>
+        <td style="text-align:right;font-size:10px;color:${_rendColor}" title="Rendimento: kg colhido / kg substrato">${_rendTxt}</td>
         <td style="text-align:right;color:${mrgColor}">${it.margem_r != null ? (it.margem_r >= 0 ? '+' : '') + rentFmtR2(it.margem_r) + '/kg' : '—'}</td>
         <td style="text-align:right;font-weight:600;color:${mrgColor}">${it.margem_pct != null ? it.margem_pct.toFixed(1) + '%' : '—'}</td>
         <td style="text-align:right">${_variacaoBadge(it.variacao_preco_pct)}</td>
