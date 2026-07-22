@@ -169,6 +169,23 @@ tr:hover .rent-nav-icon{opacity:.6}
 </head>
 <body>
 
+<!-- Portão de login — cobre tudo até um usuário autorizado entrar -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg,#0d0e10);align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:340px;text-align:center">
+    <div style="font-size:19px;font-weight:700;margin-bottom:2px">100% Livre</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:22px">dashboard financeiro</div>
+    <div id="login-form">
+      <button onclick="loginGoogle()" class="mb" style="width:100%;padding:9px;font-size:12px;margin-bottom:14px">Entrar com Google</button>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:8px">ou receba um link de acesso</div>
+      <input id="login-email" type="email" autocomplete="email" placeholder="seu@email.com"
+             onkeydown="if(event.key==='Enter')loginPorEmail()"
+             style="width:100%;padding:8px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3,#17181b);color:var(--text,#e8e8e8);margin-bottom:8px;font-family:'DM Mono',monospace">
+      <button onclick="loginPorEmail()" class="mb" style="width:100%;padding:8px;font-size:12px">Enviar link por e-mail</button>
+    </div>
+    <div id="login-msg" style="display:none;font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6"></div>
+  </div>
+</div>
+
 <div class="loading-overlay" id="loading">
   <div style="text-align:center">
     <div class="spinner" style="margin:0 auto 14px"></div>
@@ -211,6 +228,10 @@ tr:hover .rent-nav-icon{opacity:.6}
   <div class="sf">
     <span class="live-dot" id="live-dot"></span>ao vivo<br>
     <span id="sync-time">—</span>
+    <div style="display:none;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)">
+      <div id="login-usuario" style="font-size:9px;color:var(--muted2);word-break:break-all;margin-bottom:4px"></div>
+      <button onclick="logout()" class="mb" style="padding:2px 8px;font-size:9px">sair</button>
+    </div>
   </div>
 </aside>
 
@@ -1585,7 +1606,8 @@ tr:hover .rent-nav-icon{opacity:.6}
 {
   "imports": {
     "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js": "./firebase/firebase-app.js",
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js": "./firebase/firebase-firestore.js"
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js": "./firebase/firebase-firestore.js",
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js": "./firebase/firebase-auth.js"
   }
 }
 </script>
@@ -1681,6 +1703,9 @@ setTimeout(function() {
 
 import { initializeApp }                    from './firebase/firebase-app.js';
 import { getFirestore, collection, onSnapshot, query, where, getDocs, getDoc, doc } from './firebase/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence,
+         GoogleAuthProvider, signInWithPopup,
+         sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from './firebase/firebase-auth.js';
 
 // ── Firebase init ──────────────────────────────────────────────────
 const app = initializeApp({
@@ -1692,6 +1717,13 @@ const app = initializeApp({
   appId:             '1:448417579294:web:6e65a03f539f00cd33c90f',
 });
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ── Controle de acesso ─────────────────────────────────────────────
+// A lista aqui é só para a mensagem de erro na tela. Quem realmente bloqueia
+// é firestore.rules — mudar esta constante sozinha não libera dado nenhum.
+const ACESSO_PERMITIDO = ['diego.gomes.martins@gmail.com'];
+const _emailOk = e => ACESSO_PERMITIDO.includes((e || '').toLowerCase().trim());
 
 // ── Constants ──────────────────────────────────────────────────────
 const PERIODOS = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07'];
@@ -12008,6 +12040,7 @@ window._silentRefresh = function() {
   } catch(e) { console.warn('[silentRefresh]', e); }
 };
 
+function _bootDashboard() {
 try {
   startListeners();
   // Sincroniza estado inicial dos botões de custo com _rentCustoModo (já lido da URL)
@@ -12030,6 +12063,93 @@ try {
   showError('Erro ao inicializar: ' + e.message);
   console.error('[dashboard] startListeners falhou:', e);
 }
+}
+
+// ── Portão de login ────────────────────────────────────────────────
+// O dashboard só inicia depois de um usuário autorizado. Sem isso, as
+// regras do Firestore recusam toda leitura e a tela ficaria em erro.
+const LOGIN_EMAIL_KEY = 'livre_login_email';
+
+function _loginUI(estado, msg) {
+  const ov = document.getElementById('login-overlay');
+  if (!ov) return;
+  ov.style.display = estado === 'oculto' ? 'none' : 'flex';
+  const box = document.getElementById('login-msg');
+  if (box) {
+    box.textContent = msg || '';
+    box.style.color = estado === 'erro' ? 'var(--red)' : 'var(--muted)';
+    box.style.display = msg ? '' : 'none';
+  }
+  const form = document.getElementById('login-form');
+  if (form) form.style.display = estado === 'carregando' ? 'none' : '';
+}
+
+async function loginGoogle() {
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (e) {
+    if (e.code === 'auth/operation-not-allowed')
+      _loginUI('erro', 'Login com Google ainda não está habilitado neste projeto. Use o link por e-mail abaixo.');
+    else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request')
+      _loginUI('erro', e.message);
+  }
+}
+window.loginGoogle = loginGoogle;
+
+async function loginPorEmail() {
+  const input = document.getElementById('login-email');
+  const email = (input?.value || '').trim();
+  if (!email) { _loginUI('erro', 'Digite seu e-mail.'); return; }
+  if (!_emailOk(email)) { _loginUI('erro', 'Este e-mail não tem acesso ao dashboard.'); return; }
+  try {
+    await sendSignInLinkToEmail(auth, email, {
+      url: location.origin + location.pathname,
+      handleCodeInApp: true,
+    });
+    window.localStorage.setItem(LOGIN_EMAIL_KEY, email);
+    _loginUI('ok', 'Link enviado para ' + email + '. Abra o e-mail neste mesmo navegador — o link expira em 1 hora.');
+  } catch (e) {
+    _loginUI('erro', e.message);
+  }
+}
+window.loginPorEmail = loginPorEmail;
+
+async function logout() {
+  await signOut(auth);
+  location.reload();
+}
+window.logout = logout;
+
+(async function _portaoLogin() {
+  try { await setPersistence(auth, browserLocalPersistence); } catch (e) {}
+
+  // Volta do link enviado por e-mail
+  if (isSignInWithEmailLink(auth, location.href)) {
+    _loginUI('carregando', 'Confirmando seu acesso...');
+    let email = window.localStorage.getItem(LOGIN_EMAIL_KEY);
+    if (!email) email = window.prompt('Confirme o e-mail que recebeu o link:') || '';
+    try {
+      await signInWithEmailLink(auth, email, location.href);
+      window.localStorage.removeItem(LOGIN_EMAIL_KEY);
+      history.replaceState(null, '', location.origin + location.pathname);
+    } catch (e) {
+      _loginUI('erro', 'Link inválido ou expirado. Peça um novo.');
+    }
+  }
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { _loginUI('visivel'); return; }
+    if (!_emailOk(user.email)) {
+      await signOut(auth);
+      _loginUI('erro', user.email + ' não tem acesso a este dashboard.');
+      return;
+    }
+    _loginUI('oculto');
+    const badge = document.getElementById('login-usuario');
+    if (badge) { badge.textContent = user.email; badge.parentElement.style.display = ''; }
+    _bootDashboard();
+  });
+})();
 </script>
 
 
