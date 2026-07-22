@@ -31,6 +31,42 @@ jobs:
           fi
           echo "build-stamp = $STAMP"
 
+      - name: Verificar sintaxe JS (node --check)
+        run: |
+          FILE="dashboard-100livre.html"
+          python3 - "$FILE" <<'PYEOF'
+import sys, re, tempfile, subprocess, os
+
+path = sys.argv[1]
+html = open(path, encoding='utf-8').read()
+
+# Extrai todos os <script type="module"> (ignora importmap que é JSON)
+scripts = re.findall(r'<script\s+type=["\']module["\'][^>]*>(.*?)</script>', html, re.DOTALL)
+if not scripts:
+    print("AVISO: nenhum <script type=module> encontrado")
+    sys.exit(0)
+
+errors = []
+for i, src in enumerate(scripts):
+    with tempfile.NamedTemporaryFile(suffix='.js', mode='w', encoding='utf-8', delete=False) as f:
+        f.write(src)
+        fname = f.name
+    try:
+        r = subprocess.run(['node', '--check', fname], capture_output=True, text=True)
+        if r.returncode != 0:
+            errors.append(f'Script {i+1}: {r.stderr.strip()}')
+        else:
+            print(f'Script {i+1}: OK')
+    finally:
+        os.unlink(fname)
+
+if errors:
+    print('\n=== ERROS DE SINTAXE ===')
+    for e in errors:
+        print(e)
+    sys.exit(1)
+PYEOF
+
       - name: Commit e push
         run: |
           git config user.name  "github-actions[bot]"
