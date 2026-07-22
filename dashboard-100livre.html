@@ -3964,6 +3964,14 @@ window.renderVendedores = renderVendedores;
 const VENDEDOR_SHORT = {
   "Anderson Galdino": "Anderson",
   "Lucas Fernando":   "Lucas",
+  "Lucas Vitagliano": "Lucas",
+  "Lucas":            "Lucas",
+  "Diego":            "Diego",
+  "Diego Gomes Martins": "Diego",
+  "Lucas Vitagliano": "Lucas",
+  "Lucas":            "Lucas",
+  "Diego":            "Diego",
+  "Diego Gomes Martins": "Diego",
   "Julia":            "Julia",
   "Alex Calvacante  de  Lima": "Alex",
   "Alex Calvacante de Lima":   "Alex",
@@ -11129,7 +11137,15 @@ const REPO_CART_AND   = ['SONDA','DIA','HIROTA','MUFFATO'];
 const REPO_CART_LUCAS = ["SAM'S",'MAMBO','CARREFOUR','5M','EINSTEIN','ZONA SUL','SENDAS/ASSAÍ','ALL KOSHER'];
 
 // GPA é dividido por UF: SP → Anderson, fora de SP → Lucas.
-function repoVendedor(rede, uf) {
+function repoVendedor(rede, uf, cad) {
+  // PRIORIDADE 1: vendedor_nome do Firestore (clientes_vendedor) e o dado oficial.
+  const vnRaw = (cad && cad.vendedor_nome) ? String(cad.vendedor_nome).trim() : '';
+  if (vnRaw && vnRaw !== 'sem_vendedor') {
+    const curto = VENDEDOR_SHORT[vnRaw]
+      || (Object.values(VENDEDOR_SHORT).includes(vnRaw) ? vnRaw : null);
+    if (curto) return curto;
+  }
+  // PRIORIDADE 2: regra por rede + UF (fallback)
   if (REPO_CART_DIEGO.includes(rede)) return 'Diego';
   if (rede === 'GPA') return (uf || 'SP') === 'SP' ? 'Anderson' : 'Lucas';
   if (REPO_CART_AND.includes(rede))   return 'Anderson';
@@ -11220,7 +11236,7 @@ async function calcularReposicao() {
     const c      = cad[cn] || {};
     const nome   = c.nome_display || c.nome_fantasia || c.nome || o.nome || cn;
     const rede   = repoRede(o.nome || c.nome, c.nome_fantasia, cn);
-    const vend   = repoVendedor(rede, c.estado || '');
+    const vend   = repoVendedor(rede, c.estado || '', c);
 
     // Elegibilidade: >= 4 entregas nos últimos 90 dias. Menos que isso é prospecção.
     if (n90.length < 4) { semHistorico.push({ nome, rede, dias, entregas_90d: n90.length }); continue; }
