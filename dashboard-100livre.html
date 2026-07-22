@@ -297,6 +297,7 @@ tr:hover .rent-nav-icon{opacity:.6}
       <button id="ctab-btn-vendedores"  onclick="setComercialTab('vendedores')"  class="mb" style="padding:5px 14px;font-size:11px">Vendedores</button>
       <button id="ctab-btn-gpa-dual"    onclick="setComercialTab('gpa_dual')"    class="mb" style="padding:5px 14px;font-size:11px">GPA Dual Brand</button>
       <button id="ctab-btn-canal-julia" onclick="setComercialTab('canal_julia')" class="mb" style="padding:5px 14px;font-size:11px">Canal Julia</button>
+      <button id="ctab-btn-reposicao"   onclick="setComercialTab('reposicao')"   class="mb" style="padding:5px 14px;font-size:11px">🔔 Reposição</button>
     </div>
     <!-- Tab: Lojas -->
     <div id="ctab-lojas">
@@ -374,6 +375,10 @@ tr:hover .rent-nav-icon{opacity:.6}
     <!-- Tab: Canal Julia -->
     <div id="ctab-canal-julia" style="display:none">
       <div id="canal-julia-content"></div>
+    </div>
+    <!-- Tab: Reposição -->
+    <div id="ctab-reposicao" style="display:none">
+      <div id="reposicao-content" style="min-height:200px"></div>
     </div>
   </div>
 
@@ -3729,7 +3734,7 @@ let _comercialTab = 'lojas';
 
 function setComercialTab(tab) {
   _comercialTab = tab;
-  ['lojas','vendedores','gpa_dual','canal_julia'].forEach(t => {
+  ['lojas','vendedores','gpa_dual','canal_julia','reposicao'].forEach(t => {
     const btn = document.getElementById('ctab-btn-' + t.replace('_','-'));
     const div = document.getElementById('ctab-' + t.replace('_','-'));
     const active = t === tab;
@@ -3743,6 +3748,7 @@ function setComercialTab(tab) {
   if (tab === 'vendedores')  renderVendedores();
   if (tab === 'gpa_dual')    renderGPADualBrand();
   if (tab === 'canal_julia') renderJulia();
+  if (tab === 'reposicao')   renderReposicao();
 }
 window.setComercialTab = setComercialTab;
 
@@ -3750,6 +3756,7 @@ function renderComercial() {
   if (_comercialTab === 'vendedores')  { renderVendedores(); }
   else if (_comercialTab === 'gpa_dual')    { renderGPADualBrand(); }
   else if (_comercialTab === 'canal_julia') { renderJulia(); }
+  else if (_comercialTab === 'reposicao')   { renderReposicao(); }
   else {
     renderLojas();
     renderRedeMix();
@@ -3937,31 +3944,38 @@ const VENDEDOR_PREFIX_OVERRIDE = {
   "56527062": "Anderson", // Hirota → Anderson (era Lucas)
   "33381286": "Lucas",    // Zona Sul → Lucas (era Julia)
   "03476811": "Anderson", // DIA → Anderson (era Julia)
+  "00063960": "Lucas",    // SAM'S CLUB / WMB → Lucas (estava com Anderson)
+  "06057223": "Lucas",    // Sendas/Assaí → Lucas
 };
 
 // Fallback heurístico (usado quando _vendedorPrefixMap não tem o CNPJ)
 // Regra geral: fora de SP → Lucas (exceto Muffato → Anderson); Julia: só food service
 const VENDEDORES = [
   {
+    // SONDA · GPA-SP · DIA · HIROTA · MUFFATO
     nome: "Anderson",
     cnpj_prefixos: ["47508411","01937635","56527062","03476811"],
-    redes: ["GPA","SONDA","HIROTA","MUFFATO","DIA","SAM'S CLUB","MEMBERS MARK"],
+    redes: ["GPA","SONDA","HIROTA","MUFFATO","DIA"],
   },
   {
+    // SAM'S · MAMBO · CARREFOUR · 5M/BEM BARATO · EINSTEIN · ZONA SUL · GPA fora-SP · SENDAS/ASSAÍ
     nome: "Lucas",
-    cnpj_prefixos: ["45543915","71676316","71891410","60765823","60442290","55950609","76430438","22019796","00063960","33381286","23510112"],
-    redes: ["CARREFOUR","MAMBO","ZONA SUL","EINSTEIN","5M COMERCIO","ALL KOSHER","BEM BARATO"],
+    cnpj_prefixos: ["45543915","71676316","71891410","60765823","60442290","55950609","76430438","22019796","00063960","33381286","23510112","06057223"],
+    redes: ["CARREFOUR","MAMBO","ZONA SUL","EINSTEIN","5M COMERCIO","ALL KOSHER","BEM BARATO",
+            "SAM'S CLUB","SAM'S","MEMBERS MARK","SENDAS","ASSAÍ","ASSAI"],
   },
   {
+    // LE JAZZ · SOUZA CRUZ · CENCODERMA · NATURAL FARMS
     nome: "Diego",
-    cnpj_prefixos: [],
-    redes: ["SOUZA CRUZ"],
+    cnpj_prefixos: ["10983441","17643373","32397495","46990486","14862530","15126252","36895856"],
+    redes: ["SOUZA CRUZ","LE JAZZ","LE MELLOW","CENCODERMA","NATURAL FARMS"],
   },
   {
+    // só restaurantes / food service sem conta institucional
     nome: "Julia",
     cnpj_prefixos: ["27390925","27772085","35291206","39895390"],
     redes: ["RESTAURANTE","HAMBURGUERIA","PIZZARIA","LANCHONETE","BAR","CAFE",
-            "DONAVILLA","RDC","LE JAZZ","LE MELLOW","MILL BURGUER","ARTES BURGUER",
+            "DONAVILLA","RDC","MILL BURGUER","ARTES BURGUER",
             "CAIQUE","BRENDA","CLAUDIA","JARDIM SAO PAULO"],
   },
   {
@@ -5345,10 +5359,13 @@ function _famCustoFromSKUs(skuKgMap, modo){
 function getCustoEspecie(f){const ci=_famCustoFromSKUs(f._skuKg||{});return ci?{custo_producao:ci.custo_total_producao,custo_compra:ci.custo_total_compra}:null;}
 
 function rentGetVendedor(rede){
-  if(['GPA',"SAM'S CLUB","SAM'S",'SONDA','HIROTA','MUFFATO','DIA'].includes(rede))return'Anderson';
-  if(['CARREFOUR','MAMBO','ZONA SUL','EINSTEIN','BEM BARATO'].includes(rede))return'Lucas';
-  if(['SOUZA CRUZ'].includes(rede))return'Diego';
-  if(['RESTAURANTES'].includes(rede))return'Julia';
+  // Carteiras: Anderson SONDA·GPA-SP·DIA·HIROTA·MUFFATO | Lucas SAM'S·MAMBO·CARREFOUR·5M/BEM BARATO·
+  // EINSTEIN·ZONA SUL·GPA fora-SP·SENDAS/ASSAÍ | Diego LE JAZZ·SOUZA CRUZ·CENCODERMA·NATURAL FARMS |
+  // Julia só food service. GPA sem UF aqui → Anderson (maioria SP); split por UF fica no radar de reposição.
+  if(['GPA','SONDA','HIROTA','MUFFATO','DIA'].includes(rede))return'Anderson';
+  if(["SAM'S CLUB","SAM'S",'CARREFOUR','MAMBO','ZONA SUL','EINSTEIN','BEM BARATO','5M','SENDAS/ASSAÍ','ALL KOSHER'].includes(rede))return'Lucas';
+  if(['SOUZA CRUZ','LE JAZZ','CENCODERMA','NATURAL FARMS'].includes(rede))return'Diego';
+  if(['RESTAURANTES','FOOD SERVICE'].includes(rede))return'Julia';
   return'—';
 }
 
@@ -11008,6 +11025,489 @@ async function renderJulia() {
   el.innerHTML = kpiHtml + tabelaHtml;
 }
 window.renderJulia = renderJulia;
+
+// ── RADAR DE REPOSIÇÃO ─────────────────────────────────────────────────────
+// Produto perecível: lojas recebem até 2x/semana (intervalo normal 3-4 dias).
+// Cada dia parado é venda perdida não recuperável.
+//
+// FONTE: nfs_emitidas (data_emissao por NF, dd/MM/aaaa) — não precisou de Cloud Function.
+// nfs_emitidas não tem tipo_operacao nem kg, então:
+//   VENDA  → CFOP 5.10x / 6.10x, com entrada=false, cancelada=false, amostra=false
+//            (bonificação 5.91x, devolução 1.202, consignação x.920 ficam de fora)
+//   kg     → produto_por_loja (granularidade mensal), últimos 3 períodos, tipo_operacao VENDA
+
+const REPO_FAIXAS = [
+  { id:'atencao', min:5,  max:7,        icone:'🟡', label:'ATENÇÃO',        sub:'perdeu 1 ciclo',   cor:'#EF9F27' },
+  { id:'critico', min:8,  max:10,       icone:'🟠', label:'CRÍTICO',        sub:'perdeu 2+ ciclos', cor:'#E8743B' },
+  { id:'perda',   min:11, max:20,       icone:'🔴', label:'PERDA PROVÁVEL', sub:'11–20 dias',       cor:'#EF4444' },
+  { id:'inativa', min:21, max:Infinity, icone:'⚫', label:'INATIVA',        sub:'21+ dias',         cor:'#6B7280' },
+];
+function repoFaixa(dias) {
+  if (dias <= 4) return null; // ciclo normal — não exibe
+  return REPO_FAIXAS.find(f => dias >= f.min && dias <= f.max) || null;
+}
+
+const REPO_FOOD_KW = ['RESTAURANTE','PIZZAR','BISTR','GASTRON','LANCHE','LANCHONETE','BURGER','BURGUER',
+  'HAMBURG','TEMAKI','SUSHI','JAPONES','CHOPP','CAFETERIA','PADARIA','PANIFICADORA','CONFEITARIA',
+  'DELIVERY','COZINHA','CULINARIA','BUFFET','CHEF','GRELHADO','COXINHA','ESFIHA','PASTEL','CANTINA',
+  'TRATTORIA','OSTERIA','STEAK','KITCHEN','FAST CASUAL','EMPANADA','MARMITA','POKE','ACAI','DOCERIA',
+  'ROTISSERIE','KEBAB','QBAB','CUMBUCA','SEM GLUTEN'];
+
+// Rede para fins de carteira. CNPJ manda; nome/fantasia é fallback.
+function repoRede(nome, fantasia, cn) {
+  const n = ((nome || '') + ' ' + (fantasia || '')).toUpperCase();
+  if (cn.startsWith('47508411')) return 'GPA';
+  if (cn.startsWith('00063960')) return "SAM'S";
+  if (cn.startsWith('71676316')) return 'MAMBO';
+  if (cn.startsWith('10250585')) return '5M';
+  if (cn.startsWith('33381286')) return 'ZONA SUL';
+  if (cn.startsWith('45543915')) return 'CARREFOUR';
+  if (cn.startsWith('01937635')) return 'SONDA';
+  if (cn.startsWith('56527062')) return 'HIROTA';
+  if (cn.startsWith('03476811')) return 'DIA';
+  if (cn.startsWith('06057223')) return 'SENDAS/ASSAÍ';
+  if (cn.startsWith('15126252')) return 'CENCODERMA';
+  if (cn.startsWith('36895856')) return 'NATURAL FARMS';
+  if (/LE JAZZ|LEJAZZ|LE MELLOW/.test(n)) return 'LE JAZZ';
+  if (n.includes('SOUZA CRUZ'))  return 'SOUZA CRUZ';
+  if (n.includes('CENCODERMA'))  return 'CENCODERMA';
+  if (n.includes('NATURAL FARMS')) return 'NATURAL FARMS';
+  if (!n.trim()) return 'OUTROS';
+  if (n.includes('COMPANHIA BRASILEIRA DE DISTRIBUI') || n.includes('PAO DE ACUCAR') ||
+      n.includes('EXTRA HIPER') || n.includes('MERCADO EXTRA')) return 'GPA';
+  if (n.includes('SENDAS') || n.includes('ASSAI') || n.includes('ASSAÍ')) return 'SENDAS/ASSAÍ';
+  if (n.includes('ZONA SUL'))  return 'ZONA SUL';
+  if (n.includes('CARREFOUR')) return 'CARREFOUR';
+  if (n.includes('SONDA'))     return 'SONDA';
+  if (n.includes("SAM'S") || n.includes('SAMS') || n.includes('MEMBERS MARK') ||
+      n.includes('WMB') || n.includes('WALMART')) return "SAM'S";
+  if (n.includes('HIROTA'))    return 'HIROTA';
+  if (n.includes('MAMBO'))     return 'MAMBO';
+  if (n.includes('MUFFATO'))   return 'MUFFATO';
+  if (n.includes('5M COM') || n.includes('BEM BARATO')) return '5M';
+  if (/\bDIA\b/.test(n))       return 'DIA';
+  if (n.includes('EINSTEIN') || n.includes('HOSPITAL')) return 'EINSTEIN';
+  if (n.includes('ALL KOSHER')) return 'ALL KOSHER';
+  if (REPO_FOOD_KW.some(k => n.includes(k))) return 'FOOD SERVICE';
+  return 'OUTROS';
+}
+
+const REPO_CART_DIEGO = ['LE JAZZ','SOUZA CRUZ','CENCODERMA','NATURAL FARMS'];
+const REPO_CART_AND   = ['SONDA','DIA','HIROTA','MUFFATO'];
+const REPO_CART_LUCAS = ["SAM'S",'MAMBO','CARREFOUR','5M','EINSTEIN','ZONA SUL','SENDAS/ASSAÍ','ALL KOSHER'];
+
+// GPA é dividido por UF: SP → Anderson, fora de SP → Lucas.
+function repoVendedor(rede, uf) {
+  if (REPO_CART_DIEGO.includes(rede)) return 'Diego';
+  if (rede === 'GPA') return (uf || 'SP') === 'SP' ? 'Anderson' : 'Lucas';
+  if (REPO_CART_AND.includes(rede))   return 'Anderson';
+  if (REPO_CART_LUCAS.includes(rede)) return 'Lucas';
+  if (rede === 'FOOD SERVICE')        return 'Julia';
+  return 'Sem carteira';
+}
+
+const REPO_VEND_CORES = { Anderson:'#378ADD', Lucas:'#1D9E75', Julia:'#EF9F27', Diego:'#9B7FDD', 'Sem carteira':'#888780' };
+
+// tipo_operacao passou a ser gravado em nfs_emitidas pelo syncFaturamento (cfopToTipo), mas os
+// docs históricos ainda não têm o campo — cai no CFOP, com o mesmo mapa do backend.
+const REPO_CFOP_VENDA = ['5102','6102','5101','6101','5111','5112','5401','5402'];
+function _repoEhVenda(d) {
+  if (d.tipo_operacao) return d.tipo_operacao === 'VENDA';
+  return REPO_CFOP_VENDA.includes(String(d.cfop || '').replace(/\./g, ''));
+}
+
+let _repoDados = null, _repoLoading = false;
+let _repoVendFiltro = 'todos', _repoAgrup = 'lista', _repoErr = null;
+
+function _repoParseData(s) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s || '').trim());
+  if (!m) return null;
+  const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  return isNaN(d) ? null : d;
+}
+const _repoDiasEntre = (a, b) => Math.round((b - a) / 86400000);
+const _repoFmtData = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+const _repoFmtR = v => 'R$' + Math.round(v).toLocaleString('pt-BR');
+
+async function calcularReposicao() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const [nfsSnap, pplSnap, cvSnap] = await Promise.all([
+    getDocs(collection(db, 'nfs_emitidas')),
+    getDocs(collection(db, 'produto_por_loja')),
+    getDocs(collection(db, 'clientes_vendedor')),
+  ]);
+
+  const cad = {};
+  cvSnap.forEach(d => {
+    if (d.id === '_meta') return;
+    const c = d.data();
+    const cn = (c.cnpj || '').replace(/\D/g,'').padStart(14,'0').slice(-14);
+    if (cn) cad[cn] = c;
+  });
+
+  // NFs de VENDA por CNPJ
+  const porCnpj = {};
+  nfsSnap.forEach(docRef => {
+    const d = docRef.data();
+    if (d.cancelada || d.amostra || d.entrada) return;
+    if (!_repoEhVenda(d)) return;
+    const cn = (d.cnpj_cliente || '').replace(/\D/g,'').padStart(14,'0').slice(-14);
+    if (!cn || cn === '00000000000000') return;
+    const dt = _repoParseData(d.data_emissao);
+    if (!dt || dt > hoje) return;
+    (porCnpj[cn] = porCnpj[cn] || { nfs: [], nome: '' }).nfs.push({ dt, valor: Math.abs(d.valor_bruto || 0) });
+    porCnpj[cn].nome = d.nome_cliente || porCnpj[cn].nome;
+  });
+
+  // kg por CNPJ — produto_por_loja, últimos 3 períodos disponíveis
+  const periodosPpl = new Set();
+  const pplRows = [];
+  pplSnap.forEach(docRef => {
+    const r = docRef.data();
+    if ((r.tipo_operacao || 'VENDA') !== 'VENDA') return;
+    if (r.periodo) periodosPpl.add(r.periodo);
+    pplRows.push(r);
+  });
+  const ult3 = [...periodosPpl].sort().slice(-3);
+  const kgPorCnpj = {};
+  pplRows.forEach(r => {
+    if (!ult3.includes(r.periodo)) return;
+    const cn = (r.cliente_cnpj || '').replace(/\D/g,'').padStart(14,'0').slice(-14);
+    kgPorCnpj[cn] = (kgPorCnpj[cn] || 0) + rentEstimKg(r.produto, r.quantidade_vendida || 0, r.unidade);
+  });
+  const semanasKg = (ult3.length * 30.4) / 7 || 1;
+
+  const lim90 = new Date(hoje); lim90.setDate(lim90.getDate() - 90);
+  const lojas = [], semCarteira = new Set(), semHistorico = [];
+
+  for (const [cn, o] of Object.entries(porCnpj)) {
+    o.nfs.sort((a,b) => a.dt - b.dt);
+    const ultima = o.nfs[o.nfs.length - 1].dt;
+    const dias   = _repoDiasEntre(ultima, hoje);
+    const n90    = o.nfs.filter(x => x.dt >= lim90);
+    const c      = cad[cn] || {};
+    const nome   = c.nome_display || c.nome_fantasia || c.nome || o.nome || cn;
+    const rede   = repoRede(o.nome || c.nome, c.nome_fantasia, cn);
+    const vend   = repoVendedor(rede, c.estado || '');
+
+    // Elegibilidade: >= 4 entregas nos últimos 90 dias. Menos que isso é prospecção.
+    if (n90.length < 4) { semHistorico.push({ nome, rede, dias, entregas_90d: n90.length }); continue; }
+    if (vend === 'Sem carteira') semCarteira.add(nome + ' — ' + rede);
+
+    // Frequência normal = mediana dos intervalos entre entregas nos últimos 90d.
+    // Mediana e não média: uma única pausa longa não distorce o padrão da loja.
+    const datas = [...new Set(n90.map(x => x.dt.getTime()))].sort((a,b) => a-b);
+    const gaps  = datas.slice(1).map((t,i) => Math.round((t - datas[i]) / 86400000));
+    let freq = null;
+    if (gaps.length) {
+      const g = [...gaps].sort((a,b) => a-b), m = g.length >> 1;
+      freq = g.length % 2 ? g[m] : (g[m-1] + g[m]) / 2;
+    }
+    const mediaRS = n90.reduce((s,x) => s + x.valor, 0) / (90/7);
+    const mediaKG = (kgPorCnpj[cn] || 0) / semanasKg;
+
+    lojas.push({
+      cnpj: cn, nome, rede, vendedor: vend, uf: c.estado || '',
+      // clientes_vendedor não traz telefone hoje — usa e-mail como contato até o sync do Omie trazer o fone
+      telefone: c.telefone || c.fone || c.celular || c.contato || c.email || '',
+      ultima, dias, entregas_90d: n90.length, freq,
+      media_rs: mediaRS, media_kg: mediaKG,
+      perda: (dias / 7) * mediaRS,
+      // Sinal mais confiável que o limite fixo: a loja saiu do padrão dela mesma.
+      fora_padrao: !!(freq && dias > 2 * freq),
+      faixa: repoFaixa(dias),
+    });
+  }
+
+  lojas.sort((a,b) => b.perda - a.perda);
+  return {
+    lojas, hoje,
+    sem_carteira: [...semCarteira].sort(),
+    sem_historico: semHistorico.filter(x => x.dias >= 5).length,
+    periodos_kg: ult3,
+  };
+}
+
+function _repoVendList(d) {
+  const vs = [...new Set(d.lojas.map(l => l.vendedor))];
+  return ['Anderson','Lucas','Julia','Diego','Sem carteira'].filter(v => vs.includes(v));
+}
+const _repoAtivas = d => d.lojas.filter(l => l.faixa && l.faixa.id !== 'inativa');
+function _repoFiltradas(d, incluirInativas) {
+  return d.lojas.filter(l => l.faixa
+    && (incluirInativas ? l.faixa.id === 'inativa' : l.faixa.id !== 'inativa')
+    && (_repoVendFiltro === 'todos' || l.vendedor === _repoVendFiltro));
+}
+
+function repoSetVend(v) { _repoVendFiltro = v; _buildRepoView(_repoDados); }
+function repoSetAgrup(g) { _repoAgrup = g; _buildRepoView(_repoDados); }
+window.repoSetVend = repoSetVend;
+window.repoSetAgrup = repoSetAgrup;
+
+// ── Exportações (respeitam o filtro de vendedor ativo) ─────────────────────
+function repoTextoWhats() {
+  const d = _repoDados; if (!d) return '';
+  const alvo = _repoFiltradas(d, false);
+  const quem = _repoVendFiltro === 'todos' ? 'TODOS' : _repoVendFiltro.toUpperCase();
+  const linhas = ['🔔 REPOSIÇÃO — ' + quem + ' — ' + _repoFmtData(d.hoje), ''];
+  ['perda','critico','atencao'].forEach(fid => {
+    const f = REPO_FAIXAS.find(x => x.id === fid);
+    const ls = alvo.filter(l => l.faixa.id === fid);
+    if (!ls.length) return;
+    const rng = fid === 'perda' ? '11+ dias' : fid === 'critico' ? '8-10 dias' : '5-7 dias';
+    linhas.push(f.icone + ' ' + f.label + ' (' + rng + ')');
+    ls.forEach(l => linhas.push('• ' + l.nome + ' — ' + l.dias + ' dias — média ' +
+      _repoFmtR(l.media_rs) + '/sem' + (l.fora_padrao ? ' ⚠ fora do padrão' : '')));
+    linhas.push('');
+  });
+  if (linhas.length <= 2) return linhas[0] + '\n\nNenhuma loja parada. Todas dentro do ciclo normal.';
+  linhas.push('Total parado: ' + _repoFmtR(alvo.reduce((s,l) => s + l.perda, 0)) + '/semana');
+  return linhas.join('\n');
+}
+
+function repoCopiarLista() {
+  const txt = repoTextoWhats();
+  const btn = document.getElementById('repo-btn-copiar');
+  const ok = () => { if (!btn) return; const o = btn.textContent; btn.textContent = 'Copiado ✓';
+                     setTimeout(() => { btn.textContent = o; }, 1800); };
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(ok).catch(() => { window.prompt('Copie:', txt); });
+  else window.prompt('Copie:', txt);
+}
+window.repoCopiarLista = repoCopiarLista;
+
+function repoExportarCSV() {
+  const d = _repoDados; if (!d) return;
+  const ls = [..._repoFiltradas(d, false), ..._repoFiltradas(d, true)];
+  const rows = [['Status','Loja','CNPJ','Rede','Vendedor','Ultima entrega','Dias sem entrega',
+                 'Freq normal (dias)','Entregas 90d','Media semanal R$','Media semanal kg',
+                 'Perda estimada R$','Fora do padrao']];
+  ls.forEach(l => rows.push([l.faixa.label, l.nome, l.cnpj, l.rede, l.vendedor,
+    _repoFmtData(l.ultima) + '/' + l.ultima.getFullYear(), l.dias, l.freq ?? '', l.entregas_90d,
+    l.media_rs.toFixed(2), l.media_kg.toFixed(1), l.perda.toFixed(2), l.fora_padrao ? 'SIM' : '']));
+  const suf = _repoVendFiltro === 'todos' ? 'todos' : _repoVendFiltro.toLowerCase().replace(/\s+/g,'-');
+  downloadCSV('reposicao-' + suf + '-' + d.hoje.toISOString().slice(0,10) + '.csv', rows);
+}
+window.repoExportarCSV = repoExportarCSV;
+
+function repoFichaHTML() {
+  const d = _repoDados; if (!d) return '';
+  const alvo = _repoFiltradas(d, false);
+  const quem = _repoVendFiltro === 'todos' ? 'Todos os vendedores' : _repoVendFiltro;
+  const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const secoes = ['perda','critico','atencao'].map(fid => {
+    const f = REPO_FAIXAS.find(x => x.id === fid);
+    const ls = alvo.filter(l => l.faixa.id === fid);
+    if (!ls.length) return '';
+    return '<h2 style="border-left:5px solid ' + f.cor + '">' + f.icone + ' ' + f.label + ' — ' + ls.length + ' loja(s)</h2>' +
+      '<table><thead><tr><th>Loja</th><th>Rede</th><th>Últ.</th><th>Dias</th><th>Freq</th>' +
+      '<th>Média/sem</th><th>Contato</th><th class="anot">Anotação</th></tr></thead><tbody>' +
+      ls.map(l => '<tr><td><b>' + esc(l.nome) + '</b>' + (l.fora_padrao ? ' <span class="fp">⚠ fora do padrão</span>' : '') +
+        '</td><td>' + esc(l.rede) + '</td><td>' + _repoFmtData(l.ultima) + '</td><td class="n">' + l.dias +
+        '</td><td class="n">' + (l.freq != null ? l.freq + 'd' : '—') + '</td><td class="n">' + _repoFmtR(l.media_rs) +
+        '</td><td>' + esc(l.telefone || '—') + '</td><td class="anot"></td></tr>').join('') +
+      '</tbody></table>';
+  }).join('');
+  const total = _repoFmtR(alvo.reduce((s,l) => s + l.perda, 0));
+  const html = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<title>Ficha de reposição — ' + esc(quem) + '</title><style>' +
+    '@page{size:A4;margin:12mm}body{font:11px/1.4 -apple-system,Segoe UI,Arial,sans-serif;color:#111;margin:0}' +
+    'h1{font-size:17px;margin:0 0 2px}.sub{color:#666;font-size:11px;margin-bottom:14px}' +
+    'h2{font-size:12px;margin:14px 0 5px;padding:3px 0 3px 8px;background:#f4f4f4}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:6px}' +
+    'th{background:#f9f9f9;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#555}' +
+    'th,td{border:1px solid #ddd;padding:4px 6px;text-align:left;vertical-align:top}' +
+    'td.n{text-align:right;font-variant-numeric:tabular-nums}.anot{width:26%}td.anot{height:26px}' +
+    '.fp{color:#b45309;font-size:9px;white-space:nowrap}' +
+    '.tot{margin-top:12px;padding:7px 10px;background:#fff4f4;border:1px solid #f3c4c4;font-weight:700}' +
+    '@media print{.noprint{display:none}}</style></head><body>' +
+    '<h1>🔔 Ficha de reposição — ' + esc(quem) + '</h1>' +
+    '<div class="sub">Gerado em ' + _repoFmtData(d.hoje) + '/' + d.hoje.getFullYear() +
+    ' · ' + alvo.length + ' loja(s) parada(s) · fonte: NFs emitidas (CFOP de venda)</div>' +
+    (secoes || '<p>Nenhuma loja fora do ciclo normal.</p>') +
+    '<div class="tot">Total parado: ' + total + '/semana</div>' +
+    '<button class="noprint" onclick="window.print()" style="margin-top:14px;padding:7px 16px;font-size:12px;cursor:pointer">Imprimir</button>' +
+    '</body></html>';
+  return html;
+}
+
+function repoFichaVendedor() {
+  const d = _repoDados; if (!d) return;
+  const html = repoFichaHTML();
+  const w = window.open('', '_blank');
+  if (w) { w.document.write(html); w.document.close(); return; }
+  // Pop-up bloqueado: entrega como arquivo, que o vendedor abre e imprime.
+  const suf = _repoVendFiltro === 'todos' ? 'todos' : _repoVendFiltro.toLowerCase().replace(/\s+/g,'-');
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  Object.assign(document.createElement('a'), { href: url, download: 'ficha-reposicao-' + suf + '.html' }).click();
+  URL.revokeObjectURL(url);
+}
+window.repoFichaVendedor = repoFichaVendedor;
+window.repoFichaHTML = repoFichaHTML;
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function _repoBadge(f, extra) {
+  return '<span style="background:' + f.cor + '22;color:' + f.cor + ';border:1px solid ' + f.cor +
+    '55;border-radius:4px;font-size:9px;padding:1px 6px;white-space:nowrap">' + f.icone + ' ' + f.label + '</span>' +
+    (extra ? ' <span title="dias sem entrega passou de 2× a frequência normal desta loja" style="background:rgba(232,116,59,.14);color:#E8743B;border:1px solid rgba(232,116,59,.35);border-radius:4px;font-size:9px;padding:1px 5px;white-space:nowrap">⚠ fora do padrão</span>' : '');
+}
+
+function _repoLinha(l) {
+  return `<tr>
+    <td>${_repoBadge(l.faixa, l.fora_padrao)}</td>
+    <td style="font-size:10px;max-width:190px" title="${l.cnpj}">${l.nome.length > 32 ? l.nome.slice(0,30) + '…' : l.nome}</td>
+    <td style="font-size:10px;color:var(--muted)">${l.rede}</td>
+    <td style="font-size:10px;color:${REPO_VEND_CORES[l.vendedor] || 'var(--muted)'}">${l.vendedor}</td>
+    <td style="font-size:10px;font-family:'DM Mono',monospace">${_repoFmtData(l.ultima)}</td>
+    <td style="text-align:right;font-weight:700;font-family:'DM Mono',monospace;color:${l.faixa.cor}">${l.dias}</td>
+    <td style="text-align:right;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${l.freq != null ? l.freq + 'd' : '—'}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace">${_repoFmtR(l.media_rs)}</td>
+    <td style="text-align:right;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${l.media_kg > 0 ? l.media_kg.toFixed(1) : '—'}</td>
+    <td style="text-align:right;font-weight:700;font-family:'DM Mono',monospace;color:#EF4444">${_repoFmtR(l.perda)}</td>
+    <td><button class="mb" style="padding:2px 8px;font-size:9px" onclick="repoCopiarLoja('${l.cnpj}')">copiar</button></td>
+  </tr>`;
+}
+
+function repoCopiarLoja(cnpj) {
+  const l = (_repoDados?.lojas || []).find(x => x.cnpj === cnpj);
+  if (!l) return;
+  const txt = l.nome + ' (' + l.rede + ') — ' + l.dias + ' dias sem entrega — última ' +
+    _repoFmtData(l.ultima) + ' — média ' + _repoFmtR(l.media_rs) + '/sem — perda estimada ' + _repoFmtR(l.perda);
+  if (navigator.clipboard) navigator.clipboard.writeText(txt); else window.prompt('Copie:', txt);
+}
+window.repoCopiarLoja = repoCopiarLoja;
+
+const _REPO_THEAD = `<thead><tr>
+  <th>Status</th><th>Loja</th><th>Rede</th><th>Vendedor</th><th>Última entrega</th>
+  <th style="text-align:right">Dias</th><th style="text-align:right" title="intervalo mediano entre entregas nos últimos 90d">Freq. normal</th>
+  <th style="text-align:right">Média sem. R$</th><th style="text-align:right">Média sem. kg</th>
+  <th style="text-align:right">Perda estimada</th><th>Ação</th>
+</tr></thead>`;
+
+function _repoTabela(lojas) {
+  if (!lojas.length) return '<div style="color:var(--muted);font-size:11px;padding:14px">Nenhuma loja nesta seleção.</div>';
+  if (_repoAgrup === 'lista')
+    return `<div style="overflow-x:auto"><table class="it" style="font-size:11px;width:100%">${_REPO_THEAD}<tbody>${lojas.map(_repoLinha).join('')}</tbody></table></div>`;
+  const chave = _repoAgrup === 'vendedor' ? 'vendedor' : 'rede';
+  const grupos = {};
+  lojas.forEach(l => (grupos[l[chave]] = grupos[l[chave]] || []).push(l));
+  return Object.entries(grupos)
+    .sort((a,b) => b[1].reduce((s,l)=>s+l.perda,0) - a[1].reduce((s,l)=>s+l.perda,0))
+    .map(([g, ls]) => {
+      const perda = ls.reduce((s,l) => s + l.perda, 0);
+      const cor = chave === 'vendedor' ? (REPO_VEND_CORES[g] || 'var(--muted)') : 'var(--muted)';
+      return `<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border);margin-bottom:5px">
+          <span style="font-size:12px;font-weight:700;color:${cor}">${g}</span>
+          <span style="font-size:10px;color:var(--muted)">${ls.length} loja(s) · perda ${_repoFmtR(perda)}/sem</span>
+        </div>
+        <div style="overflow-x:auto"><table class="it" style="font-size:11px;width:100%">${_REPO_THEAD}<tbody>${ls.map(_repoLinha).join('')}</tbody></table></div>
+      </div>`;
+    }).join('');
+}
+
+function _buildRepoView(d) {
+  const el = document.getElementById('reposicao-content');
+  if (!el || !d) return;
+
+  const ativas   = _repoFiltradas(d, false);
+  const inativas = _repoFiltradas(d, true);
+  const cnt = f => ativas.filter(l => l.faixa.id === f).length;
+  const perdaTotal = ativas.reduce((s,l) => s + l.perda, 0);
+
+  const kpis = [
+    ['Lojas em atenção',  cnt('atencao') + '', '🟡 5–7 dias · perdeu 1 ciclo'],
+    ['Lojas críticas',    cnt('critico') + '', '🟠 8–10 dias · perdeu 2+ ciclos'],
+    ['Lojas em perda',    cnt('perda')   + '', '🔴 11–20 dias'],
+    ['Perda estimada',    _repoFmtR(perdaTotal), 'R$/semana parados'],
+  ].map(([l,v,s]) => `<div class="kpi-card"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
+
+  // Cards menores por vendedor — sempre sobre a base completa, não sobre o filtro
+  const todasAtivas = _repoAtivas(d);
+  const vends = _repoVendList(d);
+  const cardsVend = vends.map(v => {
+    const ls = todasAtivas.filter(l => l.vendedor === v);
+    const cor = REPO_VEND_CORES[v] || '#888780';
+    const p = ls.reduce((s,l) => s + l.perda, 0);
+    const sel = _repoVendFiltro === v;
+    return `<div class="cc" onclick="repoSetVend('${v === _repoVendFiltro ? 'todos' : v}')" style="cursor:pointer;padding:9px 11px;border-color:${sel ? cor : 'var(--border)'}">
+      <div style="font-size:11px;font-weight:700;color:${cor};margin-bottom:3px">${v}</div>
+      <div style="font-size:16px;font-weight:700;font-family:'DM Mono',monospace">${ls.length}<span style="font-size:10px;color:var(--muted);font-weight:400"> lojas paradas</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${_repoFmtR(p)}/sem · ${ls.filter(l=>l.faixa.id==='perda').length}🔴 ${ls.filter(l=>l.faixa.id==='critico').length}🟠 ${ls.filter(l=>l.faixa.id==='atencao').length}🟡</div>
+    </div>`;
+  }).join('');
+
+  const btn = (on, fn, txt) => `<button class="mb" onclick="${fn}" style="padding:4px 12px;font-size:11px${on ? ';border-color:#378ADD;background:rgba(55,138,221,.15);color:#378ADD' : ''}">${txt}</button>`;
+
+  const controles = `<div class="cc" style="margin-bottom:12px;padding:11px 13px">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px">
+      <span style="font-size:10px;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Vendedor:</span>
+      ${btn(_repoVendFiltro === 'todos', "repoSetVend('todos')", 'Todos')}
+      ${vends.map(v => btn(_repoVendFiltro === v, `repoSetVend('${v}')`, v)).join('')}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px">
+      <span style="font-size:10px;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Agrupar:</span>
+      ${btn(_repoAgrup === 'vendedor', "repoSetAgrup('vendedor')", 'Por Vendedor')}
+      ${btn(_repoAgrup === 'rede',     "repoSetAgrup('rede')",     'Por Rede')}
+      ${btn(_repoAgrup === 'lista',    "repoSetAgrup('lista')",    'Lista única')}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:9px;border-top:1px solid var(--border)">
+      <span style="font-size:10px;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Exportar:</span>
+      <button id="repo-btn-copiar" class="mb" onclick="repoCopiarLista()" style="padding:4px 12px;font-size:11px">📋 Copiar lista do vendedor</button>
+      <button class="mb" onclick="repoExportarCSV()" style="padding:4px 12px;font-size:11px">📄 Exportar CSV</button>
+      <button class="mb" onclick="repoFichaVendedor()" style="padding:4px 12px;font-size:11px">🖨 Ficha do vendedor</button>
+      <span style="font-size:10px;color:var(--muted2)">respeita o filtro de vendedor ativo</span>
+    </div>
+  </div>`;
+
+  const inativasHtml = inativas.length ? `<div class="cc" style="margin-top:12px">
+    <div class="ct">⚫ Inativas — 21+ dias sem entrega (${inativas.length})</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Fora da meta de reposição: recuperação, não reposição. Não entram na perda estimada.</div>
+    ${_repoTabela(inativas)}
+  </div>` : '';
+
+  const alerta = d.sem_carteira.length ? `<div class="cc" style="margin-top:12px;border-color:rgba(239,159,39,.4)">
+    <div class="ct" style="color:#EF9F27">⚠ ${d.sem_carteira.length} loja(s) sem vendedor na carteira</div>
+    <div style="font-size:10px;color:var(--muted);line-height:1.7">
+      Rede não coberta pelas regras (Anderson SONDA·GPA-SP·DIA·HIROTA·MUFFATO / Lucas SAM'S·MAMBO·CARREFOUR·5M·EINSTEIN·ZONA SUL·GPA fora-SP·SENDAS-ASSAÍ / Diego LE JAZZ·SOUZA CRUZ·CENCODERMA·NATURAL FARMS / Julia food service).<br>
+      ${d.sem_carteira.map(s => '· ' + s).join('<br>')}
+    </div>
+  </div>` : '';
+
+  el.innerHTML = `
+    <div class="cc" style="margin-bottom:12px;padding:10px 13px;font-size:10px;color:var(--muted);line-height:1.7">
+      Produto perecível — ciclo normal de entrega é 3–4 dias (até 2×/semana). <b>5+ dias já é um ciclo de venda perdido</b>, e não se recupera.<br>
+      Fonte: <code>nfs_emitidas</code> (CFOP 5.10x/6.10x, exclui bonificação, amostra, devolução e consignação) · kg via <code>produto_por_loja</code> (${d.periodos_kg.join(', ')}) ·
+      elegibilidade ≥ 4 entregas em 90 dias (${d.sem_historico} loja(s) parada(s) sem histórico foram excluídas como prospecção).
+    </div>
+    <div class="kg" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">${kpis}</div>
+    <div style="display:grid;grid-template-columns:repeat(${Math.max(vends.length,1)},1fr);gap:8px;margin-bottom:12px">${cardsVend}</div>
+    ${controles}
+    <div class="cc">
+      <div class="ct">Lojas paradas — ordenado por perda estimada${_repoVendFiltro !== 'todos' ? ' · ' + _repoVendFiltro : ''}</div>
+      ${_repoTabela(ativas)}
+    </div>
+    ${inativasHtml}
+    ${alerta}`;
+}
+
+async function renderReposicao() {
+  const el = document.getElementById('reposicao-content');
+  if (!el) return;
+  if (_repoDados) { _buildRepoView(_repoDados); return; }
+  if (_repoLoading) return;
+  _repoLoading = true;
+  el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:11px;font-family:\'DM Mono\',monospace">calculando radar de reposição...</div>';
+  try {
+    _repoDados = await calcularReposicao();
+    _buildRepoView(_repoDados);
+  } catch (e) {
+    _repoErr = e;
+    el.innerHTML = '<div class="cc" style="color:var(--red);font-size:11px;padding:20px">Erro ao calcular reposição: ' + e.message + '</div>';
+  } finally {
+    _repoLoading = false;
+  }
+}
+window.renderReposicao = renderReposicao;
 
 // ── Janelas de Entrega ─────────────────────────────────────────────────────
 const JANELAS_DIST = [
