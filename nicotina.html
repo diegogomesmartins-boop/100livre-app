@@ -517,12 +517,12 @@
     </div>
     <div class="hero-right">
       <div class="hero-kpi">
-        <div class="hero-kpi-val green" id="hero-nic">6,86%</div>
-        <div class="hero-kpi-label">Teor máximo<br>de nicotina</div>
+        <div class="hero-kpi-val green" id="hero-nic">6,79%</div>
+        <div class="hero-kpi-label">Pico de nicotina<br>Exp. 3 (teto mantido)</div>
       </div>
       <div class="hero-kpi">
-        <div class="hero-kpi-val amber" id="hero-mult">11,4×</div>
-        <div class="hero-kpi-label">Mais potente que<br>melhor campo SC</div>
+        <div class="hero-kpi-val amber" id="hero-mult">1,7×</div>
+        <div class="hero-kpi-label">Nicotina média<br>vs campo SC</div>
       </div>
       <div class="hero-kpi">
         <div class="hero-kpi-val" id="hero-ciclo">35</div>
@@ -563,19 +563,19 @@
         <div class="exp-info">
           Solução: 30% NO₃ / 70% NH₄<br>
           Topping: 5 folhas<br>
-          Ciclo: 40 dias<br>
+          Ciclo: 35 dias<br>
           EC escalonada
         </div>
       </div>
       <div class="exp-card current">
-        <span class="exp-badge current">Exp. 3 · Colhido · Nic. pendente</span>
-        <div class="exp-nic amber" id="exp3-nic-display">51,8g*</div>
-        <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Meta · Aguardando colheita</div>
+        <span class="exp-badge current">Exp. 3 · Colhido · Analisado</span>
+        <div class="exp-nic green" id="exp3-nic-display">3,40%</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">Nicotina média · pico 6,79%</div>
         <div class="exp-info">
-          216 / 216 amostras colhidas<br>
-          Verde médio (folhas): 345 g/planta<br>
-          Seca est. (fator 15%): 51,8 g<br>
-          +10,8% vs Exp. 2 · Nicotina %: aguarda lab
+          216 / 216 amostras · verde 345 g/planta<br>
+          Seca est. (fator 15%): 51,8 g · +10,8%<br>
+          Nicotina média 3,40% (+19% vs Exp. 2)<br>
+          Pico 6,79% · BR22-21371 · 50/50 · EC 2,50
         </div>
       </div>
       <div class="exp-card next">
@@ -600,11 +600,11 @@
       <div class="edit-grid">
         <div class="edit-field">
           <label class="edit-label">% Nicotina atingida</label>
-          <input type="number" class="edit-input" id="inp-nic" value="6.86" step="0.01" min="0" max="15" placeholder="ex: 7.20">
+          <input type="number" class="edit-input" id="inp-nic" value="3.40" step="0.01" min="0" max="15" placeholder="ex: 7.20">
         </div>
         <div class="edit-field">
           <label class="edit-label">Massa seca / planta (g)</label>
-          <input type="number" class="edit-input" id="inp-massa" value="19.0" step="0.1" min="1" max="100">
+          <input type="number" class="edit-input" id="inp-massa" value="51.8" step="0.1" min="1" max="100">
         </div>
         <div class="edit-field">
           <label class="edit-label">Ciclo confirmado (dias)</label>
@@ -614,13 +614,13 @@
           <label class="edit-label">Densidade ótima (pl/andar)</label>
           <select class="edit-input-select" id="inp-densidade">
             <option value="12">12 plantas / andar</option>
-            <option value="18" selected>18 plantas / andar</option>
-            <option value="24">24 plantas / andar</option>
+            <option value="18">18 plantas / andar</option>
+            <option value="24" selected>24 plantas / andar</option>
           </select>
         </div>
         <div class="edit-field">
           <label class="edit-label">Solução nutritiva escolhida</label>
-          <input type="text" class="edit-input" id="inp-solucao" value="70% NH₄ / 30% NO₃" placeholder="ex: 70% NH₄ / 30% NO₃">
+          <input type="text" class="edit-input" id="inp-solucao" value="50% NO₃ / 50% NH₄" placeholder="ex: 70% NH₄ / 30% NO₃">
         </div>
         <div class="edit-field">
           <label class="edit-label">EC confirmada (mS/cm)</label>
@@ -629,7 +629,7 @@
       </div>
       <div class="edit-actions">
         <button class="btn-primary" onclick="aplicarDados()">Aplicar resultados</button>
-        <button class="btn-secondary" onclick="resetarDados()">Restaurar Exp. 2</button>
+        <button class="btn-secondary" onclick="resetarDados()">Restaurar Exp. 3</button>
         <span class="edit-saved" id="saved-msg">✓ Dashboard atualizado com dados do Exp. 3</span>
       </div>
     </div>
@@ -642,7 +642,7 @@
 
       <!-- Aviso fator -->
       <div style="background:#1A2A12;border-left:3px solid #D97706;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#FCD34D;line-height:1.6;">
-        <strong style="color:#FDE68A;">⚠ Massa seca = ESTIMATIVA com fator 8,5%</strong> — calculado com dados reais do Exp. 2 (311,9g verde ÷ 26,5g seca real, 5% umidade). Valores reais substituirão após pesagem laboratorial.
+        <strong style="color:#FDE68A;">⚠ Massa seca = ESTIMATIVA com fator 15%</strong> — matéria seca ≈ 15% do verde. Exp. 2 tem peso seco medido (30,3 g → fator real ~9,7%). Valores definitivos após a pesagem seca laboratorial do Exp. 3.
       </div>
 
       <!-- KPIs gerais -->
@@ -650,22 +650,22 @@
         <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:22px;font-weight:700;color:#FFFFFF;">216/216</div>
           <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">amostras com peso</div>
-          <div style="font-size:10px;color:#6B7280;">#26: 85g · #34: 260g (inseridos)</div>
+          <div style="font-size:10px;color:#6B7280;">#26: 424g · #34: 260g (inseridos)</div>
         </div>
         <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:#4ADE80;">223 g</div>
+          <div style="font-size:22px;font-weight:700;color:#4ADE80;">345 g</div>
           <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">verde média / planta</div>
           <div style="font-size:10px;color:#6B7280;">topping 5 folhas · 4 torres</div>
         </div>
         <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:#D97706;">19,0 g*</div>
+          <div style="font-size:22px;font-weight:700;color:#D97706;">51,8 g*</div>
           <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">seca estimada (15%)</div>
-          <div style="font-size:10px;color:#6B7280;">+22,6% vs Exp. 1 e 2</div>
+          <div style="font-size:10px;color:#6B7280;">+10,8% vs Exp. 2</div>
         </div>
         <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:#9CA3AF;">Pendente</div>
-          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">nicotina %</div>
-          <div style="font-size:10px;color:#6B7280;">análise laboratorial</div>
+          <div style="font-size:22px;font-weight:700;color:#4ADE80;">3,40%</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">nicotina média</div>
+          <div style="font-size:10px;color:#6B7280;">pico 6,79% · +19% vs Exp. 2</div>
         </div>
       </div>
 
@@ -687,33 +687,33 @@
             <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 1</td>
             <td style="padding:8px 10px;color:#9CA3AF;">50% NO₃/50% NH₄</td>
             <td style="padding:8px 10px;color:#9CA3AF;">1,80→2,50 mS/cm</td>
-            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">52</td>
-            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">288 g</td>
-            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">24,5 g</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">54</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">344 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">51,6 g</td>
           </tr>
           <tr style="background:#0D1117;border-bottom:1px solid #1F2937;">
             <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 2</td>
             <td style="padding:8px 10px;color:#9CA3AF;">30% NO₃/70% NH₄</td>
             <td style="padding:8px 10px;color:#9CA3AF;">1,80→2,50 mS/cm</td>
             <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">54</td>
-            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">184 g</td>
-            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">15,7 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">335 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">50,3 g</td>
           </tr>
           <tr style="border-bottom:1px solid #1F2937;">
             <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 3</td>
             <td style="padding:8px 10px;color:#9CA3AF;">50% NO₃/50% NH₄</td>
             <td style="padding:8px 10px;color:#9CA3AF;">1,80→3,00 mS/cm</td>
-            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">52</td>
-            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">234 g</td>
-            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">19,9 g</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">54</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">357 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">53,6 g</td>
           </tr>
           <tr style="background:#0D1117;">
             <td style="padding:8px 10px;color:#FFFFFF;font-weight:600;">Torre 4</td>
             <td style="padding:8px 10px;color:#9CA3AF;">30% NO₃/70% NH₄</td>
             <td style="padding:8px 10px;color:#9CA3AF;">1,80→3,00 mS/cm</td>
-            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">56</td>
-            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">190 g</td>
-            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">16,2 g</td>
+            <td style="padding:8px 10px;text-align:center;color:#9CA3AF;">54</td>
+            <td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">346 g</td>
+            <td style="padding:8px 10px;text-align:right;color:#D97706;font-weight:600;">51,9 g</td>
           </tr>
         </tbody>
       </table>
@@ -820,6 +820,104 @@
     </div>
   </div>
 
+  <!-- ══ BLOCO 1b: NICOTINA — EVOLUÇÃO EXP2 → EXP3 ══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">Bloco 01b</span>
+      <span class="section-title">Nicotina — evolução Exp. 2 → Exp. 3</span>
+      <span class="section-sub">Comparação justa (média vs média) · laudo do 3º ciclo</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:#0F3D22;border:1px solid #1A7A4A;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:#4ADE80;">+19%</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">nicotina média</div>
+        <div style="font-size:10px;color:#6B7280;">2,86% → 3,40%</div>
+      </div>
+      <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:#FFFFFF;">~6,8%</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">pico mantido</div>
+        <div style="font-size:10px;color:#6B7280;">6,86% → 6,79%</div>
+      </div>
+      <div style="background:#0F3D22;border:1px solid #1A7A4A;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:#4ADE80;">+31%</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">g nicotina / planta</div>
+        <div style="font-size:10px;color:#6B7280;">biomassa × concentração</div>
+      </div>
+      <div style="background:#1F2937;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:#60A5FA;">2,2%</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:3px;">conversão nornic.</div>
+        <div style="font-size:10px;color:#6B7280;">qualidade ok (&lt;5%)</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#9CA3AF;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Por cultivar (mesma genética)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:#1F2937;">
+            <th style="padding:8px 10px;text-align:left;color:#9CA3AF;border-bottom:1px solid #374151;">Cultivar</th>
+            <th style="padding:8px 10px;text-align:right;color:#9CA3AF;border-bottom:1px solid #374151;">Exp. 2</th>
+            <th style="padding:8px 10px;text-align:right;color:#9CA3AF;border-bottom:1px solid #374151;">Exp. 3</th>
+            <th style="padding:8px 10px;text-align:right;color:#4ADE80;border-bottom:1px solid #374151;">Δ</th><th style="padding:8px 10px;text-align:right;color:#9CA3AF;border-bottom:1px solid #374151;">Pico</th><th style="padding:8px 10px;text-align:left;color:#9CA3AF;border-bottom:1px solid #374151;">Condição do pico</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #1F2937;"><td style="padding:8px 10px;color:#FFF;font-weight:600;">BR22-21371</td><td style="padding:8px 10px;text-align:right;color:#9CA3AF;">3,10%</td><td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">3,71%</td><td style="padding:8px 10px;text-align:right;color:#4ADE80;">+20%</td><td style="padding:8px 10px;text-align:right;color:#E2E8F0;font-weight:600;">6,79%</td><td style="padding:8px 10px;text-align:left;color:#9CA3AF;font-size:11px;">T1 · 50/50 · EC 2,50 · 18v · am. 27</td></tr>
+            <tr style="background:#0D1117;border-bottom:1px solid #1F2937;"><td style="padding:8px 10px;color:#FFF;font-weight:600;">BR22-21385</td><td style="padding:8px 10px;text-align:right;color:#9CA3AF;">2,98%</td><td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">3,45%</td><td style="padding:8px 10px;text-align:right;color:#4ADE80;">+16%</td><td style="padding:8px 10px;text-align:right;color:#E2E8F0;font-weight:600;">6,35%</td><td style="padding:8px 10px;text-align:left;color:#9CA3AF;font-size:11px;">T2 · 70/30 · EC 2,50 · 24v · am. 63</td></tr>
+            <tr><td style="padding:8px 10px;color:#FFF;font-weight:600;">BAT-2101</td><td style="padding:8px 10px;text-align:right;color:#9CA3AF;">2,50%</td><td style="padding:8px 10px;text-align:right;color:#4ADE80;font-weight:600;">3,01%</td><td style="padding:8px 10px;text-align:right;color:#4ADE80;">+20%</td><td style="padding:8px 10px;text-align:right;color:#E2E8F0;font-weight:600;">5,50%</td><td style="padding:8px 10px;text-align:left;color:#9CA3AF;font-size:11px;">T4 · 70/30 · EC 3,00 · 24v · am. 183</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:#111827;border:1px solid #1A7A4A;border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4ADE80;margin-bottom:8px;">✅ Condição vencedora / mais homogênea</div>
+        <div style="font-size:15px;font-weight:700;color:#FFF;margin-bottom:4px;">BR22-21371 · 50/50 · EC 2,50 · 12v</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6;">Média <strong style="color:#4ADE80;">4,73%</strong> · CV <strong style="color:#4ADE80;">7%</strong> (mais uniforme) · faixa 4,21–5,13%.<br>O pico absoluto (6,79%) saiu do 18v da mesma condição, mas errático (CV 41%). O 12v entrega alto <strong>e</strong> consistente — é o alvo do Exp. 4.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BLOCO 1c: MANEJO × ADENSAMENTO ══════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">Bloco 01c</span>
+      <span class="section-title">Manejo é o driver da homogeneidade</span>
+      <span class="section-sub">Acesso à bandeja × adensamento · capação correta = nicotina uniforme</span>
+    </div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:16px;">
+      <strong>Torres 2 e 3</strong> permitem acesso pelos <strong>dois lados</strong> (capação correta em todas as plantas). <strong>Torres 1 e 4</strong>, só por <strong>um lado</strong> — no adensamento não se alcança o miolo da bandeja.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div style="background:#0F3D22;border:1px solid #1A7A4A;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:8px;">✓ Torres 2 e 3 · acesso 2 lados</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="color:#9CA3AF;"><th style="text-align:left;padding:6px 8px;">Dens.</th><th style="padding:6px 8px;">Nicotina</th><th style="padding:6px 8px;">CV</th><th style="padding:6px 8px;">Folhas</th><th style="padding:6px 8px;">Pico</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:8px 10px;text-align:left;color:#FFF;font-weight:700;">12v</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">3,88%</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">23%</td><td style="padding:8px 10px;text-align:center;color:#9CA3AF;font-weight:400;">6,4</td><td style="padding:8px 10px;text-align:center;color:#E2E8F0;font-weight:700;">5,51%</td></tr>
+            <tr><td style="padding:8px 10px;text-align:left;color:#FFF;font-weight:700;">18v</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">3,60%</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">32%</td><td style="padding:8px 10px;text-align:center;color:#9CA3AF;font-weight:400;">6,5</td><td style="padding:8px 10px;text-align:center;color:#E2E8F0;font-weight:700;">5,79%</td></tr>
+            <tr><td style="padding:8px 10px;text-align:left;color:#FFF;font-weight:700;">24v</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">3,13%</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">25%</td><td style="padding:8px 10px;text-align:center;color:#9CA3AF;font-weight:400;">6,7</td><td style="padding:8px 10px;text-align:center;color:#E2E8F0;font-weight:700;">6,35%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:#2A1A0A;border:1px solid #7A4A1A;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:#FBBF24;margin-bottom:8px;">Torres 1 e 4 · acesso 1 lado</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="color:#9CA3AF;"><th style="text-align:left;padding:6px 8px;">Dens.</th><th style="padding:6px 8px;">Nicotina</th><th style="padding:6px 8px;">CV</th><th style="padding:6px 8px;">Folhas</th><th style="padding:6px 8px;">Pico</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:8px 10px;text-align:left;color:#FFF;font-weight:700;">12v</td><td style="padding:8px 10px;text-align:center;color:#FBBF24;font-weight:400;">3,83%</td><td style="padding:8px 10px;text-align:center;color:#4ADE80;font-weight:400;">24%</td><td style="padding:8px 10px;text-align:center;color:#9CA3AF;font-weight:400;">6,5</td><td style="padding:8px 10px;text-align:center;color:#E2E8F0;font-weight:700;">5,49%</td></tr>
+            <tr><td style="padding:8px 10px;text-align:left;color:#FFF;font-weight:700;">18v</td><td style="padding:8px 10px;text-align:center;color:#FBBF24;font-weight:400;">3,33%</td><td style="padding:8px 10px;text-align:center;color:#F87171;font-weight:700;">43%</td><td style="padding:8px 10px;text-align:center;color:#F87171;font-weight:700;">7,4</td><td style="padding:8px 10px;text-align:center;color:#E2E8F0;font-weight:700;">6,79%</td></tr>
+            <tr><td style="padding:8px 10px;text-align:left;color:#FFF;font-weight:700;">24v</td><td style="padding:8px 10px;text-align:center;color:#FBBF24;font-weight:400;">3,13%</td><td style="padding:8px 10px;text-align:center;color:#F87171;font-weight:700;">45%</td><td style="padding:8px 10px;text-align:center;color:#F87171;font-weight:700;">7,1</td><td style="padding:8px 10px;text-align:center;color:#E2E8F0;font-weight:700;">5,73%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="background:#111827;border-left:3px solid #4ADE80;border-radius:0 8px 8px 0;padding:12px 16px;font-size:12px;color:var(--text-2);line-height:1.6;margin-bottom:16px;">
+      No <strong>12v</strong> (fácil de alcançar) os dois grupos empatam. No <strong>18v e 24v</strong>, o acesso por 1 lado dispara o CV (43–45%) e as folhas (7,1–7,4) — não se capa o miolo. <strong style="color:#4ADE80;">Acesso pelos dois lados vira requisito de projeto</strong> para adensar (24v = máx. nicotina/m²) sem perder homogeneidade.
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#9CA3AF;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Mais folhas, menos nicotina (o elo do manejo)</div>
+    <div style="display:flex;gap:6px;align-items:flex-end;height:90px;">
+      <div style="flex:1;text-align:center;"><div style="background:#4ADE80;height:70px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">4f</div><div style="font-size:9px;color:#6B7280;">4,1%</div></div><div style="flex:1;text-align:center;"><div style="background:#4ADE80;height:64px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">5f</div><div style="font-size:9px;color:#6B7280;">3,8%</div></div><div style="flex:1;text-align:center;"><div style="background:#4ADE80;height:62px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">6f</div><div style="font-size:9px;color:#6B7280;">3,7%</div></div><div style="flex:1;text-align:center;"><div style="background:#4ADE80;height:58px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">7f</div><div style="font-size:9px;color:#6B7280;">3,4%</div></div><div style="flex:1;text-align:center;"><div style="background:#FBBF24;height:49px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">8f</div><div style="font-size:9px;color:#6B7280;">2,9%</div></div><div style="flex:1;text-align:center;"><div style="background:#FBBF24;height:42px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">9f</div><div style="font-size:9px;color:#6B7280;">2,5%</div></div><div style="flex:1;text-align:center;"><div style="background:#F87171;height:38px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">10f</div><div style="font-size:9px;color:#6B7280;">2,3%</div></div><div style="flex:1;text-align:center;"><div style="background:#F87171;height:28px;border-radius:4px 4px 0 0;"></div><div style="font-size:9px;color:#9CA3AF;margin-top:3px;">11f</div><div style="font-size:9px;color:#6B7280;">1,7%</div></div>
+    </div>
+    <div style="font-size:11px;color:#6B7280;margin-top:6px;">Capação → nº de folhas → concentração. De 4 folhas (4,11%) a 11 folhas (1,69%). Onde se capa certo (T2/3), folhas ~6,5 e nicotina alta e uniforme.</div>
+  </div>
+
   <!-- ══ BLOCO 2: COMPARATIVO CAMPO × SC × SPROUT ══════════════════ -->
   <div class="section">
     <div class="section-header">
@@ -832,10 +930,10 @@
     <div class="equiv-box" style="margin-bottom:24px;">
       <div class="equiv-content">
         <div class="equiv-label">Equivalência em biomassa para extrair a mesma nicotina</div>
-        <div class="equiv-number"><span id="equiv-num">11,4</span>×</div>
+        <div class="equiv-number"><span id="equiv-num">1,7</span>×</div>
         <div class="equiv-desc">
           Para obter a mesma quantidade de nicotina de <strong>1 kg da folha Sprout</strong>,<br>
-          a Souza Cruz precisaria de <strong id="equiv-desc-val">11,4 kg</strong> da sua melhor folha cultivada no campo aberto (Sul BR).
+          a Souza Cruz precisaria de <strong id="equiv-desc-val">1,7 kg</strong> da sua melhor folha cultivada no campo aberto (Sul BR).
         </div>
         <div class="equiv-row">
           <div class="equiv-side">
@@ -846,8 +944,8 @@
           <div class="equiv-vs">vs</div>
           <div class="equiv-side">
             <div class="equiv-side-tag" style="color:#4ADE80;">Sprout — fazenda vertical indoor</div>
-            <div class="equiv-side-val" style="color:#4ADE80;" id="equiv-sprout-val">6,86%</div>
-            <div class="equiv-side-desc" id="equiv-sprout-desc">nicotina · máximo atingido Exp. 2<br>Controlado: protocolo proprietário</div>
+            <div class="equiv-side-val" style="color:#4ADE80;" id="equiv-sprout-val">3,40%</div>
+            <div class="equiv-side-desc" id="equiv-sprout-desc">nicotina · média Exp. 3 (pico 6,79%)<br>Controlado: protocolo proprietário</div>
           </div>
         </div>
       </div>
@@ -882,7 +980,7 @@
             <td>
               <div class="nic-bar-wrap">
                 <div class="nic-bar-bg"><div class="nic-bar-fill" id="nic-bar-sprout" style="width:100%;background:#1A7A4A;"></div></div>
-                <span class="nic-val highlight" id="comp-nic-val">6,86%</span>
+                <span class="nic-val highlight" id="comp-nic-val">3,40%</span>
               </div>
             </td>
           </tr>
@@ -995,7 +1093,7 @@
       </div>
       <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:16px">
         <div style="font-size:11px;color:#22c55e;font-weight:700;letter-spacing:.5px;margin-bottom:8px">MELHOR CULTIVAR · EXP. 3</div>
-        <div style="font-size:13px;color:var(--text-2);line-height:1.6"><strong>BR22-21371</strong> lidera biomassa: 355g verde (+13,8% vs Exp. 2), maior do experimento. A referência <strong>BR22-21385</strong> (recorde de nicotina no Exp. 2) fica em 340g. T3 (EC 3,00 · 50/50) levemente à frente entre torres.</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6"><strong>BR22-21371</strong> é duplo vencedor: lidera biomassa (355g, +13,8%) E nicotina (3,71% média, +20% vs Exp. 2, pico 6,79%). <strong>BR22-21385</strong> 340g / 3,45%. Melhor combinação: BR22-21371 · 50/50 · EC 2,50.</div>
       </div>
     </div>
 
@@ -1341,7 +1439,7 @@
           </tr>
           <tr style="border-bottom:1px solid #F3F4F6;">
             <td style="padding:9px 16px;color:#374151;">Massa seca por planta</td>
-            <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-massa">19,0 g/planta</td>
+            <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-massa">51,8 g/planta</td>
             <td style="padding:9px 16px;color:#9CA3AF;">Estimativa Exp. 3 · fator 15% (Exp. 2 → 8,5%, recalibrado)</td>
           </tr>
           <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
@@ -1356,13 +1454,13 @@
           </tr>
           <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6;">
             <td style="padding:9px 16px;color:#374151;">Teor de nicotina</td>
-            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-nic">6,86%</td>
-            <td style="padding:9px 16px;color:#9CA3AF;">Máximo atingido Exp. 2 · BR22-21385 · 70/30 NH₄/NO₃</td>
+            <td style="padding:9px 16px;font-weight:700;color:#1A7A4A;" id="prem-nic">3,40%</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Média Exp. 3 · pico 6,79% (BR22-21371 · 50/50 · EC 2,50)</td>
           </tr>
           <tr style="border-bottom:1px solid #F3F4F6;">
             <td style="padding:9px 16px;color:#374151;">Densidade (plantas/andar)</td>
             <td style="padding:9px 16px;font-weight:700;color:#111827;" id="prem-dens">24 pl/andar</td>
-            <td style="padding:9px 16px;color:#9CA3AF;">Melhor resultado biomassa Exp. 3 · aguarda nicotina lab</td>
+            <td style="padding:9px 16px;color:#9CA3AF;">Maior g nicotina/m² (24v) · nicotina analisada</td>
           </tr>
           <!-- Extração -->
           <tr style="background:#F0FDF4;">
@@ -1431,7 +1529,7 @@
     </div>
 
     <div class="disclaimer" style="margin-top:16px;">
-      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo 35 dias = 10,43 ciclos/ano. Receita = óleo (rendimento% da biomassa × preço óleo) + folha pós-extração ((100-rendimento)% × preço folha) — ambos vendidos à Souza Cruz. EBITDA e receita do Bloco 07 atualizam com os sliders do Bloco 04. Massa seca Exp. 3: estimativa fator 15% · verde 345g → seca 51,8g (Exp. 2: 8,5%, 311,9g→26,5g lab). Nicotina % pendente laboratório.
+      <strong>Nota metodológica:</strong> Projeções baseadas na planilha Projeto JV Tabaco — Sprout Holdings (BRL '000). Ciclo 35 dias = 10,43 ciclos/ano. Receita = óleo (rendimento% da biomassa × preço óleo) + folha pós-extração ((100-rendimento)% × preço folha) — ambos vendidos à Souza Cruz. EBITDA e receita do Bloco 07 atualizam com os sliders do Bloco 04. Massa seca Exp. 3: estimativa fator 15% · verde 345g → seca 51,8g. Exp. 2 tem peso seco medido 30,3g (fator real ~9,7%). Nicotina Exp. 3: média 3,40% (+19% vs Exp. 2 = 2,86%), pico 6,79%.
     </div>
   </div>
 
@@ -1440,7 +1538,7 @@
 <script>
 // ══ ESTADO GLOBAL ═════════════════════════════════════════════════
 const STATE = {
-  nic:        6.86,   // % nicotina (Exp 2 — aguarda Exp 3)
+  nic:        3.40,   // % nicotina média Exp 3 (pico 6,79% · winning 4,73%)
   massa:      51.8,   // g seca/planta (est. fator 15%, Exp 3)
   ciclo:      35,     // dias por ciclo
   densidade:  24,     // plantas/andar (default)
@@ -1511,13 +1609,12 @@ function calcTorres (nTorres, nAndares, nPlantas) {
 
 // ══ APLICAR DADOS EXP 3 ═════════════════════════════════════════
 function aplicarDados () {
-  STATE.nic      = parseFloat($('inp-nic').value)      || 6.86;
-  STATE.massa    = parseFloat($('inp-massa').value)    || 15.46;
+  STATE.nic      = parseFloat($('inp-nic').value)      || 3.40;
+  STATE.massa    = parseFloat($('inp-massa').value)    || 51.8;
   STATE.ciclo    = parseInt  ($('inp-ciclo').value)    || 35;
   STATE.densidade = parseInt ($('inp-densidade').value) || 24;
 
   // Atualiza hero e comparativo
-  $('hero-nic').textContent     = fmt2(STATE.nic) + '%';
   $('hero-ciclo').textContent   = STATE.ciclo;
   $('comp-nic-val').textContent = fmt2(STATE.nic) + '%';
   $('exp3-nic-display').textContent = fmt2(STATE.nic) + '%';
@@ -1531,8 +1628,8 @@ function aplicarDados () {
 }
 
 function resetarDados () {
-  STATE.nic = 6.86; STATE.massa = 19.0; STATE.ciclo = 35;
-  $('inp-nic').value = 6.86; $('inp-massa').value = 19.0;
+  STATE.nic = 3.40; STATE.massa = 51.8; STATE.ciclo = 35;
+  $('inp-nic').value = 3.40; $('inp-massa').value = 51.8;
   $('inp-ciclo').value = 35; $('inp-densidade').value = 24;
   aplicarDados();
 }
