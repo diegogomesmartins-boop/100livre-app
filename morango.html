@@ -1139,7 +1139,7 @@ function calc() {
   const obs_ppt = document.getElementById('obs-ppt');
   if(obs_ppb) obs_ppb.textContent = ppb;
   if(obs_ppt) obs_ppt.textContent = (Math.round(13*2*ppb)).toLocaleString('pt-BR');
-  const plantas_torre = Math.round(13*2*ppb);
+  // plantas_torre já declarado acima
   document.getElementById('proj-insight').innerHTML =
     `<strong style="color:var(--green)">${torres} torres</strong> · ${(torres*plantas_torre).toLocaleString('pt-BR')} plantas · 
     <strong>${(torres*plantas_torre*prod/1000*apr).toFixed(0)} kg/mês</strong> aproveitável · 
