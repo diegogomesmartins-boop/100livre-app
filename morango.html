@@ -20,6 +20,8 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
 
+.proj-btn{background:#162030;border:0.5px solid #1d2d42;border-radius:5px;padding:3px 8px;font-size:11px;color:#64748b;cursor:pointer;font-family:var(--mono);}
+.proj-btn.active,.proj-btn:hover{background:#1d2d42;color:#e8f0fe;border-color:#3b82f6;}
 /* NAV */
 .nav{display:flex;align-items:center;gap:6px;padding:12px 24px;background:#060d15;border-bottom:1px solid var(--bdr);}
 .nav-logo{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--green);letter-spacing:2px;margin-right:16px;}
@@ -673,8 +675,55 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <div style="margin-top:16px;">
       <canvas id="chartProdMensal" style="max-height:160px"></canvas>
     </div>
+
+    <!-- CONTROLES EDITÁVEIS -->
+    <div style="margin-top:16px;padding:12px 14px;background:#0a1628;border-radius:8px;border:0.5px solid #1d2d42;">
+      <div style="font-size:10px;color:#64748b;font-family:var(--mono);letter-spacing:.06em;margin-bottom:10px;">⚙️ CENÁRIO — AJUSTE OS PARÂMETROS</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <!-- Peso bandeja -->
+        <div>
+          <div style="font-size:10px;color:#64748b;margin-bottom:4px;">Peso bandeja (g)</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="range" id="proj-sl-band" min="100" max="1000" step="50" value="300"
+              style="flex:1;" oninput="document.getElementById('proj-inp-band').value=this.value;renderProjBandejas()">
+            <input type="number" id="proj-inp-band" value="300" min="50" max="2000" step="50"
+              style="width:64px;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:#f59e0b;font-family:var(--mono);font-size:12px;font-weight:600;text-align:center;"
+              oninput="document.getElementById('proj-sl-band').value=Math.min(1000,Math.max(100,+this.value||300));renderProjBandejas()">g
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#475569;margin-top:2px;">
+            <span>100g</span><span>300g atual</span><span>1000g</span>
+          </div>
+        </div>
+        <!-- Número de plantas -->
+        <div>
+          <div style="font-size:10px;color:#64748b;margin-bottom:4px;">Número de plantas</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <button onclick="setProjPlantas(50,this)"  class="proj-btn">50</button>
+            <button onclick="setProjPlantas(100,this)" class="proj-btn">100</button>
+            <button onclick="setProjPlantas(200,this)" class="proj-btn">200</button>
+            <button onclick="setProjPlantas(500,this)" class="proj-btn">500</button>
+            <button onclick="setProjPlantas(1000,this)" class="proj-btn">1k</button>
+            <button onclick="setProjPlantas(2000,this)" class="proj-btn">2k</button>
+            <button onclick="setProjPlantas(5000,this)" class="proj-btn">5k</button>
+            <button onclick="setProjPlantas(13728,this)" class="proj-btn">13.7k</button>
+          </div>
+          <input type="number" id="proj-inp-plantas" value="0" placeholder="Ou digitar..."
+            style="margin-top:6px;width:100%;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:#3b82f6;font-family:var(--mono);font-size:12px;"
+            oninput="renderProjBandejas()">
+        </div>
+        <!-- Resultado em destaque -->
+        <div style="background:#0f1824;border:0.5px solid #22c55e44;border-radius:8px;padding:12px;">
+          <div style="font-size:9px;color:#64748b;font-family:var(--mono);margin-bottom:4px;">RESULTADO DO CENÁRIO</div>
+          <div id="proj-resultado-kg" style="font-size:22px;font-weight:700;color:#f59e0b;font-family:var(--mono);">—</div>
+          <div id="proj-resultado-band" style="font-size:13px;color:#22c55e;font-weight:600;margin-top:2px;">—</div>
+          <div id="proj-resultado-sub" style="font-size:10px;color:#64748b;margin-top:4px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA CENÁRIOS POR ESCALA -->
     <div style="margin-top:12px;padding:10px 14px;background:#0f1824;border-radius:8px;border:0.5px solid #1d2d42;">
-      <div style="font-size:10px;color:#64748b;margin-bottom:6px;font-family:var(--mono);letter-spacing:.06em;">PROJEÇÃO — BANDEJAS/MÊS POR NÚMERO DE PLANTAS</div>
+      <div style="font-size:10px;color:#64748b;margin-bottom:8px;font-family:var(--mono);letter-spacing:.06em;">PROJEÇÃO — BANDEJAS/MÊS POR NÚMERO DE PLANTAS</div>
       <div id="proj-bandejas"></div>
     </div>
   </div>
@@ -1437,26 +1486,63 @@ function renderProdMensal() {
     });
   }
 
-  // Projeção bandejas por número de plantas
+  // Projeção inicial
+  renderProjBandejas();
+}
+
+let _projPlantas = 0; // 0 = usa todos os cenários padrão
+
+function setProjPlantas(n, btn) {
+  _projPlantas = n;
+  document.querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('proj-inp-plantas').value = '';
+  renderProjBandejas();
+}
+
+function renderProjBandejas() {
   const proj = document.getElementById('proj-bandejas');
-  if (proj) {
-    // Usa média dos últimos 3 meses como referência
-    const mediaKgPlanta = PROD_MENSAL.slice(1).reduce((a,m)=>a+m.peso_planta,0)/3/1000;
-    const cenarios = [50,100,150,200,300,500];
-    proj.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
-      + cenarios.map(n => {
-          const kg = +(mediaKgPlanta * n).toFixed(1);
-          const band = +(kg / 0.3).toFixed(0); // bandeja 300g
-          return '<div style="background:#0a1628;border:0.5px solid #1d2d42;border-radius:6px;padding:8px 12px;min-width:100px">'
-            +'<div style="font-size:9px;color:#64748b;font-family:var(--mono)">'+n+' PLANTAS</div>'
-            +'<div style="font-size:16px;font-weight:700;color:#f59e0b;font-family:var(--mono)">'+kg+'kg</div>'
-            +'<div style="font-size:10px;color:#22c55e">~'+band+' bandejas 300g</div>'
-            +'<div style="font-size:9px;color:#475569">por mês</div>'
-            +'</div>';
-        }).join('')
-      +'</div>'
-      +'<div style="font-size:9px;color:#475569;margin-top:8px;font-family:var(--mono)">* Baseado na média Mai–Jul/26 · Sala 5 · bandeja 300g</div>';
+  if (!proj) return;
+
+  const mediaKgPlanta = PROD_MENSAL.slice(1).reduce((a,m)=>a+m.peso_planta,0)/3/1000;
+  const bandPeso = +(document.getElementById('proj-inp-band')?.value || 300);
+  const inputPlantas = +(document.getElementById('proj-inp-plantas')?.value || 0);
+  const plantasFoco = inputPlantas > 0 ? inputPlantas : _projPlantas;
+
+  const cenarios = [50,100,200,500,1000,2000,5000,13728];
+
+  // Atualiza resultado em destaque se há uma planta específica
+  const focoPlantas = plantasFoco > 0 ? plantasFoco : null;
+  const resKg  = document.getElementById('proj-resultado-kg');
+  const resBand = document.getElementById('proj-resultado-band');
+  const resSub  = document.getElementById('proj-resultado-sub');
+  if (focoPlantas && resKg) {
+    const kg = +(mediaKgPlanta * focoPlantas).toFixed(1);
+    const band = Math.round(kg * 1000 / bandPeso);
+    resKg.textContent  = kg + 'kg';
+    resBand.textContent = '~' + band.toLocaleString('pt-BR') + ' bandejas ' + bandPeso + 'g';
+    resSub.textContent  = focoPlantas.toLocaleString('pt-BR') + ' plantas · média Mai–Jul/26';
+  } else if (resKg) {
+    resKg.textContent  = '—';
+    resBand.textContent = 'Selecione ou digite o nº de plantas';
+    resSub.textContent  = '';
   }
+
+  proj.innerHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">'
+    + cenarios.map(n => {
+        const kg   = +(mediaKgPlanta * n).toFixed(1);
+        const band = Math.round(kg * 1000 / bandPeso);
+        const isFoco = n === focoPlantas;
+        const border = isFoco ? '1.5px solid #22c55e' : '0.5px solid #1d2d42';
+        return `<div style="background:#0a1628;border:${border};border-radius:6px;padding:8px 12px;">`
+          + `<div style="font-size:9px;color:#64748b;font-family:var(--mono)">${n.toLocaleString('pt-BR')} PLANTAS</div>`
+          + `<div style="font-size:16px;font-weight:700;color:#f59e0b;font-family:var(--mono)">${kg}kg</div>`
+          + `<div style="font-size:11px;color:#22c55e;font-weight:600">~${band.toLocaleString('pt-BR')} bdj</div>`
+          + `<div style="font-size:9px;color:#475569">${bandPeso}g · por mês</div>`
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + `<div style="font-size:9px;color:#475569;margin-top:8px;font-family:var(--mono)">* Baseado na média Mai–Jul/26 · Sala 5 · bandeja ${bandPeso}g</div>`;
 }
 
 // Init
@@ -1464,6 +1550,7 @@ calc();
 calcBE();
 renderRankings();
 renderProdMensal();
+renderProjBandejas();
 </script>
 </body>
 </html>
