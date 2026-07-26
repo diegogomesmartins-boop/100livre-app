@@ -604,7 +604,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <!-- PESO POR SUBSTRATO -->
   <div class="two-col">
     <div class="card">
-      <div class="section-lbl">Peso Médio por Substrato — 15 Colheitas</div>
+      <div class="section-lbl">Peso Médio por Substrato — 21 Colheitas</div>
       <div class="chart-wrap-lg"><canvas id="chartPesoSub"></canvas></div>
       <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;color:var(--muted2);">
         <span style="color:rgba(34,197,94,0.9);">━ Fibra de Coco</span>
@@ -642,7 +642,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:0">
     <div class="card">
       <div class="section-lbl">🏆 Mais Frutos por Planta</div>
-      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Total em 15 colheitas</div>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px">Total em 21 colheitas</div>
       <div style="display:grid;grid-template-columns:22px 1fr 44px 44px;font-size:10px;color:var(--muted2);padding:4px 2px;border-bottom:1px solid #1d2d42;text-transform:uppercase;letter-spacing:.5px">
         <span>#</span><span>Planta</span><span style="text-align:right">Frutos</span><span style="text-align:right">Média</span>
       </div>
@@ -1239,7 +1239,8 @@ function calcBE() {
 
   // Torres necessárias para breakeven a R$25/200g
   const preco_kg = 25/0.2;
-  const rec_por_torre = 832*bp/1000*ba*preco_kg;
+  const plantas_torre_be = Math.round(13*2*bppb);
+  const rec_por_torre = plantas_torre_be*bp/1000*ba*preco_kg;
   const torres_needed = rec_por_torre>0?custo_total/rec_por_torre:99;
   const be_el = document.getElementById('be-torres-needed');
   be_el.textContent = Math.ceil(torres_needed)+' torres';
@@ -1251,7 +1252,7 @@ function calcBE() {
 
   // Gráfico BE
   const arr = Array.from({length:33},(_,i)=>i+1);
-  const rev_a = arr.map(t=>t*832*bp/1000*ba*preco_kg);
+  const rev_a = arr.map(t=>t*plantas_torre_be*bp/1000*ba*preco_kg);
   const cost_a = arr.map(t=>t*bo);
 
   if (beChart) beChart.destroy();
