@@ -1087,20 +1087,50 @@ function calc() {
     {n:'33 torres',t:33,label:'Fase 4b completa'},
   ];
   let html = '<table class="mkt-table"><thead><tr><th>Cenário</th><th>Plantas</th><th>kg/mês</th><th>Bandejas 200g</th><th>Receita/mês</th><th>Custo/mês</th><th>Margem</th></tr></thead><tbody>';
+  // Custo com ganho de escala:
+  // OPEX tem componente fixo (overhead estrutural: gestao, logistica base, licencas)
+  // que nao cresce proporcionalmente com torres → gera ganho de margem na escala
+  const opex_fixo = opex * 0.55;       // 55% do OPEX base = overhead fixo (gestao, logistica, licencas)
+  const opex_var  = opex * 0.45;       // 45% = variavel (energia, nutricao, MO direta)
+  const torres_ref = 11;               // escala de referencia (fase 3)
+
   cens.forEach(c=>{
-    const p=Math.round(13*2*ppb)*c.t;
-    const k=p*prod/1000*apr;
-    const r=k*preco_kg_medio;
-    const cs=c.t*opex+(muda*p/12);
-    const m=r>0?(r-cs)/r*100:0;
-    const mc = m>=30?'var(--green)':m>=0?'var(--amber)':'var(--red)';
-    html+=`<tr ${c.t===torres?'class="sprout"':''}><td><strong>${c.n}</strong><br><span style="font-size:10px;color:var(--muted2);">${c.label}</span></td>
-      <td style="font-family:var(--mono)">${p.toLocaleString('pt-BR')}</td>
-      <td style="font-family:var(--mono)">${k.toFixed(0)} kg</td>
-      <td style="font-family:var(--mono)">${Math.round(k/0.2).toLocaleString('pt-BR')}</td>
-      <td style="font-family:var(--mono);color:var(--green)">${fmtFull(r)}</td>
-      <td style="font-family:var(--mono);color:var(--amber)">${fmtFull(cs)}</td>
-      <td style="font-family:var(--mono);color:${mc};font-weight:700">${m.toFixed(1)}%</td></tr>`;
+    const p   = Math.round(13*2*ppb)*c.t;
+    const k   = p*prod/1000*apr;
+    const r   = k*preco_kg_medio;
+    // Custo: fixo (proporcional sublinear) + variavel (linear com torres) + mudas
+    const cs_fixo = opex_fixo * torres_ref * Math.pow(c.t/torres_ref, 0.48);
+    const cs_var  = opex_var  * c.t;
+    const cs_muda = muda * p / 12;
+    const cs  = cs_fixo + cs_var + cs_muda;
+    const m   = r>0?(r-cs)/r*100:0;
+    const mc  = m>=35?'var(--green)':m>=20?'var(--amber)':'var(--red)';
+    // Delta margem vs cenario anterior
+    const idx_c = cens.indexOf(c);
+    let delta_html = '';
+    if (idx_c > 0) {
+      const prev = cens[idx_c-1];
+      const pp   = Math.round(13*2*ppb)*prev.t;
+      const kp   = pp*prod/1000*apr;
+      const rp   = kp*preco_kg_medio;
+      const csf_p = opex_fixo*torres_ref*Math.pow(prev.t/torres_ref,0.48);
+      const csv_p = opex_var*prev.t;
+      const csm_p = muda*pp/12;
+      const csp   = csf_p+csv_p+csm_p;
+      const mp    = rp>0?(rp-csp)/rp*100:0;
+      const dm    = m-mp;
+      delta_html  = `<span style='font-size:9px;color:${dm>=0?'#22c55e':'#ef4444'};margin-left:4px'>` +
+                    `${dm>=0?'▲':'▼'}${Math.abs(dm).toFixed(1)}pp</span>`;
+    }
+    html+=`<tr ${c.t===torres?'class="sprout"':''}>`
+      +`<td><strong>${c.n}</strong><br><span style="font-size:10px;color:var(--muted2);">${c.label}</span></td>`
+      +`<td style="font-family:var(--mono)">${p.toLocaleString('pt-BR')}</td>`
+      +`<td style="font-family:var(--mono)">${k.toFixed(0)} kg</td>`
+      +`<td style="font-family:var(--mono)">${Math.round(k/0.2).toLocaleString('pt-BR')}</td>`
+      +`<td style="font-family:var(--mono);color:var(--green)">${fmtFull(r)}</td>`
+      +`<td style="font-family:var(--mono);color:var(--amber)">${fmtFull(cs)}</td>`
+      +`<td style="font-family:var(--mono);color:${mc};font-weight:700">${m.toFixed(1)}%${delta_html}</td>`
+      +`</tr>`;
   });
   html += '</tbody></table>';
   document.getElementById('tabela-cenarios').innerHTML = html;
