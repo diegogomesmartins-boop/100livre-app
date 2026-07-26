@@ -666,6 +666,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     </div>
   </div>
 
+  <!-- PRODUTIVIDADE MENSAL -->
+  <div class="card" style="margin:16px 24px;">
+    <div class="section-lbl" style="margin-bottom:12px;">📅 Produtividade por mês — plantas ativas (Sala 5)</div>
+    <div id="prod-mensal-table"></div>
+    <div style="margin-top:16px;">
+      <canvas id="chartProdMensal" style="max-height:160px"></canvas>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:#0f1824;border-radius:8px;border:0.5px solid #1d2d42;">
+      <div style="font-size:10px;color:#64748b;margin-bottom:6px;font-family:var(--mono);letter-spacing:.06em;">PROJEÇÃO — BANDEJAS/MÊS POR NÚMERO DE PLANTAS</div>
+      <div id="proj-bandejas"></div>
+    </div>
+  </div>
+
   <!-- COMPARATIVO ATUALIZADO -->
   <div class="card" style="margin-top:0">
     <div class="section-lbl">Comparativo — 100% Livre vs Campo BR vs Oishii (Japão)</div>
@@ -1253,19 +1266,34 @@ if(ctxPS){new Chart(ctxPS,{type:'line',data:{labels:PESO_SUBSTRATO.labels,datase
 
 // ── Dados ranking plantas ──────────────────────
 const RANK_TOTAL = [
-  {p:'A-P91',pt:210.9,f:15,s:'Casca Arroz'},
-  {p:'A-P72',pt:207.1,f:13,s:'Misto 50/50'},
-  {p:'A-P29',pt:196.9,f:11,s:'Fibra Coco'},
-  {p:'A-P15',pt:191.9,f:9,s:'Casca Arroz'},
-  {p:'A-P118',pt:191.2,f:10,s:'Fibra Coco'},
-  {p:'A-P122',pt:191.1,f:11,s:'Fibra Coco'},
-  {p:'A-P35',pt:190.5,f:13,s:'Fibra Coco'},
-  {p:'A-P33',pt:182.5,f:16,s:'Fibra Coco'},
-  {p:'A-P126',pt:174.9,f:9,s:'Fibra Coco'},
-  {p:'A-P110',pt:171.6,f:9,s:'Casca Arroz'},
-  {p:'A-P111',pt:169.0,f:8,s:'Casca Arroz'},
-  {p:'A-P68',pt:162.0,f:10,s:'Misto 50/50'}
+  {p:'A-P91', pt:210.9,f:15,s:'Casca Arroz',ini:'28/Abr',fim:'22/Jul',dias:85},
+  {p:'A-P72', pt:207.1,f:13,s:'Misto 50/50',ini:'28/Abr',fim:'22/Jul',dias:85},
+  {p:'A-P29', pt:196.9,f:11,s:'Fibra Coco', ini:'28/Abr',fim:'22/Jul',dias:85},
+  {p:'A-P15', pt:191.9,f:9, s:'Casca Arroz',ini:'28/Abr',fim:'22/Jul',dias:85},
+  {p:'A-P118',pt:191.2,f:10,s:'Fibra Coco', ini:'05/Mai',fim:'22/Jul',dias:78},
+  {p:'A-P122',pt:191.1,f:11,s:'Fibra Coco', ini:'05/Mai',fim:'22/Jul',dias:78},
+  {p:'A-P35', pt:190.5,f:13,s:'Fibra Coco', ini:'28/Abr',fim:'22/Jul',dias:85},
+  {p:'A-P33', pt:182.5,f:16,s:'Fibra Coco', ini:'28/Abr',fim:'22/Jul',dias:85},
+  {p:'A-P126',pt:174.9,f:9, s:'Fibra Coco', ini:'07/Mai',fim:'22/Jul',dias:76},
+  {p:'A-P110',pt:171.6,f:9, s:'Casca Arroz',ini:'07/Mai',fim:'22/Jul',dias:76},
+  {p:'A-P111',pt:169.0,f:8, s:'Casca Arroz',ini:'12/Mai',fim:'22/Jul',dias:71},
+  {p:'A-P68', pt:162.0,f:10,s:'Misto 50/50',ini:'28/Abr',fim:'22/Jul',dias:85}
 ];
+// ── Produtividade mensal (Sala 5 — plantas ativas) ──────────
+const PROD_MENSAL = [
+  {mes:'Abr/26', plantas:158, frutos_total:142, peso_total:1731, colheitas:1},
+  {mes:'Mai/26', plantas:145, frutos_total:389, peso_total:5820, colheitas:5},
+  {mes:'Jun/26', plantas:138, frutos_total:412, peso_total:5968, colheitas:6},
+  {mes:'Jul/26', plantas:135, frutos_total:298, peso_total:3780, colheitas:9},
+];
+// Derivados
+PROD_MENSAL.forEach(m => {
+  m.frutos_planta = +(m.frutos_total / m.plantas).toFixed(2);
+  m.peso_planta   = +(m.peso_total  / m.plantas).toFixed(1);
+  m.peso_fruto    = +(m.peso_total  / m.frutos_total).toFixed(1);
+  m.bandejas_mes  = +(m.peso_total  / 1000).toFixed(2); // kg/mês
+});
+
 const RANK_FRUTOS = [
   {p:'A-P33',f:16,pm:11.4,s:'Fibra Coco'},
   {p:'A-P91',f:15,pm:14.1,s:'Casca Arroz'},
@@ -1335,10 +1363,75 @@ function renderRankings() {
 }
 
 
+// ── Render produtividade mensal ─────────────────────────────
+function renderProdMensal() {
+  const t = document.getElementById('prod-mensal-table');
+  if (!t) return;
+  const hdr = 'display:grid;grid-template-columns:70px 60px 70px 70px 70px 80px;gap:0;padding:5px 4px;font-size:10px;color:#64748b;font-family:var(--mono);border-bottom:0.5px solid #1d2d42;letter-spacing:.04em';
+  const row = 'display:grid;grid-template-columns:70px 60px 70px 70px 70px 80px;gap:0;align-items:center;padding:6px 4px;border-bottom:0.5px solid #1d2d4215;font-size:12px';
+  t.innerHTML = '<div style="'+hdr+'"><span>MÊS</span><span style="text-align:right">PLANTAS</span><span style="text-align:right">FR/PLANTA</span><span style="text-align:right">G/PLANTA</span><span style="text-align:right">G/FRUTO</span><span style="text-align:right">KG TOTAL</span></div>'
+    + PROD_MENSAL.map(m =>
+      '<div style="'+row+'">'
+      +'<span style="color:#94a3b8;font-family:var(--mono)">'+m.mes+'</span>'
+      +'<span style="text-align:right;color:#64748b">'+m.plantas+'</span>'
+      +'<span style="text-align:right;color:#22c55e;font-weight:600">'+m.frutos_planta+'</span>'
+      +'<span style="text-align:right;color:#f59e0b;font-weight:600">'+m.peso_planta+'g</span>'
+      +'<span style="text-align:right;color:#94a3b8">'+m.peso_fruto+'g</span>'
+      +'<span style="text-align:right;color:#3b82f6;font-weight:600">'+m.bandejas_mes+'kg</span>'
+      +'</div>'
+    ).join('');
+
+  // Gráfico barras duplo — frutos/planta e g/planta
+  const ctx = document.getElementById('chartProdMensal');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: PROD_MENSAL.map(m=>m.mes),
+        datasets: [
+          {label:'Frutos/planta',data:PROD_MENSAL.map(m=>m.frutos_planta),backgroundColor:'rgba(34,197,94,.7)',yAxisID:'y'},
+          {label:'Peso médio fruto (g)',data:PROD_MENSAL.map(m=>m.peso_fruto),backgroundColor:'rgba(245,158,11,.7)',yAxisID:'y2'},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{
+          y:{position:'left',grid:{color:'rgba(29,45,66,.6)'},ticks:{color:'#64748b',font:{size:9}},title:{display:true,text:'Frutos/planta',color:'#64748b',font:{size:9}}},
+          y2:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#64748b',font:{size:9}},title:{display:true,text:'G/fruto',color:'#64748b',font:{size:9}}},
+          x:{grid:{color:'rgba(29,45,66,.3)'},ticks:{color:'#64748b',font:{size:10}}}
+        },
+        plugins:{legend:{labels:{color:'#94a3b8',font:{size:10},boxWidth:10}},
+          tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8'}}
+      }
+    });
+  }
+
+  // Projeção bandejas por número de plantas
+  const proj = document.getElementById('proj-bandejas');
+  if (proj) {
+    // Usa média dos últimos 3 meses como referência
+    const mediaKgPlanta = PROD_MENSAL.slice(1).reduce((a,m)=>a+m.peso_planta,0)/3/1000;
+    const cenarios = [50,100,150,200,300,500];
+    proj.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+      + cenarios.map(n => {
+          const kg = +(mediaKgPlanta * n).toFixed(1);
+          const band = +(kg / 0.3).toFixed(0); // bandeja 300g
+          return '<div style="background:#0a1628;border:0.5px solid #1d2d42;border-radius:6px;padding:8px 12px;min-width:100px">'
+            +'<div style="font-size:9px;color:#64748b;font-family:var(--mono)">'+n+' PLANTAS</div>'
+            +'<div style="font-size:16px;font-weight:700;color:#f59e0b;font-family:var(--mono)">'+kg+'kg</div>'
+            +'<div style="font-size:10px;color:#22c55e">~'+band+' bandejas 300g</div>'
+            +'<div style="font-size:9px;color:#475569">por mês</div>'
+            +'</div>';
+        }).join('')
+      +'</div>'
+      +'<div style="font-size:9px;color:#475569;margin-top:8px;font-family:var(--mono)">* Baseado na média Mai–Jul/26 · Sala 5 · bandeja 300g</div>';
+  }
+}
+
 // Init
 calc();
 calcBE();
 renderRankings();
+renderProdMensal();
 </script>
 </body>
 </html>
