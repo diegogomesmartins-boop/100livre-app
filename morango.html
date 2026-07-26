@@ -1059,8 +1059,9 @@ function calc() {
 
   // Gráfico projeção
   const arr_torres = [1,2,3,5,8,11,15,20,25,33];
-  const rev_arr = arr_torres.map(t=>t*832*prod/1000*apr*preco_kg_medio);
-  const cost_arr = arr_torres.map(t=>t*opex);
+  const plantas_torre = Math.round(13 * 2 * ppb);
+  const rev_arr  = arr_torres.map(t => t * plantas_torre * prod / 1000 * apr * preco_kg_medio);
+  const cost_arr = arr_torres.map(t => (t * opex) + (muda * t * plantas_torre / 12));
 
   if (projChart) projChart.destroy();
   const ctx = document.getElementById('chartProj').getContext('2d');
