@@ -276,7 +276,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <div id="tab-ipiranga" class="tab">
 
   <div class="obs">
-    <strong>Estrutura Ipiranga:</strong> 13 andares × 1 bandeja × <span id="obs-ppb">90</span> plantas = <span class="highlight"><span id="obs-ppt">1.170</span> plantas/torre</span>.
+    <strong>Estrutura Ipiranga:</strong> 13 andares × 1 bandeja × <span id="obs-ppb">96</span> plantas = <span class="highlight"><span id="obs-ppt">1.170</span> plantas/torre</span>.
     Mudas via estolão após ano 1 — custo próximo de zero.
     Configuração atual: substrato 50/50 · pH 5,8-5,9 · EC 2,50 · ciclo contínuo.
   </div>
@@ -315,19 +315,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <div class="slider-field">
           <div class="slider-label">Plantas por bandeja <span class="slider-val" id="lbl-ppb">48 plantas</span></div>
           <div style="display:flex;gap:8px;align-items:center;">
-            <input type="range" id="sl-ppb" min="4" max="120" step="4" value="48" style="flex:1;" oninput="document.getElementById('inp-ppb').value=this.value;calc()">
-            <input type="number" id="inp-ppb" min="1" max="999" step="1" value="48"
+            <input type="range" id="sl-ppb" min="4" max="120" step="4" value="96" style="flex:1;" oninput="document.getElementById('inp-ppb').value=this.value;calc()">
+            <input type="number" id="inp-ppb" min="1" max="999" step="1" value="96"
               style="width:58px;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:var(--amber);font-family:var(--mono);font-size:13px;font-weight:600;text-align:center;"
               oninput="document.getElementById('sl-ppb').value=Math.min(120,Math.max(4,+this.value||48));calc()">
           </div>
           <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;">
-            <span>4 mín</span><span>48 atual</span><span>120 máx slider (ou digitar)</span>
+            <span>4 mín</span><span>96 atual</span><span>120 máx slider (ou digitar)</span>
           </div>
         </div>
 
         <div class="slider-field">
           <div class="slider-label">Produtividade <span class="slider-val" id="lbl-prod">80 g/planta/mês</span></div>
-          <input type="range" id="sl-prod" min="30" max="150" step="5" value="80" oninput="calc()">
+          <input type="range" id="sl-prod" min="30" max="150" step="5" value="70" oninput="calc()">
           <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;">
             <span>30g conservador</span><span>80g esperado</span><span>150g excelente</span>
           </div>
@@ -346,21 +346,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
               <div style="text-align:center">
                 <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">% 150g</div>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <input type="number" id="mix-150" min="0" max="100" step="5" value="20" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1d2d42;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
+                  <input type="number" id="mix-150" min="0" max="100" step="5" value="50" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1d2d42;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
                   <span style="font-size:11px;color:#64748b">%</span>
                 </div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:9px;color:#1A7A4A;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:700">% 200g ★</div>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <input type="number" id="mix-200" min="0" max="100" step="5" value="60" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1A7A4A;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
+                  <input type="number" id="mix-200" min="0" max="100" step="5" value="40" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1A7A4A;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
                   <span style="font-size:11px;color:#64748b">%</span>
                 </div>
               </div>
               <div style="text-align:center">
-                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">% 250g</div>
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">% 100g</div>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <input type="number" id="mix-250" min="0" max="100" step="5" value="20" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1d2d42;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
+                  <input type="number" id="mix-100" min="0" max="100" step="5" value="10" oninput="window._mixManual()" style="width:52px;background:#0f1824;border:1px solid #1d2d42;color:#e8f0fe;font-size:14px;font-weight:700;padding:4px 4px;border-radius:4px;text-align:right">
                   <span style="font-size:11px;color:#64748b">%</span>
                 </div>
               </div>
@@ -375,7 +375,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
               <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">150g bandeja</div>
               <div style="display:flex;align-items:center;gap:6px">
                 <span style="font-size:10px;color:#94a3b8">R$</span>
-                <input type="number" id="inp-preco150" min="5" max="35" step="0.5" value="18"
+                <input type="number" id="inp-preco150" min="5" max="35" step="0.5" value="20"
                   style="width:100%;background:#0f1824;border:1px solid #1d2d42;color:#22c55e;font-size:15px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:right"
                   oninput="document.getElementById('sl-preco150').value=this.value;calc()">
               </div>
@@ -387,7 +387,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
               <div style="font-size:9px;color:#1A7A4A;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:4px">200g bandeja ★</div>
               <div style="display:flex;align-items:center;gap:6px">
                 <span style="font-size:10px;color:#94a3b8">R$</span>
-                <input type="number" id="inp-preco200" min="8" max="50" step="0.5" value="25"
+                <input type="number" id="inp-preco200" min="8" max="50" step="0.5" value="23"
                   style="width:100%;background:#0f1824;border:1px solid #1A7A4A;color:#22c55e;font-size:15px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:right"
                   oninput="document.getElementById('sl-preco200').value=this.value;calc()">
               </div>
@@ -396,16 +396,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
                 oninput="document.getElementById('inp-preco200').value=parseFloat(this.value).toFixed(2);calc()">
             </div>
             <div style="background:#0a1e10;border:1px solid #1d2d42;border-radius:6px;padding:8px">
-              <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">250g bandeja</div>
+              <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">100g bandeja</div>
               <div style="display:flex;align-items:center;gap:6px">
                 <span style="font-size:10px;color:#94a3b8">R$</span>
-                <input type="number" id="inp-preco250" min="10" max="60" step="0.5" value="32"
+                <input type="number" id="inp-preco100" min="10" max="60" step="0.5" value="15"
                   style="width:100%;background:#0f1824;border:1px solid #1d2d42;color:#22c55e;font-size:15px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:right"
-                  oninput="document.getElementById('sl-preco250').value=this.value;calc()">
+                  oninput="document.getElementById('sl-preco100').value=this.value;calc()">
               </div>
-              <input type="range" id="sl-preco250" min="10" max="60" step="0.5" value="32"
+              <input type="range" id="sl-preco100" min="5" max="30" step="0.5" value="15"
                 style="width:100%;margin-top:4px;accent-color:#22c55e"
-                oninput="document.getElementById('inp-preco250').value=parseFloat(this.value).toFixed(2);calc()">
+                oninput="document.getElementById('inp-preco100').value=parseFloat(this.value).toFixed(2);calc()">
             </div>
           </div>
         </div>
@@ -416,8 +416,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         </div>
 
         <div class="slider-field">
-          <div class="slider-label">OPEX/torre/mês <span class="slider-val" id="lbl-opex">R$ 6.000</span></div>
-          <input type="range" id="sl-opex" min="2000" max="15000" step="500" value="6000" oninput="calc()">
+          <div class="slider-label">OPEX/torre/mês <span class="slider-val" id="lbl-opex">R$ 3.000</span></div>
+          <input type="range" id="sl-opex" min="2000" max="15000" step="500" value="3000" oninput="calc()">
         </div>
 
         <div class="slider-field">
@@ -457,8 +457,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
               <div class="be-item-label">200g/mês</div>
             </div>
             <div class="be-item">
-              <div class="be-item-val green" id="band250">—</div>
-              <div class="be-item-label">250g/mês</div>
+              <div class="be-item-val green" id="band100">—</div>
+              <div class="be-item-label">100g/mês</div>
             </div>
           </div>
         </div>
@@ -535,23 +535,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <div class="slider-field">
         <div class="slider-label">Plantas por bandeja <span class="slider-val" id="be-lbl-ppb">48 plantas</span></div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="range" id="be-sl-ppb" min="4" max="120" step="4" value="48" style="flex:1;" oninput="document.getElementById('be-inp-ppb').value=this.value;calcBE()">
-          <input type="number" id="be-inp-ppb" min="1" max="999" step="1" value="48"
+          <input type="range" id="be-sl-ppb" min="4" max="120" step="4" value="96" style="flex:1;" oninput="document.getElementById('be-inp-ppb').value=this.value;calcBE()">
+          <input type="number" id="be-inp-ppb" min="1" max="999" step="1" value="96"
             style="width:58px;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:var(--amber);font-family:var(--mono);font-size:13px;font-weight:600;text-align:center;"
             oninput="document.getElementById('be-sl-ppb').value=Math.min(120,Math.max(4,+this.value||48));calcBE()">
         </div>
         <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;">
-          <span>4 mín</span><span>48 atual</span><span>120 máx slider (ou digitar)</span>
+          <span>4 mín</span><span>96 atual</span><span>120 máx slider (ou digitar)</span>
         </div>
       </div>
 
       <div class="slider-field">
         <div class="slider-label">Produtividade g/planta/mês <span class="slider-val" id="be-lbl-prod">80g</span></div>
-        <input type="range" id="be-sl-prod" min="30" max="150" step="5" value="80" oninput="calcBE()">
+        <input type="range" id="be-sl-prod" min="30" max="150" step="5" value="70" oninput="calcBE()">
       </div>
       <div class="slider-field">
-        <div class="slider-label">OPEX/torre/mês <span class="slider-val" id="be-lbl-opex">R$ 6.000</span></div>
-        <input type="range" id="be-sl-opex" min="2000" max="15000" step="500" value="6000" oninput="calcBE()">
+        <div class="slider-label">OPEX/torre/mês <span class="slider-val" id="be-lbl-opex">R$ 3.000</span></div>
+        <input type="range" id="be-sl-opex" min="2000" max="15000" step="500" value="3000" oninput="calcBE()">
       </div>
       <div class="slider-field">
         <div class="slider-label">% aproveitamento <span class="slider-val" id="be-lbl-apr">70%</span></div>
@@ -1071,10 +1071,10 @@ function calc() {
   const prod = +document.getElementById('sl-prod').value;
   const preco150 = parseFloat(document.getElementById('inp-preco150')?.value||18);
   const preco200 = parseFloat(document.getElementById('inp-preco200')?.value||25);
-  const preco250 = parseFloat(document.getElementById('inp-preco250')?.value||32);
+  const preco100 = parseFloat(document.getElementById('inp-preco100')?.value||15);
   var _mo=window._mixOverride;
-  const mix150=_mo?_mo.m150:0.20, mix200=_mo?_mo.m200:0.60, mix250=_mo?_mo.m250:0.20;
-  const preco_kg_medio = (preco150/0.150)*mix150 + (preco200/0.200)*mix200 + (preco250/0.250)*mix250;
+  const mix150=_mo?_mo.m150:0.50, mix200=_mo?_mo.m200:0.40, mix100=_mo?_mo.m100:0.10;
+  const preco_kg_medio = (preco150/0.150)*mix150 + (preco200/0.200)*mix200 + (preco100/0.100)*mix100;
   const preco = preco200;
   const apr = +document.getElementById('sl-apr').value / 100;
   const opex = +document.getElementById('sl-opex').value;
@@ -1104,7 +1104,7 @@ function calc() {
 
   document.getElementById('band150').textContent = Math.round(kg_mes/0.15).toLocaleString('pt-BR');
   document.getElementById('band200').textContent = Math.round(kg_mes/0.20).toLocaleString('pt-BR');
-  document.getElementById('band250').textContent = Math.round(kg_mes/0.25).toLocaleString('pt-BR');
+  document.getElementById('band100').textContent = Math.round(kg_mes/0.10).toLocaleString('pt-BR');
 
   // Gráfico projeção
   const arr_torres = [1,2,3,5,8,11,15,20,25,33];
@@ -1198,8 +1198,8 @@ function calc() {
 window._mixManual = function() {
     var m150 = parseFloat(document.getElementById('mix-150').value) || 0;
     var m200 = parseFloat(document.getElementById('mix-200').value) || 0;
-    var m250 = parseFloat(document.getElementById('mix-250').value) || 0;
-    var soma = m150 + m200 + m250;
+    var m100 = parseFloat(document.getElementById('mix-100').value) || 0;
+    var soma = m150 + m200 + m100;
     var lbl = document.getElementById('mix-label');
     if (Math.abs(soma - 100) < 0.5) {
       lbl.textContent = 'Soma: ' + soma.toFixed(0) + '% ✓';
@@ -1208,7 +1208,7 @@ window._mixManual = function() {
       lbl.textContent = 'Soma: ' + soma.toFixed(0) + '% — ajuste para 100%';
       lbl.style.color = '#EF9F27';
     }
-    if (soma > 0) window._mixOverride = {m150: m150/soma, m200: m200/soma, m250: m250/soma};
+    if (soma > 0) window._mixOverride = {m150: m150/soma, m200: m200/soma, m100: m100/soma};
     ['gpa','premium','sams','custom'].forEach(function(id){
       var b = document.getElementById('mix-'+id);
       if (!b) return;
@@ -1222,9 +1222,9 @@ window._mixManual = function() {
 
   window._setMix = function(perfil) {
   var perfis = {
-    'gpa':     {p150:16,  p200:24,  p250:30,  m150:0.15, m200:0.70, m250:0.15, label:'GPA/Carrefour (15% / 70% / 15%)'},
-    'premium': {p150:20,  p200:28,  p250:36,  m150:0.15, m200:0.45, m250:0.40, label:'Premium — Zona Sul/Hirota (15% / 45% / 40%)'},
-    'sams':    {p150:17,  p200:25,  p250:33,  m150:0.10, m200:0.65, m250:0.25, label:"Sam's Club (10% / 65% / 25%)"},
+    'gpa':     {p150:20, p200:23, p100:15, m150:0.50, m200:0.40, m100:0.10, label:'Mix padrão (50% 150g / 40% 200g / 10% 100g)'},
+    'premium': {p150:20, p200:23, p100:15, m150:0.60, m200:0.30, m100:0.10, label:'Premium (60% 150g / 30% 200g / 10% 100g)'},
+    'sams':    {p150:20, p200:23, p100:15, m150:0.40, m200:0.50, m100:0.10, label:'Food Service (40% 150g / 50% 200g / 10% 100g)'},
   };
   var ids = ['gpa','premium','sams','custom'];
   ids.forEach(function(id){
@@ -1247,10 +1247,10 @@ window._mixManual = function() {
     if(inp) inp.value=val.toFixed(2);
     if(sl)  sl.value=val;
   });
-  window._mixOverride = {m150:p.m150, m200:p.m200, m250:p.m250};
+  window._mixOverride = {m150:p.m150, m200:p.m200, m100:p.m100};
     if (document.getElementById('mix-150')) document.getElementById('mix-150').value = Math.round(p.m150*100);
     if (document.getElementById('mix-200')) document.getElementById('mix-200').value = Math.round(p.m200*100);
-    if (document.getElementById('mix-250')) document.getElementById('mix-250').value = Math.round(p.m250*100);
+    if (document.getElementById('mix-100')) document.getElementById('mix-100').value = Math.round(p.m100*100);
     var lbl2=document.getElementById('mix-label'); if(lbl2){lbl2.textContent='Soma: 100% ✓';lbl2.style.color='#22c55e';}
   document.getElementById('mix-label').textContent = 'Mix atual: '+p.label;
   calc();
