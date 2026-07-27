@@ -276,7 +276,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <div id="tab-ipiranga" class="tab">
 
   <div class="obs">
-    <strong>Estrutura Ipiranga:</strong> 13 andares × 2 bandejas × <span id="obs-ppb">48</span> plantas = <span class="highlight"><span id="obs-ppt">1.248</span> plantas/torre</span>.
+    <strong>Estrutura Ipiranga:</strong> 13 andares × 1 bandeja × <span id="obs-ppb">90</span> plantas = <span class="highlight"><span id="obs-ppt">1.170</span> plantas/torre</span>.
     Mudas via estolão após ano 1 — custo próximo de zero.
     Configuração atual: substrato 50/50 · pH 5,8-5,9 · EC 2,50 · ciclo contínuo.
   </div>
@@ -705,7 +705,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             <button onclick="setProjPlantas(1000,this)" class="proj-btn">1k</button>
             <button onclick="setProjPlantas(2000,this)" class="proj-btn">2k</button>
             <button onclick="setProjPlantas(5000,this)" class="proj-btn">5k</button>
-            <button onclick="setProjPlantas(13728,this)" class="proj-btn">13.7k</button>
+            <button onclick="setProjPlantas(12870,this)" class="proj-btn">13.7k</button>
           </div>
           <input type="number" id="proj-inp-plantas" value="0" placeholder="Ou digitar..."
             style="margin-top:6px;width:100%;background:#162030;border:1px solid #1d2d42;border-radius:6px;padding:4px 8px;color:#3b82f6;font-family:var(--mono);font-size:12px;"
@@ -1080,14 +1080,14 @@ function calc() {
   const opex = +document.getElementById('sl-opex').value;
   const muda = +document.getElementById('sl-muda').value;
 
-  document.getElementById('lbl-ppb').textContent = ppb+' plantas/bandeja ('+Math.round(13*2*ppb)+'/torre)';
+  document.getElementById('lbl-ppb').textContent = ppb+' plantas/bandeja ('+Math.round(13*1*ppb)+'/torre)';
   document.getElementById('lbl-prod').textContent = prod+'g/planta/mês';
   // lbl-preco removido
   document.getElementById('lbl-apr').textContent = (apr*100)+'%';
   document.getElementById('lbl-opex').textContent = fmtFull(opex);
   document.getElementById('lbl-muda').textContent = 'R$ '+muda.toFixed(2);
 
-  const plantas = Math.round(13 * 2 * ppb) * torres;
+  const plantas = Math.round(13 * 1 * ppb) * torres;
   const kg_mes = plantas * prod / 1000 * apr;
   const receita = kg_mes * preco_kg_medio;
   const custo = (opex * torres) + (muda * plantas / 12);
@@ -1108,7 +1108,7 @@ function calc() {
 
   // Gráfico projeção
   const arr_torres = [1,2,3,5,8,11,15,20,25,33];
-  const plantas_torre = Math.round(13 * 2 * ppb);
+  const plantas_torre = Math.round(13 * 1 * ppb);
   const rev_arr  = arr_torres.map(t => t * plantas_torre * prod / 1000 * apr * preco_kg_medio);
   const cost_arr = arr_torres.map(t => (t * opex) + (muda * t * plantas_torre / 12));
 
@@ -1144,7 +1144,7 @@ function calc() {
   const torres_ref = 11;               // escala de referencia (fase 3)
 
   cens.forEach(c=>{
-    const p   = Math.round(13*2*ppb)*c.t;
+    const p   = Math.round(13*1*ppb)*c.t;
     const k   = p*prod/1000*apr;
     const r   = k*preco_kg_medio;
     // Custo: fixo (proporcional sublinear) + variavel (linear com torres) + mudas
@@ -1159,7 +1159,7 @@ function calc() {
     let delta_html = '';
     if (idx_c > 0) {
       const prev = cens[idx_c-1];
-      const pp   = Math.round(13*2*ppb)*prev.t;
+      const pp   = Math.round(13*1*ppb)*prev.t;
       const kp   = pp*prod/1000*apr;
       const rp   = kp*preco_kg_medio;
       const csf_p = opex_fixo*torres_ref*Math.pow(prev.t/torres_ref,0.48);
@@ -1187,7 +1187,7 @@ function calc() {
   const obs_ppb = document.getElementById('obs-ppb');
   const obs_ppt = document.getElementById('obs-ppt');
   if(obs_ppb) obs_ppb.textContent = ppb;
-  if(obs_ppt) obs_ppt.textContent = (Math.round(13*2*ppb)).toLocaleString('pt-BR');
+  if(obs_ppt) obs_ppt.textContent = (Math.round(13*1*ppb)).toLocaleString('pt-BR');
   // plantas_torre já declarado acima
   document.getElementById('proj-insight').innerHTML =
     `<strong style="color:var(--green)">${torres} torres</strong> · ${(torres*plantas_torre).toLocaleString('pt-BR')} plantas · 
@@ -1264,12 +1264,12 @@ function calcBE() {
   const ba = +document.getElementById('be-sl-apr').value/100;
 
   document.getElementById('be-lbl-torres').textContent = bt;
-  document.getElementById('be-lbl-ppb').textContent = bppb+' pl/bdj ('+Math.round(13*2*bppb)+'/torre)';
+  document.getElementById('be-lbl-ppb').textContent = bppb+' pl/bdj ('+Math.round(13*1*bppb)+'/torre)';
   document.getElementById('be-lbl-prod').textContent = bp+'g';
   document.getElementById('be-lbl-opex').textContent = fmtFull(bo);
   document.getElementById('be-lbl-apr').textContent = (ba*100)+'%';
 
-  const plantas = Math.round(13*2*bppb)*bt;
+  const plantas = Math.round(13*1*bppb)*bt;
   const kg = plantas*bp/1000*ba;
   const custo_total = bt*bo;
 
@@ -1288,7 +1288,7 @@ function calcBE() {
 
   // Torres necessárias para breakeven a R$25/200g
   const preco_kg = 25/0.2;
-  const plantas_torre_be = Math.round(13*2*bppb);
+  const plantas_torre_be = Math.round(13*1*bppb);
   const rec_por_torre = plantas_torre_be*bp/1000*ba*preco_kg;
   const torres_needed = rec_por_torre>0?custo_total/rec_por_torre:99;
   const be_el = document.getElementById('be-torres-needed');
@@ -1509,7 +1509,7 @@ function renderProjBandejas() {
   const inputPlantas = +(document.getElementById('proj-inp-plantas')?.value || 0);
   const plantasFoco = inputPlantas > 0 ? inputPlantas : _projPlantas;
 
-  const cenarios = [50,100,200,500,1000,2000,5000,13728];
+  const cenarios = [50,100,200,500,1000,2000,5000,12870];
 
   // Atualiza resultado em destaque se há uma planta específica
   const focoPlantas = plantasFoco > 0 ? plantasFoco : null;
