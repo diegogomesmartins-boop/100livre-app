@@ -1713,13 +1713,14 @@ renderProjBandejas();
       <tr><td>Morango</td><td>St. Marche</td><td>250g</td><td>R$ 19,99</td><td>R$ 79,9/kg</td><td><span class="vr-ref-badge" style="background:#1e2935;color:#94a3b8">Convencional</span></td></tr>
       <tr><td>Morango Orgânico</td><td>St. Marche</td><td>250g</td><td>R$ 19,99</td><td>R$ 79,9/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
       <tr><td>Morango Americano</td><td>St. Marche</td><td>400g</td><td>R$ 49,98</td><td>R$ 124,9/kg</td><td><span class="vr-ref-badge" style="background:#1a1200;color:#f59e0b">Premium Import.</span></td></tr>
-      <tr><td>Morango Orgânico</td><td>Zona Sul</td><td>250g</td><td>R$ 18,89</td><td>R$ 75,6/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
-      <tr><td>Morango Orgânico</td><td>Vem da Horta SP</td><td>250g</td><td>R$ 21,90</td><td>R$ 87,6/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
-      <tr><td>Morango Picado</td><td>St. Marche</td><td>kg</td><td>R$ 74,79/kg</td><td>R$ 74,8/kg</td><td><span class="vr-ref-badge" style="background:#1e2935;color:#94a3b8">Convencional</span></td></tr>
+      <tr><td>Morango Orgânico</td><td>Zona Sul ✓</td><td>250g</td><td><strong>R$ 17,99</strong></td><td>R$ 72/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
+      <tr><td>Morango Orgânico Bandeja</td><td>Hortifruti ✓</td><td>200g</td><td><strong>R$ 16,99</strong></td><td>R$ 85/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
+      <tr><td>Morango Orgânico</td><td>Vem da Horta SP</td><td>250g</td><td>R$ 21,90</td><td>R$ 88/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
+      <tr><td>Morango Picado</td><td>St. Marche</td><td>kg</td><td>R$ 74,79/kg</td><td>R$ 75/kg</td><td><span class="vr-ref-badge" style="background:#1e2935;color:#94a3b8">Convencional</span></td></tr>
     </tbody>
   </table>
   <div style="font-size:10px;color:var(--muted);margin-top:10px;font-family:var(--mono)">
-    Fontes: marche.com.br · zonasul.com.br · vemdahortasp.com.br · Pesquisa Jul/2026 · Preços sujeitos a variação
+    Fontes: marche.com.br · zonasul.com.br · hortifruti.com.br · vemdahortasp.com.br · Pesquisa Jul/2026 · Preços sujeitos a variação
   </div>
 </div>
 
@@ -1796,14 +1797,15 @@ renderProjBandejas();
 // ref_prod: produto de referência encontrado | ref_tam: tamanho da embalagem pesquisada | ref_preco: preço real confirmado
 // g150/g200: proporcional ao preço/kg do produto de referência (você define o que cobrar)
 const VR_REDES = [
-  {id:'stmarche', nome:'St. Marche',          desc:0,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:19.99},
-  {id:'gpa',      nome:'GPA / Pão de Açúcar', desc:60, ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:19.99},
-  {id:'carrefour',nome:'Carrefour',            desc:9,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:17.99},
-  {id:'hirota',   nome:'Hirota Food',          desc:10, ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:21.99},
-  {id:'zonasul',  nome:'Zona Sul',             desc:5,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:18.89},
-  {id:'sonda',    nome:'Sonda',                desc:7,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:null},
-  {id:'sams',     nome:"Sam's Club",           desc:10, ref_prod:'Morango convencional',   ref_tam:300, ref_preco:12.99},
-  {id:'mambo',    nome:'Mambo',                desc:10, ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:20.99},
+  {id:'stmarche',   nome:'St. Marche',          desc:0,  ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:19.99},
+  {id:'gpa',        nome:'GPA / Pão de Açúcar', desc:60, ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:19.99},
+  {id:'carrefour',  nome:'Carrefour',            desc:9,  ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:17.99},
+  {id:'hirota',     nome:'Hirota Food',          desc:10, ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:21.99},
+  {id:'zonasul',    nome:'Zona Sul',             desc:5,  ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:17.99},
+  {id:'hortifruti', nome:'Hortifruti',           desc:10, ref_prod:'Morango Orgânico 200g', ref_tam:200, ref_preco:16.99},
+  {id:'sonda',      nome:'Sonda',                desc:7,  ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:null},
+  {id:'sams',       nome:"Sam's Club",           desc:10, ref_prod:'Morango convencional',  ref_tam:300, ref_preco:12.99},
+  {id:'mambo',      nome:'Mambo',                desc:10, ref_prod:'Morango Orgânico',      ref_tam:250, ref_preco:20.99},
 ];
 
 let _vrScenario = 150; // bandeja ativa
