@@ -269,6 +269,43 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     </div>
   </div>
 
+  <!-- ═══ EVOLUÇÃO 23 COLHEITAS + EC + MAIOR FRUTO ═══ -->
+  <div class="card" style="margin:16px 24px;">
+    <div class="section-lbl" style="margin-bottom:4px;">📈 Evolução das 23 colheitas — Peso médio e maior fruto por colheita</div>
+    <div style="font-size:10px;color:var(--muted2);margin-bottom:12px">Sala 5 · Abr–Jul/2026 · dados reais da planilha</div>
+    <canvas id="chartColheitas23" style="max-height:220px"></canvas>
+    <div style="font-size:9px;color:#475569;margin-top:8px;font-family:var(--mono)">
+      * Colheita 9 continha registro de 114g (erro de medição) — normalizado para exibição
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 24px;">
+    <!-- RANKING MAIOR FRUTO -->
+    <div class="card">
+      <div class="section-lbl" style="margin-bottom:8px;">🏆 Ranking — Maior Fruto Individual</div>
+      <div id="rank-maior-fruto"></div>
+    </div>
+    <!-- LINHA DO TEMPO EC -->
+    <div class="card">
+      <div class="section-lbl" style="margin-bottom:8px;">💧 Linha do tempo — Manejo de EC</div>
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:10px">Ações de fertirrigação · aguardando Brix para correlação</div>
+      <div id="ec-timeline"></div>
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER BRIX vs EC (aguardando dados) -->
+  <div class="card" style="margin:16px 24px;border:1px dashed #f59e0b;background:#1a1200;">
+    <div class="section-lbl" style="color:#f59e0b;margin-bottom:6px;">🔬 Correlação Brix × EC — aguardando dados</div>
+    <div style="font-size:12px;color:#fbbf24;line-height:1.5">
+      A planilha atual só tem <strong>3 medições de Brix registradas</strong> (colheitas 8 e 10, e testes de janeiro).
+      Para validar se o aumento de EC (1,80 → 2,50) e a redução do estresse hídrico elevaram o Brix,
+      é necessário o histórico de Brix das colheitas 11–23.
+      <br><br>
+      <strong>Assim que os dados de Brix chegarem, este gráfico mostrará a curva de Brix sobreposta à linha de EC</strong>
+      para visualizar diretamente se as ações de manejo refletiram em maior doçura.
+    </div>
+  </div>
+
 </div>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -1546,12 +1583,123 @@ function renderProjBandejas() {
     + `<div style="font-size:9px;color:#475569;margin-top:8px;font-family:var(--mono)">* Baseado na média Mai–Jul/26 · Sala 5 · bandeja ${bandPeso}g</div>`;
 }
 
+// ═══ EVOLUÇÃO 23 COLHEITAS ═══
+const COLHEITAS_23 = [
+  {col:1, data:'28/04', n:51, total:621.1, med:12.2, max:24, dpol:38, dequ:31},
+  {col:3, data:'07/05', n:1, total:14, med:14.0, max:14, dpol:30, dequ:26},
+  {col:4, data:'12/05', n:1, total:10.5, med:10.5, max:10.5, dpol:34, dequ:25},
+  {col:5, data:'19/05', n:6, total:154.1, med:25.7, max:35, dpol:42, dequ:33},
+  {col:6, data:'25/05', n:34, total:688, med:20.2, max:40, dpol:0, dequ:0},
+  {col:7, data:'27/05', n:1, total:31, med:31.0, max:31, dpol:40, dequ:44},
+  {col:8, data:'02/06', n:6, total:46.7, med:7.8, max:32, dpol:36, dequ:33},
+  {col:9, data:'05/06', n:7, total:165, med:23.6, max:41, dpol:31, dequ:24},
+  {col:10, data:'08/06', n:4, total:51, med:12.8, max:24, dpol:41, dequ:38},
+  {col:11, data:'11/06', n:7, total:88.3, med:12.6, max:36, dpol:40, dequ:39},
+  {col:12, data:'18/06', n:1, total:26, med:26.0, max:26, dpol:40, dequ:35},
+  {col:13, data:'22/06', n:6, total:26, med:4.3, max:8, dpol:0, dequ:0},
+  {col:14, data:'25/06', n:4, total:71.5, med:17.9, max:25, dpol:35, dequ:30},
+  {col:15, data:'30/06', n:6, total:10, med:1.7, max:5, dpol:0, dequ:0},
+  {col:17, data:'08/07', n:1, total:1, med:1.0, max:1, dpol:0, dequ:0},
+  {col:18, data:'13/07', n:2, total:6, med:3.0, max:4, dpol:0, dequ:0},
+  {col:19, data:'17/07', n:6, total:21, med:3.5, max:7, dpol:0, dequ:0},
+  {col:20, data:'20/07', n:4, total:43.0, med:10.8, max:21.4, dpol:28, dequ:23},
+  {col:21, data:'22/07', n:2, total:5, med:2.5, max:3, dpol:0, dequ:0},
+  {col:22, data:'27/07', n:2, total:2, med:1.0, max:1, dpol:0, dequ:0},
+  {col:23, data:'29/07', n:2, total:14.1, med:7.0, max:10.5, dpol:29, dequ:18},
+];
+
+const MAIOR_FRUTO = [
+  {planta:'122', peso:40, colheita:6},
+  {planta:'79', peso:35, colheita:6},
+  {planta:'72', peso:35, colheita:6},
+  {planta:'120', peso:35, colheita:6},
+  {planta:'130', peso:35, colheita:6},
+  {planta:'114', peso:30, colheita:6},
+  {planta:'115', peso:30, colheita:6},
+  {planta:'138', peso:23.4, colheita:1},
+];
+
+const EC_TIMELINE = [
+  {data:'Jan/26', ec:1.80, periodo:'Início', tipo:'base', dias:0},
+  {data:'28/Fev', ec:2.00, periodo:'1º Aumento', tipo:'up', dias:58},
+  {data:'20/Mar', ec:1.80, periodo:'1ª Redução', tipo:'down', dias:31},
+  {data:'30/Abr', ec:2.00, periodo:'2º Aumento (Fase)', tipo:'up', dias:32},
+  {data:'11/Jun', ec:2.50, periodo:'3º Aumento', tipo:'up', dias:42},
+];
+
+function renderColheitas23() {
+  const ctx = document.getElementById('chartColheitas23')?.getContext('2d');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: COLHEITAS_23.map(c=>c.col+'ª'),
+      datasets:[
+        {type:'bar', label:'Peso médio (g)', data:COLHEITAS_23.map(c=>c.med), backgroundColor:'rgba(34,197,94,.6)', yAxisID:'y', order:2},
+        {type:'line', label:'Maior fruto (g)', data:COLHEITAS_23.map(c=>c.max), borderColor:'rgba(245,158,11,.9)', backgroundColor:'transparent', tension:.3, pointRadius:3, yAxisID:'y', order:1},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}}},
+        y:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},callback:v=>v+'g'},title:{display:true,text:'Gramas',color:C(100,116,139),font:{size:10}}}
+      },
+      plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},
+      tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',
+        callbacks:{title:items=>{const c=COLHEITAS_23[items[0].dataIndex];return c.col+'ª colheita · '+c.data;},
+        afterBody:items=>{const c=COLHEITAS_23[items[0].dataIndex];return ['Frutos: '+c.n,'Total: '+c.total+'g',c.dpol?'Ø '+c.dpol+'×'+c.dequ+'mm':''];}}}}
+    }
+  });
+}
+
+function renderMaiorFruto() {
+  const el = document.getElementById('rank-maior-fruto');
+  if(!el) return;
+  const max = MAIOR_FRUTO[0].peso;
+  el.innerHTML = MAIOR_FRUTO.map((m,i)=>{
+    const barW = Math.round(m.peso/max*100);
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid #ffffff05">
+      <span style="width:24px;font-size:12px">${medal}</span>
+      <span style="width:70px;font-size:12px;color:var(--text)">Planta ${m.planta}</span>
+      <div style="flex:1;height:16px;background:#1d2d42;border-radius:3px;overflow:hidden">
+        <div style="width:${barW}%;height:100%;background:linear-gradient(90deg,#f59e0b,#22c55e)"></div>
+      </div>
+      <span style="width:48px;text-align:right;font-size:12px;font-weight:600;color:#f59e0b">${m.peso}g</span>
+      <span style="width:44px;text-align:right;font-size:10px;color:var(--muted2)">${m.colheita}ª</span>
+    </div>`;
+  }).join('');
+}
+
+function renderECTimeline() {
+  const el = document.getElementById('ec-timeline');
+  if(!el) return;
+  const maxEC = 2.5;
+  el.innerHTML = EC_TIMELINE.map((e,i)=>{
+    const cor = e.tipo==='up'?'#22c55e':e.tipo==='down'?'#ef4444':'#94a3b8';
+    const seta = e.tipo==='up'?'▲':e.tipo==='down'?'▼':'●';
+    const barW = Math.round(e.ec/maxEC*100);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #ffffff05">
+      <span style="width:56px;font-size:11px;color:var(--muted2);font-family:var(--mono)">${e.data}</span>
+      <span style="width:16px;color:${cor};font-size:11px">${seta}</span>
+      <div style="flex:1;height:14px;background:#1d2d42;border-radius:3px;overflow:hidden">
+        <div style="width:${barW}%;height:100%;background:${cor};opacity:.7"></div>
+      </div>
+      <span style="width:44px;text-align:right;font-size:13px;font-weight:600;color:${cor};font-family:var(--mono)">${e.ec.toFixed(2)}</span>
+      <span style="flex-basis:110px;font-size:10px;color:var(--muted2)">${e.periodo}</span>
+    </div>`;
+  }).join('');
+}
+
 // Init
 calc();
 calcBE();
 renderRankings();
 renderProdMensal();
 renderProjBandejas();
+renderColheitas23();
+renderMaiorFruto();
+renderECTimeline();
 </script>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -1636,6 +1784,11 @@ renderProjBandejas();
     <div class="vr-title" style="margin:0">🛒 Redes — Preços de Gôndola e Desconto Comercial</div>
     <div style="font-size:10px;color:var(--muted)">Preços pesquisados Jul/26 · Editável</div>
   </div>
+  <div style="padding:0 24px 12px;">
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:#0a1f12;border:0.5px solid #22c55e;border-radius:6px;font-size:11px;color:#4ade80">
+      🎯 <strong>Meta de precificação:</strong> digite seu preço de venda e ajuste até o <strong>R$/kg ficar entre R$100–110</strong> (verde). Amarelo = perto · Vermelho = fora da faixa.
+    </div>
+  </div>
   <table class="vr-table" id="vr-redes-table">
     <thead>
       <tr>
@@ -1643,6 +1796,7 @@ renderProjBandejas();
         <th>Preço real (gôndola)</th>
         <th id="vr-th-prop">Proporcional</th>
         <th>Seu preço de venda (R$)</th>
+        <th>Seu R$/kg</th>
         <th>Desc. comercial %</th>
         <th>Nosso preço entrada (R$)</th>
         <th>Markup gôndola %</th>
@@ -1655,7 +1809,7 @@ renderProjBandejas();
     <tbody id="vr-tbody"></tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="8" style="text-align:left">TOTAL</td>
+        <td colspan="9" style="text-align:left">TOTAL</td>
         <td id="vr-total-bdj">—</td>
         <td id="vr-total-rec">—</td>
         <td id="vr-total-pct">—</td>
@@ -1852,6 +2006,7 @@ function buildVrTable() {
           : `<span style="color:#475569;font-size:11px">—</span>`}
       </td>
       <td><input type="number" id="vr-gond-${r.id}" value="${gondDefault}" placeholder="digite" min="5" max="200" step="0.5" oninput="calcVarejo()" style="width:72px"></td>
+      <td id="vr-rkg-${r.id}" style="font-weight:600;font-family:var(--mono);text-align:center">—</td>
       <td><input type="number" id="vr-desc-${r.id}" value="${r.desc}" min="0" max="60" step="1" oninput="calcVarejo()" style="width:50px">%</td>
       <td id="vr-entrada-${r.id}" style="color:var(--green);font-weight:600;font-family:var(--mono)">—</td>
       <td>
@@ -1908,8 +2063,29 @@ function calcVarejo() {
     // Gôndola sugerida pelo markup: nosso preço ÷ (1 - markup%)
     const gondSug = mkup < 100 ? entrada / (1 - mkup/100) : 0;
 
+    // Seu R$/kg = preço de venda da bandeja ÷ peso (kg). Meta: R$100–110/kg
+    const rkg = gondola > 0 ? gondola / (g/1000) : 0;
+
     const rec = meta * entrada;
     const pct = bdj_disp > 0 ? (meta/bdj_disp*100) : 0;
+
+    // Cor do R$/kg conforme faixa alvo R$100–110
+    const rkgEl = document.getElementById(`vr-rkg-${r.id}`);
+    if (rkgEl) {
+      if (gondola > 0) {
+        let cor, bg, tag;
+        if (rkg >= 100 && rkg <= 110)      { cor='#22c55e'; bg='#0a1f12'; tag='✓ na faixa'; }
+        else if (rkg >= 90 && rkg < 100)   { cor='#f59e0b'; bg='#1a1200'; tag='abaixo'; }
+        else if (rkg > 110 && rkg <= 125)  { cor='#f59e0b'; bg='#1a1200'; tag='acima'; }
+        else if (rkg < 90)                 { cor='#ef4444'; bg='#1a0808'; tag='muito baixo'; }
+        else                               { cor='#ef4444'; bg='#1a0808'; tag='muito alto'; }
+        rkgEl.innerHTML = `<span style="color:${cor};font-size:14px">R$ ${rkg.toFixed(0)}</span><div style="font-size:8px;color:${cor};margin-top:1px">${tag}</div>`;
+        rkgEl.style.background = bg;
+      } else {
+        rkgEl.innerHTML = '—';
+        rkgEl.style.background = 'transparent';
+      }
+    }
 
     document.getElementById(`vr-entrada-${r.id}`).textContent   = `R$ ${entrada.toFixed(2)}`;
     document.getElementById(`vr-gond-calc-${r.id}`).textContent = `R$ ${gondSug.toFixed(2)}`;
