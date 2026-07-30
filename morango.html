@@ -132,6 +132,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <button class="nav-tab active" onclick="showTab('exp',this)">📊 Experimento 21 Colheitas</button>
   <button class="nav-tab" onclick="showTab('ipiranga',this)">🏭 Projeção Ipiranga</button>
   <button class="nav-tab" onclick="showTab('mkt',this)">💰 Mercado & Breakeven</button>
+  <button class="nav-tab" onclick="showTab('varejo',this)">🛒 Varejo — Projeção Redes</button>
   <span class="nav-badge">CONFIDENCIAL</span>
 </div>
 
@@ -1551,6 +1552,304 @@ calcBE();
 renderRankings();
 renderProdMensal();
 renderProjBandejas();
+</script>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TAB 4: VAREJO — PROJEÇÃO REDES                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="tab-varejo" class="tab">
+<style>
+.vr-section{background:var(--s1);border:0.5px solid var(--bdr);border-radius:10px;padding:20px 24px;margin-bottom:16px;}
+.vr-title{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;}
+.vr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;}
+.vr-input-group{display:flex;flex-direction:column;gap:4px;}
+.vr-input-group label{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.vr-input-group input{background:var(--s2);border:0.5px solid var(--bdr);border-radius:5px;color:var(--text);font-size:13px;padding:6px 10px;width:100%;box-sizing:border-box;font-family:var(--sans);}
+.vr-table{width:100%;border-collapse:collapse;font-size:12px;}
+.vr-table th{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;padding:8px 10px;text-align:right;border-bottom:0.5px solid var(--bdr);}
+.vr-table th:first-child{text-align:left;}
+.vr-table td{padding:9px 10px;text-align:right;border-bottom:0.5px solid #ffffff05;vertical-align:middle;}
+.vr-table td:first-child{text-align:left;}
+.vr-table tr:last-child td{border-bottom:none;}
+.vr-table tr.total-row td{border-top:1px solid var(--bdr);font-weight:600;color:var(--green);background:var(--s2);}
+.vr-table td input{background:var(--s2);border:0.5px solid var(--bdr);border-radius:4px;color:var(--text);font-size:11px;padding:4px 7px;width:70px;text-align:right;font-family:var(--mono);}
+.vr-tag-conv{color:#94a3b8;font-size:10px;}
+.vr-tag-org{color:#4ade80;font-size:10px;}
+.vr-tag-prem{color:#f59e0b;font-size:10px;}
+.vr-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.vr-chip{padding:4px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:0.5px solid var(--bdr);background:var(--s2);color:var(--muted);transition:.2s;}
+.vr-chip.active{background:var(--green-d);color:#fff;border-color:var(--green-d);}
+.vr-alert{padding:10px 14px;border-radius:6px;font-size:12px;margin-top:12px;display:none;}
+.vr-alert.over{background:#1a0808;border:0.5px solid #ef4444;color:#fca5a5;display:block;}
+.vr-alert.ok{background:#0a1f12;border:0.5px solid var(--green);color:var(--green);display:block;}
+.vr-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.vr-kpi{background:var(--s2);border:0.5px solid var(--bdr);border-radius:8px;padding:14px 16px;}
+.vr-kpi-val{font-size:22px;font-weight:700;color:var(--green);font-family:var(--mono);}
+.vr-kpi-lbl{font-size:10px;color:var(--muted);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;}
+.vr-kpi-sub{font-size:10px;color:var(--muted2);margin-top:2px;}
+.vr-ref-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9.5px;font-family:var(--mono);margin-left:6px;}
+.vr-scenario-toggle{display:flex;gap:6px;margin-bottom:16px;}
+.vr-scenario-btn{padding:6px 16px;border-radius:6px;font-size:12px;cursor:pointer;border:0.5px solid var(--bdr);background:var(--s2);color:var(--muted);font-weight:500;}
+.vr-scenario-btn.active{background:var(--green-d);color:#fff;border-color:transparent;}
+</style>
+
+<!-- CONTROLES DE PRODUÇÃO -->
+<div class="vr-section">
+  <div class="vr-title">🏭 Referência de Produção — Ipiranga</div>
+  <div class="vr-grid" style="grid-template-columns:repeat(5,1fr)">
+    <div class="vr-input-group">
+      <label>Torres ativas</label>
+      <input type="number" id="vr-torres" value="11" min="1" max="33" oninput="calcVarejo()">
+    </div>
+    <div class="vr-input-group">
+      <label>Plantas/bandeja</label>
+      <input type="number" id="vr-ppb" value="96" min="10" max="120" oninput="calcVarejo()">
+    </div>
+    <div class="vr-input-group">
+      <label>Produtividade (g/pl/mês)</label>
+      <input type="number" id="vr-prod" value="70" min="10" max="200" oninput="calcVarejo()">
+    </div>
+    <div class="vr-input-group">
+      <label>Aproveitamento %</label>
+      <input type="number" id="vr-apr" value="70" min="10" max="100" oninput="calcVarejo()">
+    </div>
+    <div class="vr-input-group" style="justify-content:flex-end;">
+      <label>&nbsp;</label>
+      <div id="vr-prod-summary" style="background:var(--s2);border:0.5px solid var(--bdr);border-radius:5px;padding:7px 10px;font-size:12px;font-family:var(--mono);color:var(--green);"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SELETOR DE CENÁRIO -->
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:4px;">
+  <div class="vr-title" style="margin:0">Cenário de embalagem:</div>
+  <div class="vr-scenario-toggle">
+    <button class="vr-scenario-btn active" onclick="setVrScenario(150,this)">Bandeja 150g</button>
+    <button class="vr-scenario-btn" onclick="setVrScenario(200,this)">Bandeja 200g</button>
+  </div>
+  <span id="vr-scenario-desc" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+</div>
+
+<!-- TABELA DE REDES -->
+<div class="vr-section" style="padding:16px 0 0">
+  <div style="padding:0 24px 12px;display:flex;justify-content:space-between;align-items:center;">
+    <div class="vr-title" style="margin:0">🛒 Redes — Preços de Gôndola e Desconto Comercial</div>
+    <div style="font-size:10px;color:var(--muted)">Preços pesquisados Jul/26 · Editável</div>
+  </div>
+  <table class="vr-table" id="vr-redes-table">
+    <thead>
+      <tr>
+        <th>Rede</th>
+        <th>Referência preço gôndola</th>
+        <th>Gôndola conv. (R$)</th>
+        <th>Gôndola org. (R$)</th>
+        <th>Desc. comercial %</th>
+        <th>Nosso preço (R$)</th>
+        <th>Meta bandejas/mês</th>
+        <th>Receita (R$)</th>
+        <th>Capacidade %</th>
+      </tr>
+    </thead>
+    <tbody id="vr-tbody"></tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td colspan="6">TOTAL</td>
+        <td id="vr-total-bdj">—</td>
+        <td id="vr-total-rec">—</td>
+        <td id="vr-total-pct">—</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- ALERTA CAPACIDADE -->
+<div id="vr-alert" class="vr-alert"></div>
+
+<!-- SUMÁRIO -->
+<div class="vr-section">
+  <div class="vr-title">📊 Sumário do Cenário</div>
+  <div class="vr-summary-grid">
+    <div class="vr-kpi">
+      <div class="vr-kpi-val" id="vr-s-kg">—</div>
+      <div class="vr-kpi-lbl">kg disponíveis/mês</div>
+      <div class="vr-kpi-sub" id="vr-s-plantas">—</div>
+    </div>
+    <div class="vr-kpi">
+      <div class="vr-kpi-val" id="vr-s-bdj">—</div>
+      <div class="vr-kpi-lbl">Bandejas disponíveis/mês</div>
+      <div class="vr-kpi-sub" id="vr-s-bdj-tam">—</div>
+    </div>
+    <div class="vr-kpi">
+      <div class="vr-kpi-val" id="vr-s-rec">—</div>
+      <div class="vr-kpi-lbl">Receita projetada/mês</div>
+      <div class="vr-kpi-sub" id="vr-s-util">—</div>
+    </div>
+    <div class="vr-kpi">
+      <div class="vr-kpi-val" id="vr-s-preco">—</div>
+      <div class="vr-kpi-lbl">Preço médio de entrada</div>
+      <div class="vr-kpi-sub">Nosso preço ao varejo</div>
+    </div>
+  </div>
+</div>
+
+<!-- REFERÊNCIA DE PREÇOS -->
+<div class="vr-section">
+  <div class="vr-title">📋 Referências de Mercado (pesquisa Jul/2026)</div>
+  <table class="vr-table">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Rede / Fonte</th>
+        <th>Tamanho</th>
+        <th>Preço gôndola</th>
+        <th>R$/kg equiv.</th>
+        <th>Tipo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Morango St Marche</td><td>St. Marche</td><td>200g</td><td>R$ 14,98</td><td>R$ 74,9/kg</td><td><span class="vr-ref-badge" style="background:#1e2935;color:#94a3b8">Convencional</span></td></tr>
+      <tr><td>Morango</td><td>St. Marche</td><td>250g</td><td>R$ 19,99</td><td>R$ 79,9/kg</td><td><span class="vr-ref-badge" style="background:#1e2935;color:#94a3b8">Convencional</span></td></tr>
+      <tr><td>Morango Orgânico</td><td>St. Marche</td><td>250g</td><td>R$ 19,99</td><td>R$ 79,9/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
+      <tr><td>Morango Americano</td><td>St. Marche</td><td>400g</td><td>R$ 49,98</td><td>R$ 124,9/kg</td><td><span class="vr-ref-badge" style="background:#1a1200;color:#f59e0b">Premium Import.</span></td></tr>
+      <tr><td>Morango Orgânico</td><td>Zona Sul</td><td>250g</td><td>R$ 18,89</td><td>R$ 75,6/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
+      <tr><td>Morango Orgânico</td><td>Vem da Horta SP</td><td>250g</td><td>R$ 21,90</td><td>R$ 87,6/kg</td><td><span class="vr-ref-badge" style="background:#0d2418;color:#4ade80">Orgânico</span></td></tr>
+      <tr><td>Morango Picado</td><td>St. Marche</td><td>kg</td><td>R$ 74,79/kg</td><td>R$ 74,8/kg</td><td><span class="vr-ref-badge" style="background:#1e2935;color:#94a3b8">Convencional</span></td></tr>
+    </tbody>
+  </table>
+  <div style="font-size:10px;color:var(--muted);margin-top:10px;font-family:var(--mono)">
+    Fontes: marche.com.br · zonasul.com.br · vemdahortasp.com.br · Pesquisa Jul/2026 · Preços sujeitos a variação
+  </div>
+</div>
+
+</div><!-- fim tab-varejo -->
+
+<script>
+// ═══════════════════════════════════════════════
+// VAREJO — DADOS E LÓGICA
+// ═══════════════════════════════════════════════
+
+// Descontos reais do sistema Rentabilidade (Jan-Jul/26)
+const VR_REDES = [
+  {id:'stmarche', nome:'St. Marche',         desc:0,  g150:12.99, g200:14.98, org250:19.99},
+  {id:'gpa',      nome:'GPA / Pão de Açúcar',desc:21, g150:13.49, g200:15.99, org250:19.99},
+  {id:'carrefour',nome:'Carrefour',           desc:9,  g150:11.99, g200:13.99, org250:17.99},
+  {id:'hirota',   nome:'Hirota Food',         desc:10, g150:14.99, g200:17.99, org250:21.99},
+  {id:'zonasul',  nome:'Zona Sul',            desc:5,  g150:13.99, g200:15.99, org250:18.89},
+  {id:'sonda',    nome:'Sonda',               desc:7,  g150:11.99, g200:13.99, org250:16.99},
+  {id:'sams',     nome:"Sam's Club",          desc:10, g150:10.99, g200:12.99, org250:15.99},
+  {id:'mambo',    nome:'Mambo',               desc:10, g150:13.99, g200:16.99, org250:20.99},
+];
+
+let _vrScenario = 150; // bandeja ativa
+
+function setVrScenario(g, btn) {
+  _vrScenario = g;
+  document.querySelectorAll('.vr-scenario-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildVrTable();
+  calcVarejo();
+}
+
+function buildVrTable() {
+  const g = _vrScenario;
+  const tbody = document.getElementById('vr-tbody');
+  tbody.innerHTML = VR_REDES.map(r => {
+    const gondola = g === 150 ? r.g150 : r.g200;
+    const entrada = gondola * (1 - r.desc/100);
+    return `<tr>
+      <td><strong>${r.nome}</strong></td>
+      <td style="font-size:10px;color:var(--muted)">
+        Conv: R$${gondola.toFixed(2)} · Org: R$${r.org250.toFixed(2)}/250g
+      </td>
+      <td><input type="number" id="vr-gond-${r.id}" value="${gondola.toFixed(2)}" min="5" max="100" step="0.5" oninput="calcVarejo()" style="width:75px"></td>
+      <td style="color:#4ade80;font-size:11px">R$${r.org250.toFixed(2)}<br><span style="font-size:9px;color:var(--muted)">250g ref.</span></td>
+      <td><input type="number" id="vr-desc-${r.id}" value="${r.desc}" min="0" max="50" step="1" oninput="calcVarejo()" style="width:55px">%</td>
+      <td id="vr-entrada-${r.id}" style="color:var(--green);font-weight:600">R$${entrada.toFixed(2)}</td>
+      <td><input type="number" id="vr-meta-${r.id}" value="0" min="0" max="99999" step="50" oninput="calcVarejo()" style="width:75px"></td>
+      <td id="vr-rec-${r.id}" style="color:var(--green);font-weight:600">R$ 0</td>
+      <td id="vr-pct-${r.id}" style="color:var(--muted)">—</td>
+    </tr>`;
+  }).join('');
+}
+
+function calcVarejo() {
+  const torres = +document.getElementById('vr-torres').value || 11;
+  const ppb    = +document.getElementById('vr-ppb').value    || 96;
+  const prod   = +document.getElementById('vr-prod').value   || 70;
+  const apr    = (+document.getElementById('vr-apr').value   || 70) / 100;
+  const g      = _vrScenario;
+
+  const plantas = torres * 13 * ppb;
+  const kg_mes  = plantas * prod / 1000 * apr;
+  const bdj_disp = Math.floor(kg_mes / (g/1000));
+
+  // Atualiza resumo de produção
+  document.getElementById('vr-prod-summary').textContent =
+    `${plantas.toLocaleString('pt-BR')} plantas · ${Math.round(kg_mes)} kg/mês · ${bdj_disp.toLocaleString('pt-BR')} bdj`;
+  document.getElementById('vr-scenario-desc').textContent =
+    `Bandeja ${g}g · ${bdj_disp.toLocaleString('pt-BR')} bandejas disponíveis`;
+
+  // Sumário KPIs
+  document.getElementById('vr-s-kg').textContent = `${Math.round(kg_mes).toLocaleString('pt-BR')} kg`;
+  document.getElementById('vr-s-plantas').textContent = `${plantas.toLocaleString('pt-BR')} plantas · ${torres} torres`;
+  document.getElementById('vr-s-bdj').textContent = bdj_disp.toLocaleString('pt-BR');
+  document.getElementById('vr-s-bdj-tam').textContent = `bandeja ${g}g`;
+
+  let totalBdj = 0, totalRec = 0, totalPesos = 0;
+
+  VR_REDES.forEach(r => {
+    const gondEl   = document.getElementById(`vr-gond-${r.id}`);
+    const descEl   = document.getElementById(`vr-desc-${r.id}`);
+    const metaEl   = document.getElementById(`vr-meta-${r.id}`);
+    if (!gondEl) return;
+
+    const gondola = +gondEl.value || 0;
+    const desc    = +descEl.value || 0;
+    const meta    = +metaEl.value || 0;
+    const entrada = gondola * (1 - desc/100);
+    const rec     = meta * entrada;
+    const pct     = bdj_disp > 0 ? (meta/bdj_disp*100) : 0;
+
+    document.getElementById(`vr-entrada-${r.id}`).textContent = `R$ ${entrada.toFixed(2)}`;
+    document.getElementById(`vr-rec-${r.id}`).textContent = meta > 0
+      ? `R$ ${Math.round(rec).toLocaleString('pt-BR')}`
+      : 'R$ 0';
+    document.getElementById(`vr-pct-${r.id}`).textContent = meta > 0
+      ? `${pct.toFixed(0)}%`
+      : '—';
+
+    totalBdj += meta;
+    totalRec += rec;
+    if (meta > 0) totalPesos += entrada * meta;
+  });
+
+  document.getElementById('vr-total-bdj').textContent = totalBdj.toLocaleString('pt-BR');
+  document.getElementById('vr-total-rec').textContent = `R$ ${Math.round(totalRec).toLocaleString('pt-BR')}`;
+  const pctTotal = bdj_disp > 0 ? (totalBdj/bdj_disp*100) : 0;
+  document.getElementById('vr-total-pct').textContent = `${pctTotal.toFixed(0)}%`;
+
+  const precoMedio = totalBdj > 0 ? totalPesos/totalBdj : 0;
+  document.getElementById('vr-s-rec').textContent = `R$ ${Math.round(totalRec).toLocaleString('pt-BR')}`;
+  document.getElementById('vr-s-util').textContent = `${pctTotal.toFixed(0)}% da capacidade alocada`;
+  document.getElementById('vr-s-preco').textContent = precoMedio > 0 ? `R$ ${precoMedio.toFixed(2)}` : '—';
+
+  // Alerta
+  const alertEl = document.getElementById('vr-alert');
+  if (totalBdj > bdj_disp) {
+    alertEl.className = 'vr-alert over';
+    alertEl.textContent = `⚠️  Meta total (${totalBdj.toLocaleString('pt-BR')} bdj) supera a capacidade disponível (${bdj_disp.toLocaleString('pt-BR')} bdj). Adicione torres ou reduza a meta.`;
+  } else if (totalBdj > 0) {
+    const sobra = bdj_disp - totalBdj;
+    alertEl.className = 'vr-alert ok';
+    alertEl.textContent = `✅  ${totalBdj.toLocaleString('pt-BR')} bandejas alocadas de ${bdj_disp.toLocaleString('pt-BR')} disponíveis · sobram ${sobra.toLocaleString('pt-BR')} bdj para outros canais.`;
+  } else {
+    alertEl.className = 'vr-alert';
+  }
+}
+
+// Build inicial
+buildVrTable();
+calcVarejo();
 </script>
 </body>
 </html>
