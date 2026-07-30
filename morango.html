@@ -326,6 +326,44 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     </div>
   </div>
 
+  <!-- PRODUTIVIDADE × EC — trade-off tamanho vs doçura -->
+  <div class="card" style="margin:16px 24px;">
+    <div class="section-lbl" style="margin-bottom:4px;">⚖️ Produtividade × EC — aumentar EC está reduzindo o tamanho dos frutos?</div>
+    <div style="font-size:10px;color:var(--muted2);margin-bottom:12px">Peso médio do fruto por colheita · barras coloridas por nível de EC (cinza 1,8 · azul 2,0 · vermelho 2,5)</div>
+    <canvas id="chartPesoEC" style="max-height:240px"></canvas>
+
+    <!-- Três métricas -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px">
+      <div style="background:#1d2d42;border-radius:8px;padding:12px 14px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#94a3b8;font-family:var(--mono)">16,2g</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:2px">EC 1,80 · peso médio</div>
+      </div>
+      <div style="background:#1d2d42;border-radius:8px;padding:12px 14px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#3b82f6;font-family:var(--mono)">14,0g</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:2px">EC 2,00 · peso médio</div>
+      </div>
+      <div style="background:#1a0808;border:0.5px solid #ef4444;border-radius:8px;padding:12px 14px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#ef4444;font-family:var(--mono)">13,7g</div>
+        <div style="font-size:10px;color:#fca5a5;margin-top:2px">EC 2,50 · peso médio</div>
+      </div>
+    </div>
+
+    <!-- Conclusão equilibrada -->
+    <div style="margin-top:14px;padding:12px 14px;background:#111a24;border:0.5px solid #3b82f6;border-radius:8px;font-size:12px;color:#cbd5e1;line-height:1.6">
+      📊 <strong style="color:#60a5fa">Existe um leve trade-off no tamanho individual — mas a produtividade total se manteve.</strong>
+      O peso médio por fruto caiu de <strong>16,2g (EC 1,80)</strong> para <strong>13,7g (EC 2,50)</strong> — uma redução de ~15%.
+      <strong style="color:#4ade80">Porém o peso total colhido por colheita ficou estável</strong> (654g → 600g → 654g):
+      as plantas produziram <strong>mais frutos</strong> em EC alto (média 40 → 40 frutos/colheita), compensando o tamanho menor.
+      <br><br>
+      <span style="color:#fbbf24">⚠️ Cuidado com a leitura:</span> <span style="color:#94a3b8">o EC 2,50 coincide com o período de inverno (jun–jul) e plantas mais velhas —
+      fatores que também reduzem o tamanho, independente do EC. Não dá para isolar 100% o efeito do EC com os dados atuais.
+      Para conclusão robusta, seria preciso um teste controlado (mesma idade de planta, mesma época, variando só o EC).</span>
+      <br><br>
+      <strong style="color:#4ade80">Conclusão prática:</strong> até EC 2,50 <strong>não há perda de produtividade total</strong> — você ganhou +57% de Brix
+      sem sacrificar volume. O sinal de alerta seria se o peso total/colheita começasse a cair de forma consistente, o que ainda não aconteceu.
+    </div>
+  </div>
+
 </div>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -1667,6 +1705,63 @@ const BRIX_EVOLUCAO = [
   {col:21, data:'22/07', brix:9.2, n:3, min:7.5, max:11.0, ec:2.5},
 ];
 
+
+// ═══ PRODUTIVIDADE × EC — trade-off tamanho vs doçura ═══
+const PESO_EC = [
+  {col:1, data:'28/04', ec:1.8, n:51, med:12.2, total:621.1},
+  {col:2, data:'05/05', ec:2.0, n:50, med:12.9, total:647.0},
+  {col:3, data:'07/05', ec:2.0, n:14, med:10.7, total:149.7},
+  {col:4, data:'12/05', ec:2.0, n:48, med:10.9, total:525.5},
+  {col:5, data:'19/05', ec:2.0, n:32, med:18.9, total:603.2},
+  {col:6, data:'25/05', ec:1.8, n:34, med:20.2, total:688.0},
+  {col:7, data:'27/05', ec:2.5, n:37, med:19.1, total:708.2},
+  {col:8, data:'02/06', ec:2.0, n:34, med:13.6, total:463.0},
+  {col:9, data:'05/06', ec:2.0, n:64, med:16.0, total:1024.3},
+  {col:10, data:'08/06', ec:2.0, n:52, med:15.1, total:784.5},
+  {col:11, data:'11/06', ec:2.5, n:80, med:15.0, total:1197.6},
+  {col:12, data:'18/06', ec:2.5, n:101, med:14.7, total:1485.2},
+  {col:13, data:'22/06', ec:2.5, n:60, med:11.1, total:668.6},
+  {col:14, data:'25/06', ec:2.5, n:39, med:14.1, total:551.3},
+  {col:15, data:'30/06', ec:2.5, n:19, med:9.3, total:175.8},
+  {col:19, data:'17/07', ec:2.5, n:26, med:10.1, total:262.3},
+  {col:20, data:'20/07', ec:2.5, n:34, med:13.7, total:466.4},
+  {col:21, data:'22/07', ec:2.5, n:41, med:12.4, total:510.4},
+  {col:22, data:'27/07', ec:2.5, n:43, med:13.0, total:557.6},
+  {col:23, data:'29/07', ec:2.5, n:33, med:18.7, total:615.7},
+];
+
+function renderPesoEC() {
+  const ctx = document.getElementById('chartPesoEC')?.getContext('2d');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: PESO_EC.map(d=>d.col+'ª'),
+      datasets:[
+        {type:'bar', label:'Peso médio fruto (g)', data:PESO_EC.map(d=>d.med),
+          backgroundColor:PESO_EC.map(d=>d.ec===2.5?'rgba(239,68,68,.55)':d.ec===2.0?'rgba(59,130,246,.55)':'rgba(148,163,184,.55)'),
+          yAxisID:'y', order:2},
+        {type:'line', label:'EC vigente', data:PESO_EC.map(d=>d.ec),
+          borderColor:'rgba(245,158,11,.9)', backgroundColor:'transparent', borderDash:[6,3],
+          tension:0, pointRadius:0, stepped:true, yAxisID:'y2', order:1},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9}}},
+        y:{position:'left',grid:{color:C(29,45,66)},ticks:{color:C(100,116,139),font:{size:9},callback:v=>v+'g'},
+          min:0,max:22,title:{display:true,text:'Peso médio (g)',color:C(100,116,139),font:{size:10}}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#f59e0b',font:{size:9},callback:v=>v.toFixed(1)},
+          min:1.5,max:2.8,title:{display:true,text:'EC',color:'#f59e0b',font:{size:10}}}
+      },
+      plugins:{legend:{labels:{color:C(148,163,184),font:{size:10},boxWidth:12}},
+      tooltip:{backgroundColor:'#0f1824',titleColor:'#e8f0fe',bodyColor:'#94a3b8',
+        callbacks:{title:items=>{const d=PESO_EC[items[0].dataIndex];return d.col+'ª colheita · '+d.data;},
+        afterBody:items=>{const d=PESO_EC[items[0].dataIndex];return ['EC: '+d.ec,'Frutos: '+d.n,'Peso médio: '+d.med+'g','Peso total: '+d.total+'g'];}}}}
+    }
+  });
+}
+
 function renderBrixEC() {
   const ctx = document.getElementById('chartBrixEC')?.getContext('2d');
   if(!ctx) return;
@@ -1773,6 +1868,7 @@ renderColheitas23();
 renderMaiorFruto();
 renderECTimeline();
 renderBrixEC();
+renderPesoEC();
 </script>
 
 <!-- ═══════════════════════════════════════════════════ -->
