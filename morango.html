@@ -1640,11 +1640,11 @@ renderProjBandejas();
     <thead>
       <tr>
         <th>Rede</th>
-        <th>Referência preço gôndola</th>
-        <th>Gôndola conv. (R$)</th>
-        <th>Gôndola org. (R$)</th>
+        <th>Gôndola pesquisada (R$)</th>
         <th>Desc. comercial %</th>
-        <th>Nosso preço (R$)</th>
+        <th>Nosso preço entrada (R$)</th>
+        <th>Markup gôndola %</th>
+        <th>Gôndola sugerida (R$)</th>
         <th>Meta bandejas/mês</th>
         <th>Receita (R$)</th>
         <th>Capacidade %</th>
@@ -1653,7 +1653,7 @@ renderProjBandejas();
     <tbody id="vr-tbody"></tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="6">TOTAL</td>
+        <td colspan="6" style="text-align:left">TOTAL</td>
         <td id="vr-total-bdj">—</td>
         <td id="vr-total-rec">—</td>
         <td id="vr-total-pct">—</td>
@@ -1756,16 +1756,22 @@ function buildVrTable() {
   tbody.innerHTML = VR_REDES.map(r => {
     const gondola = g === 150 ? r.g150 : r.g200;
     const entrada = gondola * (1 - r.desc/100);
+    const markup  = r.desc; // markup default = mesmo % do desconto (markup sobre gôndola)
+    const gond_sug = entrada > 0 ? (entrada / (1 - markup/100)) : 0;
     return `<tr>
-      <td><strong>${r.nome}</strong></td>
-      <td style="font-size:10px;color:var(--muted)">
-        Conv: R$${gondola.toFixed(2)} · Org: R$${r.org250.toFixed(2)}/250g
+      <td>
+        <strong>${r.nome}</strong>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">Org 250g ref: R$${r.org250.toFixed(2)}</div>
       </td>
-      <td><input type="number" id="vr-gond-${r.id}" value="${gondola.toFixed(2)}" min="5" max="100" step="0.5" oninput="calcVarejo()" style="width:75px"></td>
-      <td style="color:#4ade80;font-size:11px">R$${r.org250.toFixed(2)}<br><span style="font-size:9px;color:var(--muted)">250g ref.</span></td>
-      <td><input type="number" id="vr-desc-${r.id}" value="${r.desc}" min="0" max="50" step="1" oninput="calcVarejo()" style="width:55px">%</td>
-      <td id="vr-entrada-${r.id}" style="color:var(--green);font-weight:600">R$${entrada.toFixed(2)}</td>
-      <td><input type="number" id="vr-meta-${r.id}" value="0" min="0" max="99999" step="50" oninput="calcVarejo()" style="width:75px"></td>
+      <td><input type="number" id="vr-gond-${r.id}" value="${gondola.toFixed(2)}" min="5" max="200" step="0.5" oninput="calcVarejo()" style="width:72px"></td>
+      <td><input type="number" id="vr-desc-${r.id}" value="${r.desc}" min="0" max="60" step="1" oninput="calcVarejo()" style="width:50px">%</td>
+      <td id="vr-entrada-${r.id}" style="color:var(--green);font-weight:600;font-family:var(--mono)">R$ ${entrada.toFixed(2)}</td>
+      <td>
+        <input type="number" id="vr-mkup-${r.id}" value="${markup}" min="0" max="80" step="1" oninput="calcVarejo()" style="width:50px">%
+        <div id="vr-gond-sug-${r.id}" style="font-size:9px;color:var(--muted);margin-top:2px">→ R$ ${gond_sug.toFixed(2)}</div>
+      </td>
+      <td id="vr-gond-calc-${r.id}" style="color:#f59e0b;font-weight:600;font-family:var(--mono)">R$ ${gond_sug.toFixed(2)}</td>
+      <td><input type="number" id="vr-meta-${r.id}" value="0" min="0" max="99999" step="50" oninput="calcVarejo()" style="width:72px"></td>
       <td id="vr-rec-${r.id}" style="color:var(--green);font-weight:600">R$ 0</td>
       <td id="vr-pct-${r.id}" style="color:var(--muted)">—</td>
     </tr>`;
@@ -1798,19 +1804,28 @@ function calcVarejo() {
   let totalBdj = 0, totalRec = 0, totalPesos = 0;
 
   VR_REDES.forEach(r => {
-    const gondEl   = document.getElementById(`vr-gond-${r.id}`);
-    const descEl   = document.getElementById(`vr-desc-${r.id}`);
-    const metaEl   = document.getElementById(`vr-meta-${r.id}`);
+    const gondEl  = document.getElementById(`vr-gond-${r.id}`);
+    const descEl  = document.getElementById(`vr-desc-${r.id}`);
+    const mkupEl  = document.getElementById(`vr-mkup-${r.id}`);
+    const metaEl  = document.getElementById(`vr-meta-${r.id}`);
     if (!gondEl) return;
 
     const gondola = +gondEl.value || 0;
     const desc    = +descEl.value || 0;
+    const mkup    = +mkupEl.value || 0;
     const meta    = +metaEl.value || 0;
-    const entrada = gondola * (1 - desc/100);
-    const rec     = meta * entrada;
-    const pct     = bdj_disp > 0 ? (meta/bdj_disp*100) : 0;
 
-    document.getElementById(`vr-entrada-${r.id}`).textContent = `R$ ${entrada.toFixed(2)}`;
+    // Nosso preço de entrada = gôndola pesquisada × (1 - desconto comercial)
+    const entrada = gondola * (1 - desc/100);
+    // Gôndola sugerida pelo markup: nosso preço ÷ (1 - markup%)
+    const gondSug = mkup < 100 ? entrada / (1 - mkup/100) : 0;
+
+    const rec = meta * entrada;
+    const pct = bdj_disp > 0 ? (meta/bdj_disp*100) : 0;
+
+    document.getElementById(`vr-entrada-${r.id}`).textContent   = `R$ ${entrada.toFixed(2)}`;
+    document.getElementById(`vr-gond-calc-${r.id}`).textContent = `R$ ${gondSug.toFixed(2)}`;
+    document.getElementById(`vr-gond-sug-${r.id}`).textContent  = `→ R$ ${gondSug.toFixed(2)}`;
     document.getElementById(`vr-rec-${r.id}`).textContent = meta > 0
       ? `R$ ${Math.round(rec).toLocaleString('pt-BR')}`
       : 'R$ 0';
