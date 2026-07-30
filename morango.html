@@ -1639,8 +1639,10 @@ renderProjBandejas();
   <table class="vr-table" id="vr-redes-table">
     <thead>
       <tr>
-        <th>Rede</th>
-        <th>Gôndola pesquisada (R$)</th>
+        <th>Rede · Referência real pesquisada</th>
+        <th>Preço real (gôndola)</th>
+        <th id="vr-th-prop">Proporcional</th>
+        <th>Seu preço de venda (R$)</th>
         <th>Desc. comercial %</th>
         <th>Nosso preço entrada (R$)</th>
         <th>Markup gôndola %</th>
@@ -1653,7 +1655,7 @@ renderProjBandejas();
     <tbody id="vr-tbody"></tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="6" style="text-align:left">TOTAL</td>
+        <td colspan="8" style="text-align:left">TOTAL</td>
         <td id="vr-total-bdj">—</td>
         <td id="vr-total-rec">—</td>
         <td id="vr-total-pct">—</td>
@@ -1790,15 +1792,18 @@ renderProjBandejas();
 // ═══════════════════════════════════════════════
 
 // Descontos reais do sistema Rentabilidade (Jan-Jul/26)
+// Preços reais pesquisados Jul/2026 nos sites das redes
+// ref_prod: produto de referência encontrado | ref_tam: tamanho da embalagem pesquisada | ref_preco: preço real confirmado
+// g150/g200: proporcional ao preço/kg do produto de referência (você define o que cobrar)
 const VR_REDES = [
-  {id:'stmarche', nome:'St. Marche',         desc:0,  g150:12.99, g200:14.98, org250:19.99},
-  {id:'gpa',      nome:'GPA / Pão de Açúcar',desc:21, g150:13.49, g200:15.99, org250:19.99},
-  {id:'carrefour',nome:'Carrefour',           desc:9,  g150:11.99, g200:13.99, org250:17.99},
-  {id:'hirota',   nome:'Hirota Food',         desc:10, g150:14.99, g200:17.99, org250:21.99},
-  {id:'zonasul',  nome:'Zona Sul',            desc:5,  g150:13.99, g200:15.99, org250:18.89},
-  {id:'sonda',    nome:'Sonda',               desc:7,  g150:11.99, g200:13.99, org250:16.99},
-  {id:'sams',     nome:"Sam's Club",          desc:10, g150:10.99, g200:12.99, org250:15.99},
-  {id:'mambo',    nome:'Mambo',               desc:10, g150:13.99, g200:16.99, org250:20.99},
+  {id:'stmarche', nome:'St. Marche',          desc:0,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:19.99},
+  {id:'gpa',      nome:'GPA / Pão de Açúcar', desc:21, ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:19.99},
+  {id:'carrefour',nome:'Carrefour',            desc:9,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:17.99},
+  {id:'hirota',   nome:'Hirota Food',          desc:10, ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:21.99},
+  {id:'zonasul',  nome:'Zona Sul',             desc:5,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:18.89},
+  {id:'sonda',    nome:'Sonda',                desc:7,  ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:null},
+  {id:'sams',     nome:"Sam's Club",           desc:10, ref_prod:'Morango convencional',   ref_tam:300, ref_preco:12.99},
+  {id:'mambo',    nome:'Mambo',                desc:10, ref_prod:'Morango Orgânico',       ref_tam:250, ref_preco:20.99},
 ];
 
 let _vrScenario = 150; // bandeja ativa
@@ -1807,6 +1812,8 @@ function setVrScenario(g, btn) {
   _vrScenario = g;
   document.querySelectorAll('.vr-scenario-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  const thProp = document.getElementById('vr-th-prop');
+  if(thProp) thProp.textContent = `Proporcional ${g}g`;
   buildVrTable();
   calcVarejo();
 }
@@ -1815,23 +1822,41 @@ function buildVrTable() {
   const g = _vrScenario;
   const tbody = document.getElementById('vr-tbody');
   tbody.innerHTML = VR_REDES.map(r => {
-    const gondola = g === 150 ? r.g150 : r.g200;
-    const entrada = gondola * (1 - r.desc/100);
-    const markup  = r.desc; // markup default = mesmo % do desconto (markup sobre gôndola)
-    const gond_sug = entrada > 0 ? (entrada / (1 - markup/100)) : 0;
+    // Preço/kg baseado no produto de referência real
+    const rkg = r.ref_preco ? r.ref_preco / (r.ref_tam / 1000) : null;
+    // Proporcional ao tamanho do cenário atual
+    const gondProp = rkg ? rkg * (g / 1000) : null;
+    const gondDefault = gondProp ? gondProp.toFixed(2) : '';
+    const semDado = !r.ref_preco;
+    const refStr = r.ref_preco
+      ? `${r.ref_prod} ${r.ref_tam}g = R$${r.ref_preco.toFixed(2)} → R$${rkg.toFixed(0)}/kg`
+      : `${r.ref_prod} — sem dado pesquisado`;
+
     return `<tr>
       <td>
         <strong>${r.nome}</strong>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Org 250g ref: R$${r.org250.toFixed(2)}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">${refStr}</div>
       </td>
-      <td><input type="number" id="vr-gond-${r.id}" value="${gondola.toFixed(2)}" min="5" max="200" step="0.5" oninput="calcVarejo()" style="width:72px"></td>
+      <td style="text-align:center">
+        ${r.ref_preco
+          ? `<span style="font-family:var(--mono);font-size:11px;color:#94a3b8">R$${r.ref_preco.toFixed(2)} / ${r.ref_tam}g</span>`
+          : `<span style="color:#475569;font-size:11px">sem dado</span>`}
+        <div style="font-size:9px;color:#475569;margin-top:2px">${rkg ? 'R$'+rkg.toFixed(0)+'/kg' : ''}</div>
+      </td>
+      <td style="text-align:center">
+        ${gondProp
+          ? `<span style="font-family:var(--mono);font-size:12px;color:var(--green);font-weight:600">R$ ${gondProp.toFixed(2)}</span>
+             <div style="font-size:9px;color:#475569;margin-top:1px">proporcional ${g}g</div>`
+          : `<span style="color:#475569;font-size:11px">—</span>`}
+      </td>
+      <td><input type="number" id="vr-gond-${r.id}" value="${gondDefault}" placeholder="digite" min="5" max="200" step="0.5" oninput="calcVarejo()" style="width:72px"></td>
       <td><input type="number" id="vr-desc-${r.id}" value="${r.desc}" min="0" max="60" step="1" oninput="calcVarejo()" style="width:50px">%</td>
-      <td id="vr-entrada-${r.id}" style="color:var(--green);font-weight:600;font-family:var(--mono)">R$ ${entrada.toFixed(2)}</td>
+      <td id="vr-entrada-${r.id}" style="color:var(--green);font-weight:600;font-family:var(--mono)">—</td>
       <td>
-        <input type="number" id="vr-mkup-${r.id}" value="${markup}" min="0" max="80" step="1" oninput="calcVarejo()" style="width:50px">%
-        <div id="vr-gond-sug-${r.id}" style="font-size:9px;color:var(--muted);margin-top:2px">→ R$ ${gond_sug.toFixed(2)}</div>
+        <input type="number" id="vr-mkup-${r.id}" value="${r.desc}" min="0" max="80" step="1" oninput="calcVarejo()" style="width:50px">%
+        <div id="vr-gond-sug-${r.id}" style="font-size:9px;color:var(--muted);margin-top:2px"></div>
       </td>
-      <td id="vr-gond-calc-${r.id}" style="color:#f59e0b;font-weight:600;font-family:var(--mono)">R$ ${gond_sug.toFixed(2)}</td>
+      <td id="vr-gond-calc-${r.id}" style="color:#f59e0b;font-weight:600;font-family:var(--mono)">—</td>
       <td><input type="number" id="vr-meta-${r.id}" value="0" min="0" max="99999" step="50" oninput="calcVarejo()" style="width:72px"></td>
       <td id="vr-rec-${r.id}" style="color:var(--green);font-weight:600">R$ 0</td>
       <td id="vr-pct-${r.id}" style="color:var(--muted)">—</td>
