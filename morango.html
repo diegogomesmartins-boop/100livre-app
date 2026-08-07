@@ -422,6 +422,60 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     Configuração atual: substrato 50/50 · pH 5,8-5,9 · EC 2,50 · ciclo contínuo.
   </div>
 
+  <!-- ═══ ACOMPANHAMENTO REAL — por torre/bandeja (início 04/08/2026) ═══ -->
+  <div class="card" style="margin-bottom:14px;border:0.5px solid var(--green);">
+    <div class="section-lbl" style="color:var(--green);">🍓 Acompanhamento Real — Colheitas & Medições Ipiranga</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;">
+      Controle por <b>bandeja</b> (não planta a planta como Osasco). Torres 1–2: densidade padrão Osasco ·
+      <b>Torre 5: adensada</b> — 16 vasos/bandeja × 4 plantas = <b>64 plantas/bandeja</b>, colheita por vaso.
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr style="color:var(--muted2);font-size:10px;text-transform:uppercase;">
+          <th style="text-align:left;padding:5px 8px;">Data</th><th style="text-align:left;padding:5px 8px;">Torre · Bandeja</th>
+          <th style="text-align:right;padding:5px 8px;">Peso</th><th style="text-align:right;padding:5px 8px;">Ø Polar</th>
+          <th style="text-align:right;padding:5px 8px;">Ø Equat.</th><th style="text-align:right;padding:5px 8px;">Brix</th>
+          <th style="text-align:left;padding:5px 8px;">Obs</th>
+        </tr></thead>
+        <tbody id="ipi-real-tbody"></tbody>
+      </table>
+    </div>
+    <div id="ipi-real-insight" style="margin-top:10px;padding:9px 12px;background:#0a1f12;border-radius:6px;font-size:11px;color:#4ade80;"></div>
+  </div>
+  <script>
+  // Registros reais do Ipiranga — adicionar aqui a cada envio do campo.
+  const IPIRANGA_REAL=[
+    {data:'21/07',torre:'—',bandeja:'—',peso:null,dp:null,de:null,brix:5.5,obs:'1ª colheita — total 560g (registro agregado)'},
+    {data:'04/08',torre:1,bandeja:'A',peso:14,dp:4.5,de:3,brix:5.5,obs:'vermelho/firme'},
+    {data:'04/08',torre:2,bandeja:'A',peso:24,dp:5,de:4,brix:6.5,obs:'vermelho/firme'},
+    {data:'04/08',torre:5,bandeja:'A',peso:9,dp:3,de:3,brix:6.0,obs:'vermelho/firme'},
+    {data:'04/08',torre:5,bandeja:'B',peso:11,dp:3,de:4,brix:5.0,obs:'esbranquiçado/firme'},
+  ];
+  (function(){
+    const tb=document.getElementById('ipi-real-tbody');
+    if(!tb)return;
+    tb.innerHTML=IPIRANGA_REAL.map(r=>{
+      const alerta=/esbranq/i.test(r.obs||'');
+      return '<tr style="border-top:1px solid var(--border);'+(alerta?'background:rgba(239,159,39,.07);':'')+'">'
+        +'<td style="padding:5px 8px;font-family:var(--mono);">'+r.data+'</td>'
+        +'<td style="padding:5px 8px;">'+(r.torre==='—'?'—':('T'+r.torre+' · Bdj '+r.bandeja))+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:var(--mono);">'+(r.peso!=null?r.peso+'g':'—')+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:var(--mono);">'+(r.dp!=null?r.dp+'cm':'—')+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:var(--mono);">'+(r.de!=null?r.de+'cm':'—')+'</td>'
+        +'<td style="padding:5px 8px;text-align:right;font-family:var(--mono);color:'+((r.brix||0)>=6?'#4ade80':'#f59e0b')+';">'+(r.brix!=null?r.brix.toFixed(1)+'°':'—')+'</td>'
+        +'<td style="padding:5px 8px;color:'+(alerta?'#f59e0b':'var(--muted)')+';">'+(r.obs||'')+'</td></tr>';
+    }).join('');
+    const am=IPIRANGA_REAL.filter(r=>r.peso!=null);
+    const t12=am.filter(r=>r.torre===1||r.torre===2), t5=am.filter(r=>r.torre===5);
+    const med=a=>a.length?(a.reduce((s,r)=>s+r.peso,0)/a.length).toFixed(1):'—';
+    const medB=a=>a.length?(a.reduce((s,r)=>s+r.brix,0)/a.length).toFixed(1):'—';
+    document.getElementById('ipi-real-insight').innerHTML=
+      '📌 <b>Leitura inicial (04/08):</b> Torres padrão (T1–T2): peso médio <b>'+med(t12)+'g</b> · Brix '+medB(t12)+'° | '
+      +'Torre 5 adensada: <b>'+med(t5)+'g</b> · Brix '+medB(t5)+'° — frutos menores no adensamento (esperado); '
+      +'doçura comparável. Amostra pequena (n=4) — acompanhar nas próximas medições. Paralelo com Osasco: 26ª colheita lá teve 15,2g médio · Brix 7,3°.';
+  })();
+  </script>
+
   <div class="main-aside">
     <!-- PROJEÇÃO PRINCIPAL -->
     <div>
